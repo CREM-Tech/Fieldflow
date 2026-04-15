@@ -789,40 +789,91 @@ html, body { height: 100%; overflow: hidden; }
 <body>
 
 <!-- ── LOGIN SCREEN ──────────────────────────────────────── -->
-<div id="login-screen" style="display:none;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F3F5FA;padding:20px">
+<div id="login-screen" style="display:none;min-height:100vh;align-items:center;justify-content:center;background:#F3F5FA;padding:20px">
   <div style="background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;border:1px solid #E4E7EF;box-shadow:0 4px 24px rgba(0,0,0,.07)">
     <div style="width:44px;height:44px;border-radius:12px;background:#1D4ED8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-bottom:20px">FF</div>
     <div style="font-size:22px;font-weight:600;color:#0E1828;margin-bottom:8px">FieldFlow</div>
 
-    <div id="login-form-wrap">
-      <p style="font-size:13px;color:#6B7280;margin-bottom:24px;line-height:1.5">Enter your email to sign in. You must be authorized by a superintendent.</p>
+    <!-- STATE 1: Sign in with email + password -->
+    <div id="auth-signin">
+      <p style="font-size:13px;color:#6B7280;margin-bottom:24px;line-height:1.5">Sign in to your account.</p>
       <div style="display:flex;flex-direction:column;gap:8px">
         <label style="font-size:12px;font-weight:500;color:#455268">Email address</label>
-        <input id="login-email" type="email" placeholder="you@crem-inc.com" autofocus
-          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;color:#0E1828;outline:none">
-        <div id="login-error" style="display:none;font-size:12px;color:#DC2626;padding:8px 10px;background:#FEF2F2;border-radius:6px"></div>
-        <button id="login-btn" onclick="handleLogin()"
+        <input id="si-email" type="email" placeholder="you@crem-inc.com"
+          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;outline:none">
+        <label style="font-size:12px;font-weight:500;color:#455268;margin-top:4px">Password</label>
+        <input id="si-password" type="password" placeholder="Your password"
+          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;outline:none">
+        <div id="si-error" style="display:none;font-size:12px;color:#DC2626;padding:8px 10px;background:#FEF2F2;border-radius:6px"></div>
+        <button id="si-btn" onclick="handleSignIn()"
           style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px">
-          Send sign-in link
+          Sign in
+        </button>
+        <button onclick="showAuthState('forgot')"
+          style="font-size:12px;color:#1D4ED8;background:none;border:none;cursor:pointer;text-align:center;margin-top:2px">
+          Forgot password?
         </button>
       </div>
-      <p style="font-size:12px;color:#9CA3AF;margin-top:28px;padding-top:20px;border-top:1px solid #E4E7EF;text-align:center;line-height:1.5">
-        Need access? Contact your superintendent to be added.
+      <p style="font-size:12px;color:#9CA3AF;margin-top:24px;padding-top:20px;border-top:1px solid #E4E7EF;text-align:center;line-height:1.5">
+        First time? Ask your superintendent to add your email, then use <strong>Forgot password</strong> to set one.
       </p>
     </div>
 
-    <div id="login-sent-wrap" style="display:none;text-align:center">
+    <!-- STATE 2: Forgot / set password — checks allowlist first -->
+    <div id="auth-forgot" style="display:none">
+      <p style="font-size:13px;color:#6B7280;margin-bottom:24px;line-height:1.5">
+        Enter your email. If you're authorized, we'll send you a link to set your password.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="font-size:12px;font-weight:500;color:#455268">Email address</label>
+        <input id="fp-email" type="email" placeholder="you@crem-inc.com"
+          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;outline:none">
+        <div id="fp-error" style="display:none;font-size:12px;color:#DC2626;padding:8px 10px;background:#FEF2F2;border-radius:6px"></div>
+        <button id="fp-btn" onclick="handleForgot()"
+          style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px">
+          Send reset link
+        </button>
+        <button onclick="showAuthState('signin')"
+          style="font-size:12px;color:#6B7280;background:none;border:none;cursor:pointer;text-align:center">
+          ← Back to sign in
+        </button>
+      </div>
+    </div>
+
+    <!-- STATE 3: Email sent confirmation -->
+    <div id="auth-sent" style="display:none;text-align:center">
       <div style="font-size:40px;margin-bottom:12px">📧</div>
       <div style="font-size:16px;font-weight:600;margin-bottom:8px">Check your email</div>
-      <p style="font-size:13px;color:#6B7280;line-height:1.5">
-        We sent a sign-in link to <strong id="login-sent-email"></strong>.<br>
-        Click it to access FieldFlow — expires in 1 hour.
+      <p style="font-size:13px;color:#6B7280;line-height:1.6">
+        We sent a password setup link to<br><strong id="auth-sent-email"></strong>.<br><br>
+        Click the link in the email to set your password and access FieldFlow.
       </p>
-      <button onclick="document.getElementById('login-sent-wrap').style.display='none';document.getElementById('login-form-wrap').style.display='block'"
-        style="margin-top:16px;font-size:12px;color:#1D4ED8;background:none;border:none;cursor:pointer;text-decoration:underline">
-        Try a different email
+      <button onclick="showAuthState('signin')"
+        style="margin-top:20px;font-size:12px;color:#1D4ED8;background:none;border:none;cursor:pointer;text-decoration:underline">
+        ← Back to sign in
       </button>
     </div>
+
+    <!-- STATE 4: Set new password (after clicking email link) -->
+    <div id="auth-setpw" style="display:none">
+      <p style="font-size:13px;color:#6B7280;margin-bottom:24px;line-height:1.5">
+        Choose a password for your FieldFlow account.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="font-size:12px;font-weight:500;color:#455268">New password</label>
+        <input id="sp-password" type="password" placeholder="At least 8 characters"
+          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;outline:none">
+        <label style="font-size:12px;font-weight:500;color:#455268;margin-top:4px">Confirm password</label>
+        <input id="sp-confirm" type="password" placeholder="Same password again"
+          style="padding:10px 12px;border-radius:8px;border:1px solid #CBD2DF;font-size:14px;font-family:inherit;outline:none">
+        <div id="sp-error" style="display:none;font-size:12px;color:#DC2626;padding:8px 10px;background:#FEF2F2;border-radius:6px"></div>
+        <button id="sp-btn" onclick="handleSetPassword()"
+          style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px">
+          Set password &amp; sign in
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1696,67 +1747,127 @@ html, body { height: 100%; overflow: hidden; }
 
 <script>
 // ── Supabase Auth ─────────────────────────────────────────────
-// Replace these two values with your real keys from:
-// Supabase → Project Settings → API
 const SUPABASE_URL      = 'https://rnskwlgnnphjlzwasgcr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuc2t3bGdubnBoamx6d2FzZ2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzA0NzksImV4cCI6MjA5MTg0NjQ3OX0.K0CSasO2uVr7DuECLf5-ybJoezsVAf3Yo3dZEG9N8lk';
 
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Check session on load — show login or app accordingly
+// ── State machine for login screen ────────────────────────────
+function showAuthState(state) {
+  ['signin','forgot','sent','setpw'].forEach(s => {
+    const el = document.getElementById('auth-' + s);
+    if (el) el.style.display = s === state ? 'block' : 'none';
+  });
+  // Show the login screen itself
+  const ls = document.getElementById('login-screen');
+  if (ls) ls.style.display = 'flex';
+  document.getElementById('app-wrap').style.display = 'none';
+}
+
+function showLogin() { showAuthState('signin'); }
+
+// ── Session check on load ─────────────────────────────────────
 async function checkSession() {
-  // Handle magic link callback (token in URL hash)
-  if (window.location.hash.includes('access_token')) {
-    const { data: { session }, error } = await _sb.auth.getSession();
-    if (session) {
-      window.history.replaceState(null, '', window.location.pathname);
-      showApp(session);
-      return;
-    }
+  const hash = window.location.hash;
+
+  // Supabase puts tokens in the URL hash after password reset link click
+  if (hash.includes('type=recovery') || hash.includes('type=signup')) {
+    // Let onAuthStateChange handle it — it fires PASSWORD_RECOVERY event
+    return;
   }
 
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
-    showApp(session);
+    await verifyAndShowApp(session);
   } else {
     showLogin();
   }
 }
 
-function showLogin() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app-wrap').style.display     = 'none';
+// ── Check allowlist then show app ─────────────────────────────
+async function verifyAndShowApp(session) {
+  const email = session.user.email;
+
+  // Check allowed_users table — this is the gate
+  const { data: allowed, error } = await _sb
+    .from('allowed_users')
+    .select('name, role, active')
+    .ilike('email', email)
+    .single();
+
+  if (error || !allowed || !allowed.active) {
+    // Email not in allowlist — sign them out immediately
+    await _sb.auth.signOut();
+    const errEl = document.getElementById('si-error');
+    if (errEl) {
+      errEl.textContent   = 'Your email is not authorized for FieldFlow. Contact your superintendent.';
+      errEl.style.display = 'block';
+    }
+    showLogin();
+    return;
+  }
+
+  showApp(session, allowed);
 }
 
-function showApp(session) {
+function showApp(session, userData) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-wrap').style.display     = 'block';
 
-  // Populate topbar
   const email = session.user.email;
-  document.getElementById('topbar-email').textContent = email;
+  const name  = userData?.name || email;
+  const role  = userData?.role || '';
 
-  // Get role from allowed_users via Supabase directly
-  _sb.from('allowed_users')
-    .select('name, role')
-    .ilike('email', email)
-    .single()
-    .then(({ data }) => {
-      if (data) {
-        document.getElementById('topbar-role').textContent = data.role;
-        // Update sidebar footer
-        const sbName = document.querySelector('.user-name');
-        const sbRole = document.querySelector('.user-role');
-        if (sbName) sbName.textContent = data.name;
-        if (sbRole) sbRole.textContent = data.role.charAt(0).toUpperCase() + data.role.slice(1);
-      }
-    });
+  document.getElementById('topbar-email').textContent = email;
+  document.getElementById('topbar-role').textContent  = role;
+
+  const sbName = document.querySelector('.user-name');
+  const sbRole = document.querySelector('.user-role');
+  const sbAv   = document.querySelector('.user-av');
+  if (sbName) sbName.textContent = name;
+  if (sbRole) sbRole.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  if (sbAv)   sbAv.textContent   = (name.split(' ')[0]?.[0] || '') + (name.split(' ')[1]?.[0] || '');
 }
 
-async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const errEl = document.getElementById('login-error');
-  const btn   = document.getElementById('login-btn');
+// ── Sign in with email + password ────────────────────────────
+async function handleSignIn() {
+  const email    = document.getElementById('si-email').value.trim().toLowerCase();
+  const password = document.getElementById('si-password').value;
+  const errEl    = document.getElementById('si-error');
+  const btn      = document.getElementById('si-btn');
+
+  errEl.style.display = 'none';
+
+  if (!email || !password) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Signing in…';
+  btn.disabled    = true;
+
+  const { data, error } = await _sb.auth.signInWithPassword({ email, password });
+
+  btn.textContent = 'Sign in';
+  btn.disabled    = false;
+
+  if (error) {
+    errEl.textContent   = 'Incorrect email or password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  await verifyAndShowApp(data.session);
+}
+
+// ── Forgot / reset password ───────────────────────────────────
+// First checks the allowlist — if email not there, shows generic message
+// (don't reveal whether the email exists or not)
+async function handleForgot() {
+  const email = document.getElementById('fp-email').value.trim().toLowerCase();
+  const errEl = document.getElementById('fp-error');
+  const btn   = document.getElementById('fp-btn');
 
   errEl.style.display = 'none';
 
@@ -1766,42 +1877,101 @@ async function handleLogin() {
     return;
   }
 
-  btn.textContent  = 'Sending…';
-  btn.disabled     = true;
+  btn.textContent = 'Sending…';
+  btn.disabled    = true;
 
-  const { error } = await _sb.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: window.location.origin + window.location.pathname,
-    },
+  // Check allowlist first
+  const { data: allowed } = await _sb
+    .from('allowed_users')
+    .select('email, active')
+    .ilike('email', email)
+    .single();
+
+  if (!allowed || !allowed.active) {
+    // Not authorized — show same message as success (don't leak info)
+    document.getElementById('auth-sent-email').textContent = email;
+    showAuthState('sent');
+    btn.textContent = 'Send reset link';
+    btn.disabled    = false;
+    return;
+  }
+
+  // Send Supabase password reset email
+  const { error } = await _sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname,
   });
 
-  btn.textContent = 'Send sign-in link';
+  btn.textContent = 'Send reset link';
   btn.disabled    = false;
 
-  if (error) {
-    errEl.textContent   = 'Could not send link. Check your email or contact your superintendent.';
+  document.getElementById('auth-sent-email').textContent = email;
+  showAuthState('sent');
+}
+
+// ── Set new password (after clicking reset link) ──────────────
+async function handleSetPassword() {
+  const pw1   = document.getElementById('sp-password').value;
+  const pw2   = document.getElementById('sp-confirm').value;
+  const errEl = document.getElementById('sp-error');
+  const btn   = document.getElementById('sp-btn');
+
+  errEl.style.display = 'none';
+
+  if (pw1.length < 8) {
+    errEl.textContent   = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pw1 !== pw2) {
+    errEl.textContent   = 'Passwords do not match.';
     errEl.style.display = 'block';
     return;
   }
 
-  document.getElementById('login-sent-email').textContent = email;
-  document.getElementById('login-form-wrap').style.display = 'none';
-  document.getElementById('login-sent-wrap').style.display = 'block';
+  btn.textContent = 'Saving…';
+  btn.disabled    = true;
+
+  const { data, error } = await _sb.auth.updateUser({ password: pw1 });
+
+  btn.textContent = 'Set password & sign in';
+  btn.disabled    = false;
+
+  if (error) {
+    errEl.textContent   = 'Could not set password. Try the reset link again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Password set — get session and go straight to app
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) await verifyAndShowApp(session);
 }
 
+// ── Sign out ──────────────────────────────────────────────────
 async function handleSignOut() {
   await _sb.auth.signOut();
   showLogin();
 }
 
-// Listen for auth changes (catches magic link redirect)
-_sb.auth.onAuthStateChange((_event, session) => {
-  if (session) showApp(session);
-  else          showLogin();
+// ── Auth state listener ───────────────────────────────────────
+// Catches the PASSWORD_RECOVERY event when user clicks reset link
+_sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    // Show set-password form — user clicked the email link
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-wrap').style.display     = 'none';
+    showAuthState('setpw');
+  } else if (event === 'SIGNED_IN' && session) {
+    // Only auto-show app if we're NOT in set-password state
+    const setpw = document.getElementById('auth-setpw');
+    if (setpw && setpw.style.display === 'block') return;
+    await verifyAndShowApp(session);
+  } else if (event === 'SIGNED_OUT') {
+    showLogin();
+  }
 });
 
-// Kick off session check
+// Kick off
 checkSession();
 
 // ── Security: HTML escape + safe data registry ─────────────────
