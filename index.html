@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
 <title>FieldFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!-- Supabase JS for auth -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <style>
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3986,15 +3985,6 @@ function closeDayPopover() {
   activeDayPopover = null;
 }
 
-// Authorized users — in production this lives in Supabase public.users table
-// Email is the source of truth for who can sign in via Supabase Auth
-const ADMIN_USERS = [
-  { name:'Zech S.',        email:'zech@cremflow.com',    role:'superintendent', active: true },
-  { name:'Zech (personal)',email:'zech@gmail.com',       role:'superintendent', active: true },
-  { name:'Mike Munson',    email:'mmunson@cremflow.com', role:'foreman',        active: true },
-  { name:'Chayce Sorbel',  email:'csorbel@cremflow.com', role:'foreman',        active: true },
-];
-
 const ROLE_LABELS = {
   superintendent: 'Superintendent',
   foreman:        'GF / Foreman',
@@ -4039,10 +4029,29 @@ function renderAdminNotifs() {
     </div>`).join('');
 }
 
-function renderAdminUserList() {
+// ── Admin user list — reads live from Supabase allowed_users ──
+async function renderAdminUserList() {
   const list = document.getElementById('admin-user-list');
   if (!list) return;
-  list.innerHTML = ADMIN_USERS.map((u, idx) => `
+
+  list.innerHTML = `<div style="color:var(--ff-tx4);font-size:12px;padding:12px 0">Loading…</div>`;
+
+  const { data: users, error } = await _sb
+    .from('allowed_users')
+    .select('id, email, name, role, active, created_at')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    list.innerHTML = `<div style="color:var(--ff-red);font-size:12px;padding:12px 0">Failed to load users: ${esc(error.message)}</div>`;
+    return;
+  }
+
+  if (!users || users.length === 0) {
+    list.innerHTML = `<div style="text-align:center;color:var(--ff-tx4);font-size:12px;padding:16px">No authorized users yet</div>`;
+    return;
+  }
+
+  list.innerHTML = users.map(u => `
     <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--ff-bdr)">
       <div style="width:32px;height:32px;border-radius:50%;background:var(--ff-blue-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--ff-blue);flex-shrink:0">
         ${esc((u.name.split(' ')[0]?.[0]||'') + (u.name.split(' ')[1]?.[0]||''))}
@@ -4056,17 +4065,20 @@ function renderAdminUserList() {
         <div style="width:7px;height:7px;border-radius:50%;background:${u.active ? '#10B981' : '#9CA3AF'}"></div>
         <span style="font-size:10px;color:var(--ff-tx3)">${u.active ? 'Active' : 'Inactive'}</span>
       </div>
-      <button data-remove-idx="${idx}" style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:14px;color:var(--ff-tx4);line-height:1" title="Remove user">×</button>
-    </div>`).join('') +
-    (ADMIN_USERS.length === 0 ? '<div style="text-align:center;color:var(--ff-tx4);font-size:12px;padding:16px">No authorized users yet</div>' : '');
+      <button data-remove-id="${esc(u.id)}" data-remove-name="${esc(u.name)}" data-remove-email="${esc(u.email)}"
+        style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:14px;color:var(--ff-tx4);line-height:1" title="Remove user">×</button>
+    </div>`).join('');
 
-  // Delegation for remove buttons
-  list.querySelectorAll('[data-remove-idx]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.removeIdx, 10);
-      if (!Number.isFinite(idx)) return;
-      if (!confirm(`Remove ${ADMIN_USERS[idx]?.name} (${ADMIN_USERS[idx]?.email})?`)) return;
-      ADMIN_USERS.splice(idx, 1);
+  // Remove buttons — write to Supabase
+  list.querySelectorAll('[data-remove-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id    = btn.dataset.removeId;
+      const name  = btn.dataset.removeName;
+      const email = btn.dataset.removeEmail;
+      if (!confirm(`Remove ${name} (${email}) from authorized users?`)) return;
+      btn.textContent = '…';
+      const { error } = await _sb.from('allowed_users').delete().eq('id', id);
+      if (error) { alert('Failed to remove: ' + error.message); btn.textContent = '×'; return; }
       renderAdminUserList();
     });
   });
@@ -4085,16 +4097,29 @@ function adminCancelAdd() {
   });
 }
 
-function adminSaveUser() {
+async function adminSaveUser() {
   const name  = document.getElementById('admin-new-name')?.value.trim() || '';
   const email = document.getElementById('admin-new-email')?.value.trim().toLowerCase() || '';
   const role  = document.getElementById('admin-new-role')?.value || 'foreman';
+  const btn   = document.querySelector('[onclick="adminSaveUser()"]');
 
-  if (!name)  { alert('Please enter a name.');          return; }
+  if (!name)  { alert('Please enter a name.'); return; }
   if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
-  if (ADMIN_USERS.find(u => u.email === email)) { alert('That email is already authorized.'); return; }
 
-  ADMIN_USERS.push({ name, email, role, active: true });
+  if (btn) { btn.textContent = 'Adding…'; btn.disabled = true; }
+
+  const { error } = await _sb
+    .from('allowed_users')
+    .insert({ email, name, role, active: true });
+
+  if (btn) { btn.textContent = 'Add user'; btn.disabled = false; }
+
+  if (error) {
+    if (error.code === '23505') { alert('That email is already authorized.'); }
+    else { alert('Failed to add user: ' + error.message); }
+    return;
+  }
+
   adminCancelAdd();
   renderAdminUserList();
 }
