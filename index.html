@@ -4059,7 +4059,13 @@ function rptTab(tab) {
 // ── Supabase Auth ─────────────────────────────────────────────
 const _SBURL = 'https://rnskwlgnnphjlzwasgcr.supabase.co';
 const _SBKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuc2t3bGdubnBoamx6d2FzZ2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzA0NzksImV4cCI6MjA5MTg0NjQ3OX0.K0CSasO2uVr7DuECLf5-ybJoezsVAf3Yo3dZEG9N8lk';
-const _sb = supabase.createClient(_SBURL, _SBKEY);
+const _sb = supabase.createClient(_SBURL, _SBKEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: true,
+  }
+});
 
 function ffShowForm(name) {
   ['signin','forgot','sent','setpw'].forEach(f => {
