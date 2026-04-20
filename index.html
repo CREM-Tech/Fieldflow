@@ -18,10 +18,10 @@ html, body { height: 100%; overflow: hidden; }
 
 /* ── Design tokens ─────────────────────────────────────── */
 :root {
-  --ff-blue:        #1D4ED8;
-  --ff-blue-h:      #1A44C8;
-  --ff-blue-l:      #3B82F6;
-  --ff-blue-dim:    #DBEAFE;
+  --ff-blue:        #EAB308;
+  --ff-blue-h:      #CA9A00;
+  --ff-blue-l:      #FACC15;
+  --ff-blue-dim:    #FEF3C7;
   --ff-bg:          #F3F5FA;
   --ff-surface:     #FFFFFF;
   --ff-bdr:         #E4E7EF;
@@ -40,8 +40,8 @@ html, body { height: 100%; overflow: hidden; }
   --school-tx:      #78350F;
   --conf-bg:        #FEE2E2;
   --conf-tx:        #7F1D1D;
-  --hol-bg:         #EFF6FF;
-  --hol-tx:         #1E40AF;
+  --hol-bg:         #FFFBEB;
+  --hol-tx:         #A16207;
   --vac-bg:         #ECFDF5;
   --vac-tx:         #064E3B;
   --var-bg:         #EDE9FE;
@@ -116,7 +116,7 @@ html, body { height: 100%; overflow: hidden; }
   user-select: none;
 }
 .nav-item:hover { background: var(--ff-bg); color: var(--ff-tx); }
-.nav-item.active { background: #EFF6FF; color: var(--ff-blue); font-weight: 500; }
+.nav-item.active { background: #FFFBEB; color: var(--ff-blue); font-weight: 500; }
 .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.65; }
 .nav-item.active svg { opacity: 1; }
 
@@ -232,7 +232,7 @@ html, body { height: 100%; overflow: hidden; }
   border-radius: 4px; font-size: 9px; font-weight: 500;
   white-space: nowrap; cursor: default;
 }
-.t-job     { background: var(--ff-blue-dim);  color: #1E40AF; }
+.t-job     { background: var(--ff-blue-dim);  color: #A16207; }
 .t-school  { background: var(--school-bg);    color: var(--school-tx); }
 .t-conf    { background: var(--conf-bg);       color: var(--conf-tx); }
 .t-hol     { background: var(--hol-bg);        color: var(--hol-tx); }
@@ -360,8 +360,8 @@ html, body { height: 100%; overflow: hidden; }
 .sched-tbl th.stick { text-align: left; position: sticky; left: 0; z-index: 3; background: var(--ff-bg); }
 .sched-tbl td { padding: 5px 6px; border-bottom: 1px solid var(--ff-bdr); border-right: 1px solid var(--ff-bdr); }
 .sched-tbl td.stick { position: sticky; left: 0; background: var(--ff-surface); z-index: 1; }
-.sched-tbl tr:hover td { background: #F7FAFF; }
-.sched-tbl tr:hover td.stick { background: #F7FAFF; }
+.sched-tbl tr:hover td { background: #FFFDF5; }
+.sched-tbl tr:hover td.stick { background: #FFFDF5; }
 
 /* ── Day-edit popover ───────────────────────────────────────── */
 .sched-cell-wrap {
@@ -405,7 +405,7 @@ html, body { height: 100%; overflow: hidden; }
 .day-popover-opt.current { background: var(--ff-blue-dim); color: var(--ff-blue); font-weight: 500; }
 .day-popover-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .wk-hdr  { background: var(--ff-blue) !important; color: rgba(255,255,255,.92) !important; }
-.wk-hdr2 { background: #1E40AF !important; color: rgba(255,255,255,.92) !important; }
+.wk-hdr2 { background: #A16207 !important; color: rgba(255,255,255,.92) !important; }
 .emp-name { font-size: 11px; font-weight: 500; white-space: nowrap; }
 .emp-role { font-size: 9px; color: var(--ff-tx3); }
 .wsep { border-right: 2px solid var(--ff-bdr-m) !important; }
@@ -423,7 +423,7 @@ html, body { height: 100%; overflow: hidden; }
 .roster-tbl tr:hover td { background: var(--ff-bg); }
 .role-badge { display: inline-flex; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 500; }
 .role-gf { background: #FEF3C7; color: #78350F; }
-.role-fm { background: var(--ff-blue-dim); color: #1E40AF; }
+.role-fm { background: var(--ff-blue-dim); color: #A16207; }
 .role-jn { background: #F0FDF4; color: #14532D; }
 .role-mh { background: #F5F3FF; color: #4C1D95; }
 .role-ap { background: #FFF7ED; color: #7C2D12; }
@@ -455,7 +455,7 @@ html, body { height: 100%; overflow: hidden; }
   display: flex; align-items: center; gap: 12px;
 }
 .req-status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.req-dot-pending  { background: #3B82F6; }
+.req-dot-pending  { background: #FACC15; }
 .req-dot-approved { background: #10B981; }
 .req-dot-denied   { background: #EF4444; }
 .req-card-body  { flex: 1; }
@@ -538,7 +538,7 @@ html, body { height: 100%; overflow: hidden; }
   position: relative;
 }
 .metric-btn:hover { border-color: var(--ff-bdr-m); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
-.metric-btn.active-card { border-color: var(--ff-blue); box-shadow: 0 0 0 2px rgba(29,78,216,.12); }
+.metric-btn.active-card { border-color: var(--ff-blue); box-shadow: 0 0 0 2px rgba(234,179,8,.12); }
 .metric-hint {
   font-size: 9.5px; color: var(--ff-blue);
   margin-top: 5px; opacity: 0;
@@ -629,8 +629,8 @@ html, body { height: 100%; overflow: hidden; }
 
 /* ── Employee profile panel ─────────────────────────────── */
 .ev-row { cursor: pointer; }
-.ev-row:hover td { background: #F0F7FF !important; }
-.ev-row.selected td { background: #EFF6FF !important; }
+.ev-row:hover td { background: #FFFBEB !important; }
+.ev-row.selected td { background: #FFFBEB !important; }
 .ev-row.selected td.stick { border-left: 2px solid var(--ff-blue); }
 .profile-panel { background: var(--ff-surface); border: 1px solid var(--ff-bdr); border-radius: 11px; overflow: hidden; animation: slideIn .2s ease; }
 @keyframes slideIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
@@ -648,9 +648,9 @@ html, body { height: 100%; overflow: hidden; }
 .org-connector-line { width: 1px; height: 10px; background: var(--ff-bdr-m); margin-left: 13px; }
 .org-av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 500; flex-shrink: 0; }
 .av-super { background: #FEF3C7; color: #78350F; }
-.av-gf    { background: #DBEAFE; color: #1E40AF; }
+.av-gf    { background: #FEF3C7; color: #A16207; }
 .av-fm    { background: #F0FDF4; color: #14532D; }
-.av-self  { background: var(--ff-blue); color: #fff; outline: 2px solid rgba(29,78,216,.3); outline-offset: 1px; }
+.av-self  { background: var(--ff-blue); color: #fff; outline: 2px solid rgba(234,179,8,.3); outline-offset: 1px; }
 .av-jn    { background: #F5F3FF; color: #4C1D95; }
 .av-app   { background: #FFF7ED; color: #7C2D12; }
 .org-name { font-size: 12px; font-weight: 500; }
@@ -713,7 +713,7 @@ html, body { height: 100%; overflow: hidden; }
 }
 .ds-job-drop-zone.drop-active {
   border-color: var(--ff-blue);
-  background: rgba(29,78,216,.04);
+  background: rgba(234,179,8,.04);
 }
 .ds-ot-input {
   width: 52px; padding: 3px 6px; border-radius: 5px;
@@ -731,7 +731,7 @@ html, body { height: 100%; overflow: hidden; }
   cursor: pointer; transition: border-color .12s, box-shadow .12s;
 }
 .jm-card:hover { border-color: var(--ff-bdr-m); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
-.jm-card.active { border-color: var(--ff-blue); box-shadow: 0 0 0 2px rgba(29,78,216,.1); }
+.jm-card.active { border-color: var(--ff-blue); box-shadow: 0 0 0 2px rgba(234,179,8,.1); }
 .jm-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
 .jm-body { flex: 1; min-width: 0; }
 .jm-name { font-size: 13px; font-weight: 500; }
@@ -740,7 +740,7 @@ html, body { height: 100%; overflow: hidden; }
 .jm-tag { font-size: 9.5px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
 .jm-tag-active   { background: #D1FAE5; color: #064E3B; }
 .jm-tag-inactive { background: var(--ff-bg); color: var(--ff-tx3); }
-.jm-tag-days     { background: var(--ff-blue-dim); color: #1E40AF; }
+.jm-tag-days     { background: var(--ff-blue-dim); color: #A16207; }
 
 /* Confirm move modal */
 .move-modal {
@@ -776,7 +776,7 @@ html, body { height: 100%; overflow: hidden; }
   font-size: 12px; transition: border-color .1s, background .1s;
 }
 .scope-opt:hover { background: var(--ff-bg); }
-.scope-opt.selected { border-color: var(--ff-blue); background: #EFF6FF; }
+.scope-opt.selected { border-color: var(--ff-blue); background: #FFFBEB; }
 .scope-radio {
   width: 14px; height: 14px; border-radius: 50%;
   border: 2px solid var(--ff-bdr-m); flex-shrink: 0;
@@ -784,6 +784,73 @@ html, body { height: 100%; overflow: hidden; }
 }
 .scope-opt.selected .scope-radio { border-color: var(--ff-blue); background: var(--ff-blue); }
 .scope-opt.selected .scope-radio::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+
+/* ── Mobile hamburger button ─────────────────────────────── */
+.mob-menu-btn {
+  display: none;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: transparent; border: none;
+  cursor: pointer; align-items: center; justify-content: center;
+  flex-direction: column; gap: 5px; flex-shrink: 0; padding: 0;
+}
+.mob-menu-btn span {
+  display: block; width: 18px; height: 2px;
+  background: var(--ff-tx2); border-radius: 2px;
+  transition: all .2s;
+}
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 49;
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── Mobile responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .mob-menu-btn { display: flex; }
+
+  .sidebar {
+    position: fixed; left: -224px; top: 0; bottom: 0;
+    width: 220px; z-index: 50;
+    transition: left .25s ease;
+  }
+  .sidebar.mob-open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+
+  .main { width: 100%; }
+
+  .topbar { padding: 10px 12px; }
+  .topbar-title { font-size: 13.5px; }
+  .topbar-sub { display: none; }
+  .topbar-right .btn:not(.btn-primary) { display: none; }
+
+  .screen { padding: 10px 12px; }
+
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sched-tbl { min-width: 580px; }
+
+  #fin-job-detail { width: 100% !important; margin-top: 12px; }
+  #screen-admin > div { grid-template-columns: 1fr !important; }
+  #cert-panel { width: 100% !important; margin-top: 12px; }
+  #ds-board { overflow-x: auto; }
+  #screen-job-manager > div { flex-direction: column !important; }
+  #screen-job-manager > div > div:first-child { width: 100% !important; }
+
+  #ff-login > div { padding: 28px 20px !important; margin: 16px !important; }
+  #ff-topbar-email { display: none; }
+
+  .btn { min-height: 36px; }
+  .controls { flex-wrap: wrap; gap: 6px; }
+}
+
+@media (max-width: 480px) {
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .metric-value { font-size: 20px; }
+}
 </style>
 </head>
 <body>
@@ -791,7 +858,7 @@ html, body { height: 100%; overflow: hidden; }
 <!-- ── LOGIN SCREEN ─────────────────────────────────── -->
 <div id="ff-login" style="display:none;position:fixed;inset:0;background:#F3F5FA;align-items:center;justify-content:center;z-index:9999;font-family:inherit">
   <div style="background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;border:1px solid #E4E7EF;box-shadow:0 4px 24px rgba(0,0,0,.08)">
-    <div style="width:44px;height:44px;border-radius:12px;background:#1D4ED8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;margin-bottom:20px">FF</div>
+    <div style="width:44px;height:44px;border-radius:12px;background:#EAB308;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;margin-bottom:20px">FF</div>
     <div style="font-size:22px;font-weight:600;color:#0E1828;margin-bottom:6px">FieldFlow</div>
     <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Sign in to your account</div>
     <!-- Sign in -->
@@ -810,11 +877,11 @@ html, body { height: 100%; overflow: hidden; }
         </div>
         <div id="ff-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-signin-btn" onclick="ffSignIn()"
-          style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
           Sign in
         </button>
         <button onclick="ffShowForgot()"
-          style="font-size:12px;color:#1D4ED8;background:none;border:none;cursor:pointer;font-family:inherit">
+          style="font-size:12px;color:#EAB308;background:none;border:none;cursor:pointer;font-family:inherit">
           Forgot password?
         </button>
       </div>
@@ -827,7 +894,7 @@ html, body { height: 100%; overflow: hidden; }
           style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
         <div id="ff-reset-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-reset-btn" onclick="ffSendReset()"
-          style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
           Send reset link
         </button>
         <button onclick="ffShowSignin()" style="font-size:12px;color:#6B7280;background:none;border:none;cursor:pointer;font-family:inherit">← Back</button>
@@ -838,7 +905,7 @@ html, body { height: 100%; overflow: hidden; }
       <div style="font-size:36px;margin-bottom:12px">📧</div>
       <div style="font-size:16px;font-weight:600;margin-bottom:8px">Check your email</div>
       <div style="font-size:13px;color:#6B7280;line-height:1.6">Reset link sent to <strong id="ff-sent-to"></strong>. Click it to set a new password.</div>
-      <button onclick="ffShowSignin()" style="margin-top:16px;font-size:12px;color:#1D4ED8;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">← Back to sign in</button>
+      <button onclick="ffShowSignin()" style="margin-top:16px;font-size:12px;color:#EAB308;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">← Back to sign in</button>
     </div>
     <!-- Set password -->
     <div id="ff-form-setpw" style="display:none">
@@ -851,7 +918,7 @@ html, body { height: 100%; overflow: hidden; }
           style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
         <div id="ff-setpw-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-setpw-btn" onclick="ffSetPassword()"
-          style="padding:11px;border-radius:8px;background:#1D4ED8;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
           Set password &amp; sign in
         </button>
       </div>
@@ -864,7 +931,7 @@ html, body { height: 100%; overflow: hidden; }
 
 <!-- ── TOPBAR ─────────────────────────────────────────── -->
 <div id="ff-topbar" style="display:none;height:40px;background:#0E1828;align-items:center;padding:0 16px;gap:10px;position:sticky;top:0;z-index:100">
-  <div style="width:22px;height:22px;border-radius:5px;background:#1D4ED8;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">FF</div>
+  <div style="width:22px;height:22px;border-radius:5px;background:#EAB308;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">FF</div>
   <span style="color:#fff;font-size:12px;font-weight:500">FieldFlow</span>
   <span style="color:rgba(255,255,255,.25)">·</span>
   <span id="ff-topbar-email" style="color:rgba(255,255,255,.6);font-size:11.5px"></span>
@@ -879,6 +946,9 @@ html, body { height: 100%; overflow: hidden; }
 
 <!-- ── APP ───────────────────────────────────────────── -->
 <div id="ff-app" style="display:none">
+
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="fieldflow">
 
@@ -968,6 +1038,9 @@ html, body { height: 100%; overflow: hidden; }
   <!-- ── MAIN ────────────────────────────────────────────── -->
   <div class="main">
     <div class="topbar">
+      <button class="mob-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="topbar-left">
         <div class="topbar-title" id="screen-title">Dashboard</div>
         <div class="topbar-sub"   id="screen-sub">Week of Apr 13, 2026</div>
@@ -1025,7 +1098,7 @@ html, body { height: 100%; overflow: hidden; }
           <div class="mini-grid">
             <div class="mg-head"></div>
             <div class="mg-head">Mon</div><div class="mg-head">Tue</div><div class="mg-head">Wed</div><div class="mg-head">Thu</div><div class="mg-head">Fri</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#3B82F6"></div><span>Munson</span></div>
+            <div class="mg-name"><div class="mg-dot" style="background:#FACC15"></div><span>Munson</span></div>
             <div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-empty">—</div>
             <div class="mg-name"><div class="mg-dot" style="background:#10B981"></div><span>Weaver</span></div>
             <div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-empty">—</div>
@@ -1033,7 +1106,7 @@ html, body { height: 100%; overflow: hidden; }
             <div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div>
             <div class="mg-name"><div class="mg-dot" style="background:#8B5CF6"></div><span>Boden</span></div>
             <div class="mg-cell t-job">TK</div><div class="mg-cell t-job">TK</div><div class="mg-cell t-var">VA</div><div class="mg-cell t-var">LW</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#3B82F6"></div><span>Davis</span></div>
+            <div class="mg-name"><div class="mg-dot" style="background:#FACC15"></div><span>Davis</span></div>
             <div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-empty">—</div>
             <div class="mg-name"><div class="mg-dot" style="background:#EF4444"></div><span>Siharath</span></div>
             <div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-empty">—</div>
@@ -1050,12 +1123,12 @@ html, body { height: 100%; overflow: hidden; }
             </div>
             <div id="dash-req-list">
               <div class="req-item">
-                <div class="req-dot" style="background:#3B82F6"></div>
+                <div class="req-dot" style="background:#FACC15"></div>
                 <div class="req-body"><div class="req-title">2 JNs — PDX248 SEC, wk May 4</div><div class="req-meta">Frison · 2 hrs ago</div></div>
                 <div class="req-btns"><button class="rbtn rbtn-ok" onclick="approveItem(this)">Approve</button><button class="rbtn rbtn-no" onclick="denyItem(this)">Deny</button></div>
               </div>
               <div class="req-item">
-                <div class="req-dot" style="background:#3B82F6"></div>
+                <div class="req-dot" style="background:#FACC15"></div>
                 <div class="req-body"><div class="req-title">1 GF — LW Outage, wk May 4</div><div class="req-meta">Sorbel · 5 hrs ago</div></div>
                 <div class="req-btns"><button class="rbtn rbtn-ok" onclick="approveItem(this)">Approve</button><button class="rbtn rbtn-no" onclick="denyItem(this)">Deny</button></div>
               </div>
@@ -1078,11 +1151,11 @@ html, body { height: 100%; overflow: hidden; }
       <div class="grid-3">
         <div class="panel">
           <div class="panel-header"><div class="panel-title">Headcount by job</div><span class="panel-link" onclick="goScreen('job-view')">Job view →</span></div>
-          <div class="bar-row"><div class="bar-lbl">PDX247 BMS</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:#3B82F6"></div></div><div class="bar-val">6</div></div>
-          <div class="bar-row"><div class="bar-lbl">PDX246 SEC</div><div class="bar-track"><div class="bar-fill" style="width:71%;background:#3B82F6"></div></div><div class="bar-val">5</div></div>
-          <div class="bar-row"><div class="bar-lbl">CAMPUS WIDE</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#3B82F6"></div></div><div class="bar-val">3</div></div>
-          <div class="bar-row"><div class="bar-lbl">LW</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#3B82F6"></div></div><div class="bar-val">3</div></div>
-          <div class="bar-row"><div class="bar-lbl">PDX247 SEC</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#3B82F6"></div></div><div class="bar-val">3</div></div>
+          <div class="bar-row"><div class="bar-lbl">PDX247 BMS</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:#FACC15"></div></div><div class="bar-val">6</div></div>
+          <div class="bar-row"><div class="bar-lbl">PDX246 SEC</div><div class="bar-track"><div class="bar-fill" style="width:71%;background:#FACC15"></div></div><div class="bar-val">5</div></div>
+          <div class="bar-row"><div class="bar-lbl">CAMPUS WIDE</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
+          <div class="bar-row"><div class="bar-lbl">LW</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
+          <div class="bar-row"><div class="bar-lbl">PDX247 SEC</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
           <div class="bar-row"><div class="bar-lbl">Varies</div><div class="bar-track"><div class="bar-fill" style="width:57%;background:#8B5CF6"></div></div><div class="bar-val">4</div></div>
         </div>
         <div class="panel">
@@ -1106,7 +1179,7 @@ html, body { height: 100%; overflow: hidden; }
             <div class="util-bar" style="height:74%;background:#BFDBFE"></div>
             <div class="util-bar" style="height:88%;background:#BFDBFE"></div>
             <div class="util-bar" style="height:79%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:82%;background:#3B82F6"></div>
+            <div class="util-bar" style="height:82%;background:#FACC15"></div>
           </div>
           <div class="util-lbls">
             <span class="util-lbl">2/23</span><span class="util-lbl">3/2</span><span class="util-lbl">3/9</span><span class="util-lbl">3/16</span>
@@ -1131,7 +1204,7 @@ html, body { height: 100%; overflow: hidden; }
         <span class="ctrl-lbl">Role</span>
         <select class="ctrl-sel"><option>All employees</option><option>GF / FM</option><option>Journeymen</option><option>Apprentices</option></select>
         <div class="legend">
-          <div class="leg"><div class="leg-swatch" style="background:#DBEAFE"></div>Job</div>
+          <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>Job</div>
           <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>School</div>
           <div class="leg"><div class="leg-swatch" style="background:#FEE2E2"></div>Conflict</div>
           <div class="leg"><div class="leg-swatch" style="background:#ECFDF5"></div>Vacation</div>
@@ -2161,7 +2234,7 @@ function openCertPanel(last, first, role) {
   certPanelOpen = last;
   // Highlight row
   document.querySelectorAll('.roster-row').forEach(r => {
-    r.style.background = r.dataset.last === last ? '#EFF6FF' : '';
+    r.style.background = r.dataset.last === last ? '#FFFBEB' : '';
   });
 
   const emp    = ROSTER.find(e => e.last === last);
@@ -2473,7 +2546,7 @@ function openPanel(type) {
               const sid = parseInt(r.id, 10);
               return `
               <div class="ap-row" id="apr-${sid}">
-                <div class="ap-dot" style="background:#3B82F6"></div>
+                <div class="ap-dot" style="background:#FACC15"></div>
                 <div class="ap-body-text"><div class="ap-main">${esc(r.title)}</div><div class="ap-sub">${esc(r.meta)}</div></div>
                 <div class="ap-acts">
                   <button class="ap-btn ap-ok" data-panel-approve="${sid}">Approve</button>
@@ -2539,12 +2612,12 @@ function openPanel(type) {
       <div class="ap-header"><div class="ap-title">Active crew — headcount by job this week</div><button class="ap-close" onclick="closePanel()">×</button></div>
       <div class="ap-body">
         ${[
-          {job:'PDX247 BMS',        n:6, pct:86, color:'#3B82F6'},
-          {job:'PDX246 SEC',        n:5, pct:71, color:'#3B82F6'},
-          {job:'LW / Live Work',    n:5, pct:71, color:'#3B82F6'},
-          {job:'PDX247 SEC',        n:4, pct:57, color:'#3B82F6'},
-          {job:'WTB',               n:2, pct:29, color:'#3B82F6'},
-          {job:'CAMPUS WIDE',       n:3, pct:43, color:'#3B82F6'},
+          {job:'PDX247 BMS',        n:6, pct:86, color:'#FACC15'},
+          {job:'PDX246 SEC',        n:5, pct:71, color:'#FACC15'},
+          {job:'LW / Live Work',    n:5, pct:71, color:'#FACC15'},
+          {job:'PDX247 SEC',        n:4, pct:57, color:'#FACC15'},
+          {job:'WTB',               n:2, pct:29, color:'#FACC15'},
+          {job:'CAMPUS WIDE',       n:3, pct:43, color:'#FACC15'},
           {job:'PREFAB / Whse',     n:4, pct:57, color:'#8B5CF6'},
           {job:'Unassigned (???)',   n:5, pct:71, color:'#EF4444'},
         ].map(r => {
@@ -2776,7 +2849,7 @@ function renderJobCostTable() {
     grandCharge += total3Charge;
     grandHeads  += hc;
     const isSel = selectedJob === idx;
-    const rStyle = isSel ? 'background:#EFF6FF;cursor:pointer;border-left:2px solid var(--ff-blue);' : 'cursor:pointer;border-left:2px solid transparent;';
+    const rStyle = isSel ? 'background:#FFFBEB;cursor:pointer;border-left:2px solid var(--ff-blue);' : 'cursor:pointer;border-left:2px solid transparent;';
     const cStyle = isSel ? 'background:#F0FDF4;cursor:pointer;' : 'cursor:pointer;';
 
     costRows.push(`<tr style="${rStyle}" data-job-idx="${idx}" class="fin-job-row">
@@ -2945,7 +3018,7 @@ function openJobDetail(idx) {
       </div>
 
       <!-- ★ Composite / blended rates for this job -->
-      <div style="padding:10px 14px;border-bottom:1px solid var(--ff-bdr);background:#FAFBFF">
+      <div style="padding:10px 14px;border-bottom:1px solid var(--ff-bdr);background:#FFFEF5">
         <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:8px">
           Composite rate — blended across all ${hc} workers
         </div>
@@ -3154,7 +3227,7 @@ function weekCostForRate(rate, otHrs) {
 const JOBS = [
   { id:'j1', name:'PDX247 BMS',  number:'PDX247', location:'Portland, OR',
     status:'active',  days:5, lead:'Porter, Billy',   leadEmail:'bporter@crem.com',
-    notes:'BMS install — Level 3 & 4', color:'#3B82F6' },
+    notes:'BMS install — Level 3 & 4', color:'#FACC15' },
   { id:'j2', name:'PDX246 SEC',  number:'PDX246', location:'Portland, OR',
     status:'active',  days:5, lead:'Olveda, Tanner',  leadEmail:'tolveda@crem.com',
     notes:'Security system rough-in', color:'#8B5CF6' },
@@ -3272,7 +3345,7 @@ function renderDragSchedule() {
 
       html += `<div class="ds-person-row" draggable="true" data-rid="${rid}" data-emp-key="${esc(m.key)}" data-from-job="${esc(jobName)}"
         style="display:grid;grid-template-columns:160px 70px 70px 80px 80px;gap:0;padding:7px 12px;border-bottom:1px solid var(--ff-bdr);align-items:center;cursor:grab;transition:background .1s"
-        onmouseenter="this.style.background='#F7FAFF'" onmouseleave="this.style.background=''">
+        onmouseenter="this.style.background='#FFFDF5'" onmouseleave="this.style.background=''">
         <div style="display:flex;align-items:center;gap:7px">
           <div style="width:22px;height:22px;border-radius:50%;background:${isUnassigned?'#FEE2E2':esc(color)}33;color:${isUnassigned?'#7F1D1D':esc(color)};display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:500;flex-shrink:0">${ini}</div>
           <span style="font-size:11.5px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(m.last)}, ${esc(m.first)}</span>
@@ -3755,7 +3828,7 @@ const ROLE_LABELS = {
 };
 const ROLE_COLORS = {
   superintendent: '#FEF3C7;color:#78350F',
-  foreman:        '#DBEAFE;color:#1E40AF',
+  foreman:        '#FEF3C7;color:#A16207',
   hr:             '#F0FDF4;color:#14532D',
   finance:        '#F5F3FF;color:#4C1D95',
 };
@@ -4198,6 +4271,34 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   }
 })();
 
+// ── Mobile sidebar ────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar  = document.querySelector('.sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.contains('mob-open');
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('mob-open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.remove('mob-open');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Auto-close sidebar when a nav item is tapped on mobile
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+});
 </script>
 </body>
 </html>
