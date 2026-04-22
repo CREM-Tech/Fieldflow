@@ -1896,10 +1896,6 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Job view
       </div>
-      <div class="nav-item" data-screen="job-manager">
-        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Job manager
-      </div>
       <div class="nav-item" data-screen="requests">
         <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
         Requests
@@ -1916,14 +1912,14 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         School schedule
       </div>
 
-      <div class="nav-section">Finance</div>
-      <div class="nav-item" data-screen="costing">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M2 12l3.5-4 3 2.5 3-5L15 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Job costing
+      <div class="nav-section admin-only" style="display:none">Admin</div>
+      <div class="nav-item admin-only" data-screen="job-manager" style="display:none">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Job manager
       </div>
-      <div class="nav-item" data-screen="reports">
-        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4 10l2.5-3 2.5 2 3-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Labor reports
+      <div class="nav-item admin-only" data-screen="transfers" style="display:none">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 5h11M9 2l4 3-4 3M13 11H2M6 8l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Labor transfers
       </div>
 
       <div class="nav-section">System</div>
@@ -1931,7 +1927,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
         Settings
       </div>
-      <div class="nav-item" data-screen="admin">
+      <div class="nav-item admin-only" data-screen="admin" style="display:none">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 13c0-2.761 2.239-4 5-4s5 1.239 5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.5 2l.75 1.5L15 4l-1.75.5L12.5 6l-.75-1.5L10 4l1.75-.5L12.5 2Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
         Admin
       </div>
@@ -2255,391 +2251,82 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <div class="school-grid" id="school-grid"></div>
     </div>
 
-    <!-- JOB COSTING ────────────────────────────────────── -->
-    <div class="screen" id="screen-costing">
-
-      <!-- Metrics row — now 5 cards -->
-      <div class="metrics" style="grid-template-columns:repeat(5,minmax(0,1fr))">
-        <div class="metric">
-          <div class="metric-label">Forecast labor cost</div>
-          <div class="metric-value" id="fin-wk-total">—</div>
-          <div class="metric-sub">This week planned</div>
+    <!-- LABOR TRANSFERS ──────────────────────────── -->
+    <div class="screen" id="screen-transfers">
+      <!-- Summary metrics -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+        <div class="metric" style="padding:14px 16px">
+          <div class="metric-label">Pending approval</div>
+          <div class="metric-value" id="tx-pending-count" style="font-size:26px">0</div>
+          <div class="metric-sub" id="tx-pending-hrs">0 hrs across 0 jobs</div>
         </div>
-        <div class="metric">
-          <div class="metric-label">Forecast charge</div>
-          <div class="metric-value" id="fin-wk-charge">—</div>
-          <div class="metric-sub up" id="fin-wk-margin-lbl">This week billed</div>
+        <div class="metric" style="padding:14px 16px">
+          <div class="metric-label">Approved · this period</div>
+          <div class="metric-value" id="tx-approved-count" style="font-size:26px">0</div>
+          <div class="metric-sub up" id="tx-approved-hrs">0 hrs redistributed</div>
         </div>
-        <div class="metric">
-          <div class="metric-label">Planned margin</div>
-          <div class="metric-value up" id="fin-wk-margin">—</div>
-          <div class="metric-sub up" id="fin-markup-pct-lbl">At 25% markup</div>
+        <div class="metric" style="padding:14px 16px">
+          <div class="metric-label">Crew reassignments</div>
+          <div class="metric-value" id="tx-reassign-count" style="font-size:26px">0</div>
+          <div class="metric-sub">Person-moves</div>
         </div>
-        <div class="metric">
-          <div class="metric-label">Forecast cost/hr</div>
-          <div class="metric-value" id="fin-avg-rate">—</div>
-          <div class="metric-sub">Blended/hr planned</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Forecast charge/hr</div>
-          <div class="metric-value" id="fin-avg-charge-rate">—</div>
-          <div class="metric-sub">Billed/hr planned</div>
+        <div class="metric" style="padding:14px 16px">
+          <div class="metric-label">Payroll corrections</div>
+          <div class="metric-value" id="tx-correct-count" style="font-size:26px">0</div>
+          <div class="metric-sub">Hours re-coded</div>
         </div>
       </div>
 
-      <!-- Tab bar + markup control -->
-      <div style="display:flex;align-items:center;gap:2px;margin-bottom:13px;border-bottom:1px solid var(--ff-bdr);padding-bottom:0">
-        <button class="fin-tab active" id="fin-tab-jobs" onclick="finTab('jobs')">Cost vs. charge</button>
-        <button class="fin-tab" id="fin-tab-rates" onclick="finTab('rates')">Rate sheet</button>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding-bottom:8px">
-          <span style="font-size:11px;color:var(--ff-tx3);font-weight:500">Markup</span>
-          <div style="display:flex;align-items:center;border:1px solid var(--ff-bdr-m);border-radius:6px;overflow:hidden;background:var(--ff-surface)">
-            <button onclick="adjustMarkup(-5)" style="width:28px;height:28px;border:none;background:transparent;cursor:pointer;font-size:14px;color:var(--ff-tx2);display:flex;align-items:center;justify-content:center">−</button>
-            <span style="padding:0 4px;font-size:12px;font-weight:500;font-family:'DM Mono',monospace;min-width:38px;text-align:center" id="markup-display">25%</span>
-            <button onclick="adjustMarkup(5)" style="width:28px;height:28px;border:none;background:transparent;cursor:pointer;font-size:14px;color:var(--ff-tx2);display:flex;align-items:center;justify-content:center">+</button>
-          </div>
+      <!-- Filter + action bar -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <select class="ctrl-sel" id="tx-filter-type" onchange="renderTransfers()">
+          <option value="all">All transfers</option>
+          <option value="reassign">Crew reassignments</option>
+          <option value="correction">Payroll corrections</option>
+        </select>
+        <select class="ctrl-sel" id="tx-filter-status" onchange="renderTransfers()">
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="denied">Denied</option>
+        </select>
+        <input id="tx-filter-search" placeholder="Search employee or job…" oninput="renderTransfers()"
+          style="padding:6px 10px;border:1px solid var(--ff-bdr-m);border-radius:6px;font-size:12px;font-family:inherit;min-width:200px;background:var(--white);color:var(--ink)">
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="exportTransfersCSV()">Export CSV</button>
+          <button class="btn btn-sm btn-primary" onclick="openNewTransfer()">+ New transfer</button>
         </div>
       </div>
 
-      <!-- Cost vs Charge pane -->
-      <div id="fin-pane-jobs">
-
-        <!-- Two-column layout: tables left, detail panel right -->
-        <div style="display:flex;gap:13px">
-          <div style="flex:1;min-width:0">
-
-            <!-- Side-by-side grid -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px">
-
-              <!-- LEFT: Labor Cost -->
-              <div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                  <div style="font-size:12px;font-weight:500;color:var(--ff-tx)">Labor cost</div>
-                  <span style="font-size:10px;color:var(--ff-tx3);background:var(--ff-bg);padding:2px 7px;border-radius:4px">What you pay</span>
-                </div>
-                <div class="tbl-wrap">
-                  <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-                    <thead>
-                      <tr>
-                        <th style="text-align:left;padding:6px 9px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Job</th>
-                        <th style="text-align:center;padding:6px 9px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr);width:36px">#</th>
-                        <th style="text-align:right;padding:6px 9px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Weekly</th>
-                        <th style="text-align:right;padding:6px 9px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">3-wk</th>
-                      </tr>
-                    </thead>
-                    <tbody id="fin-cost-tbody"></tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- RIGHT: Charge -->
-              <div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                  <div style="font-size:12px;font-weight:500;color:var(--ff-tx)">Client charge</div>
-                  <span style="font-size:10px;font-weight:500;background:#EAF3DE;color:#27500A;padding:2px 7px;border-radius:4px" id="markup-badge">+25% markup</span>
-                </div>
-                <div class="tbl-wrap">
-                  <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-                    <thead>
-                      <tr>
-                        <th style="text-align:left;padding:6px 9px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Job</th>
-                        <th style="text-align:center;padding:6px 9px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97;width:36px">#</th>
-                        <th style="text-align:right;padding:6px 9px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Weekly</th>
-                        <th style="text-align:right;padding:6px 9px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">3-wk</th>
-                        <th style="text-align:right;padding:6px 9px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Margin</th>
-                      </tr>
-                    </thead>
-                    <tbody id="fin-charge-tbody"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <!-- Combined totals bar -->
-            <div class="panel" style="background:var(--ff-bg)">
-              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0">
-                <div style="padding:10px 14px;border-right:1px solid var(--ff-bdr)">
-                  <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:4px">Total labor cost</div>
-                  <div style="font-size:18px;font-weight:300;font-family:'DM Mono',monospace" id="fin-grand-cost">—</div>
-                  <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px">3 weeks</div>
-                </div>
-                <div style="padding:10px 14px;border-right:1px solid var(--ff-bdr)">
-                  <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:4px">Total client charge</div>
-                  <div style="font-size:18px;font-weight:300;font-family:'DM Mono',monospace;color:#3B6D11" id="fin-grand-charge">—</div>
-                  <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px">3 weeks</div>
-                </div>
-                <div style="padding:10px 14px;border-right:1px solid var(--ff-bdr)">
-                  <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:4px">Total margin</div>
-                  <div style="font-size:18px;font-weight:300;font-family:'DM Mono',monospace;color:#3B6D11" id="fin-grand-margin">—</div>
-                  <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px" id="fin-grand-margin-pct">3 weeks</div>
-                </div>
-                <div style="padding:10px 14px;border-right:1px solid var(--ff-bdr)">
-                  <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:4px">Cost per hour</div>
-                  <div style="font-size:18px;font-weight:300;font-family:'DM Mono',monospace" id="fin-total-cost-hr">—</div>
-                  <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px">blended</div>
-                </div>
-                <div style="padding:10px 14px">
-                  <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:4px">Charge per hour</div>
-                  <div style="font-size:18px;font-weight:300;font-family:'DM Mono',monospace;color:#3B6D11" id="fin-total-charge-hr">—</div>
-                  <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px">blended</div>
-                </div>
-              </div>
-            </div>
-
-            <div style="font-size:9.5px;color:var(--ff-tx4);margin-top:8px" id="fin-rate-note"></div>
-          </div>
-
-          <!-- JOB DETAIL PANEL — slides in on job click, sticky to follow scroll -->
-          <div id="fin-job-detail" style="display:none;width:310px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 120px);overflow-y:auto"></div>
-        </div>
-      </div>
-
-      <!-- Rate sheet editor -->
-      <div id="fin-pane-rates" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">LOCAL 112 — Prevailing wage rates</div>
-              <button class="btn btn-sm" onclick="resetRates()" style="font-size:10px">Reset to defaults</button>
-            </div>
-            <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
-              All-in rates (wages + benefits + fringes). Changes update Cost vs. Charge live.
-            </div>
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr>
-                  <th style="text-align:left;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Classification</th>
-                  <th style="text-align:right;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr);width:110px">Cost/hr</th>
-                  <th style="text-align:right;padding:6px 8px;background:#EAF3DE;color:#27500A;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97;width:110px">Charge/hr</th>
-                </tr>
-              </thead>
-              <tbody id="rate-tbody"></tbody>
-            </table>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Crew composition &amp; blended rates</div>
-            </div>
-            <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">Based on current roster by role.</div>
-            <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-              <thead>
-                <tr>
-                  <th style="text-align:left;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Role</th>
-                  <th style="text-align:center;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">#</th>
-                  <th style="text-align:right;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Cost/hr</th>
-                  <th style="text-align:right;padding:6px 8px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Charge/hr</th>
-                  <th style="text-align:right;padding:6px 8px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Wk cost</th>
-                </tr>
-              </thead>
-              <tbody id="rate-summary-tbody"></tbody>
-            </table>
-            <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--ff-bdr);display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div>
-                <div style="font-size:10px;color:var(--ff-tx3);margin-bottom:3px">Blended cost rate</div>
-                <div style="font-size:16px;font-weight:500;font-family:'DM Mono',monospace" id="blended-rate-val">—</div>
-              </div>
-              <div>
-                <div style="font-size:10px;color:#3B6D11;margin-bottom:3px">Blended charge rate</div>
-                <div style="font-size:16px;font-weight:500;font-family:'DM Mono',monospace;color:#3B6D11" id="blended-charge-val">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LABOR REPORTS ──────────────────────────────────── -->
-    <div class="screen" id="screen-reports">
-
-      <!-- Metric cards — actual vs forecast -->
-      <div class="metrics" style="grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:14px">
-        <div class="metric">
-          <div class="metric-label">Actual labor — Apr</div>
-          <div class="metric-value">$186k</div>
-          <div class="metric-sub dn">+4.2% vs forecast</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Billed — Apr</div>
-          <div class="metric-value" style="color:#3B6D11">$233k</div>
-          <div class="metric-sub up">25% markup applied</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Actual margin — Apr</div>
-          <div class="metric-value up">$47k</div>
-          <div class="metric-sub">20.2% margin</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Total OT hours — Apr</div>
-          <div class="metric-value warn">142</div>
-          <div class="metric-sub warn">$21.4k OT premium</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Avg actual rate</div>
-          <div class="metric-value">$98.40</div>
-          <div class="metric-sub">Blended all-in/hr</div>
-        </div>
-      </div>
-
-      <!-- Tab bar -->
-      <div style="display:flex;align-items:center;gap:2px;margin-bottom:13px;border-bottom:1px solid var(--ff-bdr)">
-        <button class="fin-tab active" id="rpt-tab-weekly" onclick="rptTab('weekly')">Weekly actuals</button>
-        <button class="fin-tab" id="rpt-tab-jobs" onclick="rptTab('jobs')">By job</button>
-        <button class="fin-tab" id="rpt-tab-people" onclick="rptTab('people')">By person</button>
-        <button class="fin-tab" id="rpt-tab-transfers" onclick="rptTab('transfers')">Transfers <span id="rpt-transfer-count" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:var(--accent-faint);color:var(--accent-dark);font-size:10px;font-weight:600">0</span></button>
-        <div style="margin-left:auto;padding-bottom:8px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:11px;color:var(--ff-tx3)">Period</span>
-          <select class="ctrl-sel" id="rpt-period">
-            <option value="apr">April 2026</option>
-            <option value="mar">March 2026</option>
-            <option value="feb">February 2026</option>
-            <option value="q1">Q1 2026</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Weekly actuals pane -->
-      <div id="rpt-pane-weekly">
+      <!-- Transfer table -->
+      <div class="panel" style="padding:0;overflow:hidden">
         <div class="tbl-wrap">
-          <table style="width:100%;border-collapse:collapse;font-size:11.5px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
             <thead>
               <tr>
-                <th style="text-align:left;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Week of</th>
-                <th style="text-align:center;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Crew</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">ST hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr);color:#D97706">OT hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Actual cost</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Forecast</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Variance</th>
-                <th style="text-align:right;padding:7px 10px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Billed</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Status</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Type</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Effective</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Employee</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">From</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">To</th>
+                <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Hrs</th>
+                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Requested by</th>
+                <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Action</th>
               </tr>
             </thead>
-            <tbody id="rpt-weekly-tbody"></tbody>
+            <tbody id="tx-tbody"></tbody>
           </table>
         </div>
-        <div style="font-size:9.5px;color:var(--ff-tx4);margin-top:8px">* Actuals based on timesheets submitted. OT at 1.5×. Forecast = planned crew × 40hr × Local 112 rates.</div>
-      </div>
-
-      <!-- By job pane -->
-      <div id="rpt-pane-jobs" style="display:none">
-        <div class="tbl-wrap">
-          <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-            <thead>
-              <tr>
-                <th style="text-align:left;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Job</th>
-                <th style="text-align:center;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Crew</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Total ST hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr);color:#D97706">OT hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Actual cost</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Forecast</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Variance</th>
-                <th style="text-align:right;padding:7px 10px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Billed</th>
-                <th style="text-align:right;padding:7px 10px;background:#EAF3DE;color:#27500A;font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #C0DD97">Margin</th>
-              </tr>
-            </thead>
-            <tbody id="rpt-jobs-tbody"></tbody>
-          </table>
+        <div id="tx-empty" style="display:none;padding:48px 20px;text-align:center;color:var(--muted);font-size:13px">
+          <div style="font-size:28px;margin-bottom:8px;opacity:.4">⇄</div>
+          No transfers match the current filters.
         </div>
       </div>
 
-      <!-- By person pane -->
-      <div id="rpt-pane-people" style="display:none">
-        <div class="tbl-wrap">
-          <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-            <thead>
-              <tr>
-                <th style="text-align:left;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Employee</th>
-                <th style="text-align:left;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Role</th>
-                <th style="text-align:left;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Job</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">ST hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr);color:#D97706">OT hrs</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Rate/hr</th>
-                <th style="text-align:right;padding:7px 10px;background:var(--ff-bg);color:var(--ff-tx3);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--ff-bdr)">Total cost</th>
-              </tr>
-            </thead>
-            <tbody id="rpt-people-tbody"></tbody>
-          </table>
-        </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
+        Every transfer creates a notification to the requester, sending foreman, receiving foreman, and the person's superintendent. Approved transfers flow into Spectrum's labor redistribution export on the next sync.
       </div>
-
-      <!-- ── Transfers pane (labor redistributions + payroll corrections) ── -->
-      <div id="rpt-pane-transfers" style="display:none">
-        <!-- Summary metrics -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-          <div class="metric" style="padding:14px 16px">
-            <div class="metric-label">Pending approval</div>
-            <div class="metric-value" id="tx-pending-count" style="font-size:26px">0</div>
-            <div class="metric-sub" id="tx-pending-hrs">0 hrs across 0 jobs</div>
-          </div>
-          <div class="metric" style="padding:14px 16px">
-            <div class="metric-label">Approved · this period</div>
-            <div class="metric-value" id="tx-approved-count" style="font-size:26px">0</div>
-            <div class="metric-sub up" id="tx-approved-hrs">0 hrs redistributed</div>
-          </div>
-          <div class="metric" style="padding:14px 16px">
-            <div class="metric-label">Crew reassignments</div>
-            <div class="metric-value" id="tx-reassign-count" style="font-size:26px">0</div>
-            <div class="metric-sub">Person-moves</div>
-          </div>
-          <div class="metric" style="padding:14px 16px">
-            <div class="metric-label">Payroll corrections</div>
-            <div class="metric-value" id="tx-correct-count" style="font-size:26px">0</div>
-            <div class="metric-sub">Hours re-coded</div>
-          </div>
-        </div>
-
-        <!-- Filter + action bar -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-          <select class="ctrl-sel" id="tx-filter-type" onchange="renderTransfers()">
-            <option value="all">All transfers</option>
-            <option value="reassign">Crew reassignments</option>
-            <option value="correction">Payroll corrections</option>
-          </select>
-          <select class="ctrl-sel" id="tx-filter-status" onchange="renderTransfers()">
-            <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="denied">Denied</option>
-          </select>
-          <input id="tx-filter-search" placeholder="Search employee or job…" oninput="renderTransfers()"
-            style="padding:6px 10px;border:1px solid var(--ff-bdr-m);border-radius:6px;font-size:12px;font-family:inherit;min-width:200px;background:var(--white);color:var(--ink)">
-          <div style="margin-left:auto;display:flex;gap:8px">
-            <button class="btn btn-sm" onclick="exportTransfersCSV()">Export CSV</button>
-            <button class="btn btn-sm btn-primary" onclick="openNewTransfer()">+ New transfer</button>
-          </div>
-        </div>
-
-        <!-- Transfer table -->
-        <div class="panel" style="padding:0;overflow:hidden">
-          <div class="tbl-wrap">
-            <table style="width:100%;border-collapse:collapse;font-size:12px">
-              <thead>
-                <tr>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Status</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Type</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Effective</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Employee</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">From</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">To</th>
-                  <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Hrs</th>
-                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Requested by</th>
-                  <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Action</th>
-                </tr>
-              </thead>
-              <tbody id="tx-tbody"></tbody>
-            </table>
-          </div>
-          <div id="tx-empty" style="display:none;padding:48px 20px;text-align:center;color:var(--muted);font-size:13px">
-            <div style="font-size:28px;margin-bottom:8px;opacity:.4">⇄</div>
-            No transfers match the current filters.
-          </div>
-        </div>
-
-        <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
-          Every transfer creates a notification to the requester, sending foreman, receiving foreman, and the person's superintendent. Approved transfers flow into Spectrum's labor redistribution export on the next sync.
-        </div>
-      </div>
-
     </div>
 
     <!-- SETTINGS ───────────────────────────────────────── -->
@@ -3701,7 +3388,6 @@ function renderProfileSection(last, first, role, emp) {
   const initials = (first?.[0] || '') + (last?.[0] || '');
   const appYear = apprenticeYear(role);
   const isApp = !!appYear;
-  const hourly = rateForRole(role);
 
   // Training / licenses derived from cert fields
   const trainings = [];
@@ -3733,10 +3419,6 @@ function renderProfileSection(last, first, role, emp) {
         <div class="profile-field-label">Class</div>
         <div class="profile-field-value">${esc(appYear)}</div>
       </div>` : ''}
-      <div class="profile-field">
-        <div class="profile-field-label">Wage rate</div>
-        <div class="profile-field-value" style="font-family:var(--mono)">$${hourly.toFixed(2)}/hr</div>
-      </div>
       <div class="profile-field">
         <div class="profile-field-label">Badged</div>
         <div class="profile-field-value ${emp.ba ? '' : 'empty'}">${esc(emp.ba || 'Not badged')}</div>
@@ -4030,12 +3712,11 @@ const SCREEN_META = {
   'schedule':       { title: 'Schedule grid',       sub: 'Showing 3 weeks · Apr 13 – May 1, 2026' },
   'drag-schedule':  { title: 'Reassign crew',       sub: 'Drag a person into a different job table · confirmation required' },
   'job-view':       { title: 'Job view',            sub: '23 jobs · week of Apr 13, 2026' },
-  'job-manager':    { title: 'Job manager',         sub: 'Manage jobs, schedules, and leads' },
+  'job-manager':    { title: 'Job manager',         sub: 'Manage jobs, schedules, and leads · admin only' },
   'requests':       { title: 'Requests',            sub: '3 pending approvals' },
   'roster':         { title: 'Crew roster',         sub: '44 employees · click any row to manage certs' },
   'school':         { title: 'School schedule',     sub: 'JATC sessions — auto-fills Schedule' },
-  'costing':        { title: 'Job costing — forecast',  sub: 'Forward-looking: planned crew × rates × upcoming weeks' },
-  'reports':        { title: 'Labor reports — actuals',  sub: 'Backward-looking: actual hours worked vs forecast' },
+  'transfers':      { title: 'Labor transfers',     sub: 'Crew reassignments + payroll corrections · admin only' },
   'admin':          { title: 'Admin',                    sub: 'Authorized users · notifications · system settings' },
   'settings':       { title: 'Settings',                 sub: 'Personalize your experience · accessibility · appearance' },
 };
@@ -4052,7 +3733,7 @@ function goScreen(id) {
   document.getElementById('screen-sub').textContent   = meta.sub;
   if (id === 'drag-schedule') renderDragSchedule();
   if (id === 'job-manager')   renderJobManager();
-  if (id === 'reports')       renderReports();
+  if (id === 'transfers')     renderTransfers();
   if (id === 'admin')         renderAdmin();
 }
 
@@ -4415,8 +4096,6 @@ const DEFAULT_RATES = [
 ];
 
 let RATES    = DEFAULT_RATES.map(r => ({ ...r }));
-let MARKUP   = 0.25; // 25% default — adjustable
-
 const HOURS_PER_DAY  = 8;
 const HOURS_PER_WEEK = 40;
 
@@ -4663,422 +4342,6 @@ function rateForRole(roleCode) {
   return RATES.find(r => r.id === 'jn')?.rate || 101.17;
 }
 
-function chargeForRole(roleCode) {
-  return rateForRole(roleCode) * (1 + MARKUP);
-}
-
-const JOB_COSTING_DATA = [
-  { job:'PDX247 BMS',  crew:[{role:'FM',count:2},{role:'JN',count:2},{role:'5A',count:1},{role:'2A',count:1}] },
-  { job:'PDX246 SEC',  crew:[{role:'FM',count:2},{role:'JN',count:2},{role:'1E',count:1}] },
-  { job:'CAMPUS WIDE', crew:[{role:'GF',count:1},{role:'MH',count:2}] },
-  { job:'Live Work',   crew:[{role:'GF',count:1},{role:'JN',count:1}] },
-  { job:'WTB',         crew:[{role:'FM',count:1},{role:'JN',count:1}] },
-];
-
-function calcJobCost(crew)   { return crew.reduce((s,c) => s + rateForRole(c.role)   * HOURS_PER_WEEK * c.count, 0); }
-function calcJobCharge(crew) { return crew.reduce((s,c) => s + chargeForRole(c.role) * HOURS_PER_WEEK * c.count, 0); }
-function headcount(crew)     { return crew.reduce((s,c) => s + c.count, 0); }
-
-function fmt$(n)  { return '$' + Math.round(n).toLocaleString('en-US'); }
-function fmtHr(n) { return '$' + n.toFixed(2); }
-function fmtPct(n){ return (n * 100).toFixed(0) + '%'; }
-
-// ── Render side-by-side cost / charge tables ──────────────────
-let selectedJob = null;
-
-function renderJobCostTable() {
-  const costTbody   = document.getElementById('fin-cost-tbody');
-  const chargeTbody = document.getElementById('fin-charge-tbody');
-  if (!costTbody || !chargeTbody) return;
-
-  let grandCost = 0, grandCharge = 0, grandHeads = 0;
-  const costRows = [], chargeRows = [];
-
-  JOB_COSTING_DATA.forEach((j, idx) => {
-    const wkCost      = calcJobCost(j.crew);
-    const wkCharge    = calcJobCharge(j.crew);
-    const total3Cost  = wkCost * 3;
-    const total3Charge = wkCharge * 3;
-    const margin3     = total3Charge - total3Cost;
-    const hc          = headcount(j.crew);
-    grandCost   += total3Cost;
-    grandCharge += total3Charge;
-    grandHeads  += hc;
-    const isSel = selectedJob === idx;
-    const rStyle = isSel ? 'background:#FFFBEB;cursor:pointer;border-left:2px solid var(--ff-blue);' : 'cursor:pointer;border-left:2px solid transparent;';
-    const cStyle = isSel ? 'background:#F0FDF4;cursor:pointer;' : 'cursor:pointer;';
-
-    costRows.push(`<tr style="${rStyle}" data-job-idx="${idx}" class="fin-job-row">
-      <td style="padding:7px 9px;font-weight:500;font-size:11.5px">${esc(j.job)}</td>
-      <td style="padding:7px 9px;text-align:center;font-family:'DM Mono',monospace;font-size:11.5px">${hc}</td>
-      <td style="padding:7px 9px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px">${fmt$(wkCost)}</td>
-      <td style="padding:7px 9px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500">${fmt$(total3Cost)}</td>
-    </tr>`);
-    chargeRows.push(`<tr style="${cStyle}" data-job-idx="${idx}" class="fin-job-row">
-      <td style="padding:7px 9px;font-weight:500;font-size:11.5px">${esc(j.job)}</td>
-      <td style="padding:7px 9px;text-align:center;font-family:'DM Mono',monospace;font-size:11.5px">${hc}</td>
-      <td style="padding:7px 9px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;color:#3B6D11">${fmt$(wkCharge)}</td>
-      <td style="padding:7px 9px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500;color:#3B6D11">${fmt$(total3Charge)}</td>
-      <td style="padding:7px 9px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;color:#3B6D11">+${fmt$(margin3)}</td>
-    </tr>`);
-  });
-
-  // Total rows
-  const grandMargin    = grandCharge - grandCost;
-  const grandMarginPct = grandCost > 0 ? grandMargin / grandCost : 0;
-
-  costRows.push(`<tr style="background:var(--ff-bg);border-top:2px solid var(--ff-bdr-m)">
-    <td style="padding:8px 9px;font-weight:500;font-size:11.5px">Total</td>
-    <td style="padding:8px 9px;text-align:center;font-family:'DM Mono',monospace">${grandHeads}</td>
-    <td style="padding:8px 9px;text-align:right;font-family:'DM Mono',monospace">${fmt$(JOB_COSTING_DATA.reduce((s,j)=>s+calcJobCost(j.crew),0))}</td>
-    <td style="padding:8px 9px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$(grandCost)}</td>
-  </tr>`);
-
-  chargeRows.push(`<tr style="background:#EAF3DE;border-top:2px solid #C0DD97">
-    <td style="padding:8px 9px;font-weight:500;font-size:11.5px;color:#27500A">Total</td>
-    <td style="padding:8px 9px;text-align:center;font-family:'DM Mono',monospace;color:#27500A">${grandHeads}</td>
-    <td style="padding:8px 9px;text-align:right;font-family:'DM Mono',monospace;color:#27500A">${fmt$(JOB_COSTING_DATA.reduce((s,j)=>s+calcJobCharge(j.crew),0))}</td>
-    <td style="padding:8px 9px;text-align:right;font-family:'DM Mono',monospace;font-weight:500;color:#27500A">${fmt$(grandCharge)}</td>
-    <td style="padding:8px 9px;text-align:right;font-family:'DM Mono',monospace;font-weight:500;color:#27500A">+${fmt$(grandMargin)}</td>
-  </tr>`);
-
-  costTbody.innerHTML   = costRows.join('');
-  chargeTbody.innerHTML = chargeRows.join('');
-
-  // Event delegation for row clicks — both tables sync
-  [costTbody, chargeTbody].forEach(tbody => {
-    tbody.addEventListener('click', e => {
-      const row = e.target.closest('.fin-job-row');
-      if (!row) return;
-      const idx = parseInt(row.dataset.jobIdx, 10);
-      if (!Number.isFinite(idx)) return;
-      if (selectedJob === idx) { selectedJob = null; closeJobDetail(); }
-      else { selectedJob = idx; openJobDetail(idx); }
-      renderJobCostTable();
-    });
-  });
-
-  // Update totals bar
-  const totalHeadHours = grandHeads * HOURS_PER_WEEK * 3;
-  const costPerHr   = totalHeadHours > 0 ? grandCost   / totalHeadHours : 0;
-  const chargePerHr = totalHeadHours > 0 ? grandCharge / totalHeadHours : 0;
-  const allWk       = JOB_COSTING_DATA.reduce((s,j)=>s+calcJobCost(j.crew),   0);
-  const allWkCharge = JOB_COSTING_DATA.reduce((s,j)=>s+calcJobCharge(j.crew), 0);
-
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('fin-grand-cost',       fmt$(grandCost));
-  set('fin-grand-charge',     fmt$(grandCharge));
-  set('fin-grand-margin',     '+' + fmt$(grandMargin));
-  set('fin-grand-margin-pct', fmtPct(grandMarginPct) + ' margin · 3 weeks');
-  set('fin-total-cost-hr',    fmtHr(costPerHr));
-  set('fin-total-charge-hr',  fmtHr(chargePerHr));
-  set('fin-wk-total',        allWk       >= 1000 ? '$'+(allWk/1000).toFixed(1)+'k'       : fmt$(allWk));
-  set('fin-wk-charge',       allWkCharge >= 1000 ? '$'+(allWkCharge/1000).toFixed(1)+'k' : fmt$(allWkCharge));
-  set('fin-wk-margin',       '+' + fmt$(allWkCharge - allWk));
-  set('fin-markup-pct-lbl',  fmtPct(MARKUP) + ' markup applied');
-
-  const totalWkHeads  = JOB_COSTING_DATA.reduce((s,j)=>s+headcount(j.crew),0);
-  const blendedCost   = totalWkHeads > 0 ? allWk       / (totalWkHeads * HOURS_PER_WEEK) : 0;
-  const blendedCharge = totalWkHeads > 0 ? allWkCharge / (totalWkHeads * HOURS_PER_WEEK) : 0;
-  set('fin-avg-rate',         fmtHr(blendedCost));
-  set('fin-avg-charge-rate',  fmtHr(blendedCharge));
-
-  const note = document.getElementById('fin-rate-note');
-  if (note) note.textContent = '* All-in rates (wages + benefits + fringes) — Local 112 · ' + fmtPct(MARKUP) + ' markup · Click any job row for full breakdown';
-}
-
-// ── Job detail panel ──────────────────────────────────────────
-function openJobDetail(idx) {
-  const j = JOB_COSTING_DATA[idx];
-  if (!j) return;
-  const panel = document.getElementById('fin-job-detail');
-  if (!panel) return;
-  panel.style.display = 'block';
-
-  const wkCost    = calcJobCost(j.crew);
-  const wkCharge  = calcJobCharge(j.crew);
-  const hc        = headcount(j.crew);
-  const wkMargin  = wkCharge - wkCost;
-  const marginPct = wkCost > 0 ? wkMargin / wkCost : 0;
-
-  // ── Blended / composite rates ─────────────────────────────
-  // Total hours this crew works per week (ST basis — 40hr each)
-  const totalPersonHrs  = hc * HOURS_PER_WEEK;
-  const blendedCostHr   = totalPersonHrs > 0 ? wkCost   / totalPersonHrs : 0;
-  const blendedChargeHr = totalPersonHrs > 0 ? wkCharge / totalPersonHrs : 0;
-
-  // Daily (10hr days per person)
-  const dailyCost   = wkCost   / 5;   // cost for one 5-day week ÷ 5 days
-  const dailyCharge = wkCharge / 5;
-
-  // Per-person blended (what one "average" person costs/charges per week)
-  const perPersonCost   = hc > 0 ? wkCost   / hc : 0;
-  const perPersonCharge = hc > 0 ? wkCharge / hc : 0;
-
-  const roleRows = j.crew.map(c => {
-    const costRate   = rateForRole(c.role);
-    const chargeRate = costRate * (1 + MARKUP);
-    const entry      = RATES.find(r => r.roleKeys.includes(c.role));
-    const lbl        = entry ? entry.label.replace(' Local 112','').replace('Apprentice ','App ') : c.role;
-    const tCost      = costRate   * HOURS_PER_WEEK * c.count;
-    const tCharge    = chargeRate * HOURS_PER_WEEK * c.count;
-    const rowMargin  = tCharge - tCost;
-    const rowBlendedCost   = c.count * HOURS_PER_WEEK > 0 ? tCost   / (c.count * HOURS_PER_WEEK) : costRate;
-    const rowBlendedCharge = c.count * HOURS_PER_WEEK > 0 ? tCharge / (c.count * HOURS_PER_WEEK) : chargeRate;
-    return `<tr style="border-bottom:1px solid var(--ff-bdr)">
-      <td style="padding:7px 10px">
-        <div style="font-size:11.5px;font-weight:500">${esc(lbl)}</div>
-        <div style="font-size:10px;color:var(--ff-tx3);margin-top:1px">
-          ${fmtHr(costRate)}/hr cost · <span style="color:#3B6D11">${fmtHr(chargeRate)}/hr charge</span>
-        </div>
-      </td>
-      <td style="padding:7px 10px;text-align:center;font-family:'DM Mono',monospace;font-size:13px;font-weight:500">${c.count}</td>
-      <td style="padding:7px 10px;text-align:right">
-        <div style="font-size:11.5px;font-family:'DM Mono',monospace">${fmt$(tCost)}</div>
-        <div style="font-size:10px;color:#3B6D11;font-family:'DM Mono',monospace;margin-top:1px">${fmt$(tCharge)}</div>
-      </td>
-      <td style="padding:7px 10px;text-align:right">
-        <div style="font-size:11px;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">+${fmt$(rowMargin)}</div>
-        <div style="font-size:10px;color:var(--ff-tx3);margin-top:1px">${fmtPct(rowMargin/tCost)}</div>
-      </td>
-    </tr>`;
-  }).join('');
-
-  panel.innerHTML = `
-    <div style="background:var(--ff-surface);border:1px solid var(--ff-bdr);border-radius:11px;overflow:hidden;animation:slideIn .18s ease">
-
-      <!-- Header -->
-      <div style="padding:12px 14px;background:var(--ff-bg);border-bottom:1px solid var(--ff-bdr);display:flex;align-items:flex-start;justify-content:space-between">
-        <div>
-          <div style="font-size:14px;font-weight:500">${esc(j.job)}</div>
-          <div style="font-size:11px;color:var(--ff-tx3);margin-top:2px">${hc} workers · ${fmtPct(MARKUP)} markup</div>
-        </div>
-        <button onclick="closeJobDetail()" style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:16px;color:var(--ff-tx3);line-height:1;flex-shrink:0">×</button>
-      </div>
-
-      <!-- Weekly totals -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--ff-bdr)">
-        <div style="padding:10px 12px;border-right:1px solid var(--ff-bdr)">
-          <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:3px">Weekly cost</div>
-          <div style="font-size:16px;font-weight:300;font-family:'DM Mono',monospace">${fmt$(wkCost)}</div>
-        </div>
-        <div style="padding:10px 12px;border-right:1px solid var(--ff-bdr)">
-          <div style="font-size:9.5px;color:#3B6D11;text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:3px">Weekly charge</div>
-          <div style="font-size:16px;font-weight:300;font-family:'DM Mono',monospace;color:#3B6D11">${fmt$(wkCharge)}</div>
-        </div>
-        <div style="padding:10px 12px">
-          <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:3px">Weekly margin</div>
-          <div style="font-size:16px;font-weight:300;font-family:'DM Mono',monospace;color:#3B6D11">+${fmt$(wkMargin)}</div>
-          <div style="font-size:10px;color:var(--ff-tx3);margin-top:1px">${fmtPct(marginPct)}</div>
-        </div>
-      </div>
-
-      <!-- ★ Composite / blended rates for this job -->
-      <div style="padding:10px 14px;border-bottom:1px solid var(--ff-bdr);background:#FFFEF5">
-        <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:8px">
-          Composite rate — blended across all ${hc} workers
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-          <div style="background:var(--ff-surface);border:1px solid var(--ff-bdr);border-radius:7px;padding:9px 11px">
-            <div style="font-size:9.5px;color:var(--ff-tx3);margin-bottom:4px">Cost per hour</div>
-            <div style="font-size:17px;font-weight:500;font-family:'DM Mono',monospace">${fmtHr(blendedCostHr)}</div>
-            <div style="font-size:10px;color:var(--ff-tx3);margin-top:2px">${hc} people × 40hr</div>
-          </div>
-          <div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:7px;padding:9px 11px">
-            <div style="font-size:9.5px;color:#3B6D11;margin-bottom:4px">Charge per hour</div>
-            <div style="font-size:17px;font-weight:500;font-family:'DM Mono',monospace;color:#3B6D11">${fmtHr(blendedChargeHr)}</div>
-            <div style="font-size:10px;color:#3B6D11;margin-top:2px">at ${fmtPct(MARKUP)} markup</div>
-          </div>
-          <div style="background:var(--ff-surface);border:1px solid var(--ff-bdr);border-radius:7px;padding:9px 11px">
-            <div style="font-size:9.5px;color:var(--ff-tx3);margin-bottom:4px">Per person / week</div>
-            <div style="font-size:17px;font-weight:500;font-family:'DM Mono',monospace">${fmt$(perPersonCost)}</div>
-            <div style="font-size:10px;color:#3B6D11;margin-top:2px">${fmt$(perPersonCharge)} billed each</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Role breakdown -->
-      <div style="padding:10px 14px 4px;border-bottom:1px solid var(--ff-bdr)">
-        <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:8px">Breakdown by role</div>
-        <table style="width:100%;border-collapse:collapse">
-          <thead><tr>
-            <th style="text-align:left;padding:4px 10px 6px;font-size:9px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em">Role</th>
-            <th style="text-align:center;padding:4px 10px 6px;font-size:9px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;width:28px">#</th>
-            <th style="text-align:right;padding:4px 10px 6px;font-size:9px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em">Cost / Charge</th>
-            <th style="text-align:right;padding:4px 10px 6px;font-size:9px;color:#3B6D11;font-weight:500;text-transform:uppercase;letter-spacing:.04em">Margin</th>
-          </tr></thead>
-          <tbody>${roleRows}</tbody>
-        </table>
-      </div>
-
-      <!-- Time projection -->
-      <div style="padding:10px 14px">
-        <div style="font-size:9.5px;color:var(--ff-tx3);text-transform:uppercase;letter-spacing:.04em;font-weight:500;margin-bottom:8px">Time projection</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-          ${[
-            { lbl:'Per day (10hr/person)', cost:dailyCost,   charge:dailyCharge   },
-            { lbl:'Per week (40hr ST)',    cost:wkCost,       charge:wkCharge      },
-            { lbl:'3 weeks',               cost:wkCost*3,     charge:wkCharge*3    },
-            { lbl:'4 weeks',               cost:wkCost*4,     charge:wkCharge*4    },
-          ].map(r => `<div style="background:var(--ff-bg);border-radius:7px;padding:8px 10px;border:1px solid var(--ff-bdr)">
-            <div style="font-size:10px;color:var(--ff-tx3);margin-bottom:4px">${esc(r.lbl)}</div>
-            <div style="font-size:13px;font-family:'DM Mono',monospace;font-weight:500">${fmt$(r.cost)}</div>
-            <div style="font-size:11px;font-family:'DM Mono',monospace;color:#3B6D11;margin-top:2px">${fmt$(r.charge)} billed</div>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>`;
-}
-
-function closeJobDetail() {
-  selectedJob = null;
-  const p = document.getElementById('fin-job-detail');
-  if (p) { p.style.display = 'none'; p.innerHTML = ''; }
-  renderJobCostTable();
-}
-
-// ── Render rate table ─────────────────────────────────────────
-function renderRateTable() {
-  const tbody = document.getElementById('rate-tbody');
-  if (!tbody) return;
-
-  tbody.innerHTML = RATES.map(r => {
-    const charge = r.rate * (1 + MARKUP);
-    return `<tr class="rate-row">
-      <td class="rate-cls">${esc(r.label)}</td>
-      <td style="text-align:right;padding:7px 8px">
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px">
-          <span style="font-size:11px;color:var(--ff-tx3)">$</span>
-          <input class="rate-input" data-rate-id="${esc(r.id)}"
-            type="number" min="0" max="999" step="0.01"
-            value="${r.rate.toFixed(2)}">
-        </div>
-      </td>
-      <td style="text-align:right;padding:7px 8px;font-family:'DM Mono',monospace;font-size:12px;color:#3B6D11;font-weight:500" data-charge-cell="${esc(r.id)}">${fmtHr(charge)}/hr</td>
-    </tr>`;
-  }).join('');
-
-  tbody.querySelectorAll('.rate-input').forEach(input => {
-    input.addEventListener('input', () => {
-      const id = input.dataset.rateId;
-      const parsed = parseFloat(input.value);
-      if (!Number.isFinite(parsed) || parsed < 0 || parsed > 999) return;
-      const r = RATES.find(x => x.id === id);
-      if (!r) return;
-      r.rate = Math.round(parsed * 100) / 100;
-      const cc = tbody.querySelector(`[data-charge-cell="${CSS.escape(id)}"]`);
-      if (cc) cc.textContent = fmtHr(r.rate * (1 + MARKUP)) + '/hr';
-      renderJobCostTable();
-      renderRateSummary();
-    });
-  });
-}
-
-// ── Render rate summary panel ─────────────────────────────────
-function renderRateSummary() {
-  const tbody = document.getElementById('rate-summary-tbody');
-  if (!tbody) return;
-
-  const roleCounts = {};
-  ROSTER.forEach(e => { const k = e.role || 'JN'; roleCounts[k] = (roleCounts[k]||0)+1; });
-
-  const tiers = {};
-  for (const [role, count] of Object.entries(roleCounts)) {
-    const costRate = rateForRole(role);
-    const entry = RATES.find(r => r.roleKeys.includes(role));
-    const label = entry ? entry.label.replace(' Local 112','') : role;
-    const key = label + '|' + costRate;
-    if (!tiers[key]) tiers[key] = { label, costRate, count:0 };
-    tiers[key].count += count;
-  }
-
-  const sorted = Object.values(tiers).sort((a,b) => b.costRate - a.costRate);
-  let totalWkCost = 0, totalWkCharge = 0, totalHeads = 0;
-
-  tbody.innerHTML = sorted.map(t => {
-    const chargeRate = t.costRate * (1 + MARKUP);
-    const wkCost    = t.costRate * HOURS_PER_WEEK * t.count;
-    totalWkCost   += wkCost;
-    totalWkCharge += chargeRate * HOURS_PER_WEEK * t.count;
-    totalHeads    += t.count;
-    return `<tr style="border-bottom:1px solid var(--ff-bdr)">
-      <td style="padding:6px 8px;font-size:11.5px">${esc(t.label)}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:'DM Mono',monospace;font-size:11.5px">${t.count}</td>
-      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px">${fmtHr(t.costRate)}</td>
-      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;color:#3B6D11;font-weight:500">${fmtHr(chargeRate)}</td>
-      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--ff-tx2)">${fmt$(wkCost)}</td>
-    </tr>`;
-  }).join('');
-
-  const blendedCost   = totalHeads > 0 ? totalWkCost   / (totalHeads * HOURS_PER_WEEK) : 0;
-  const blendedCharge = totalHeads > 0 ? totalWkCharge / (totalHeads * HOURS_PER_WEEK) : 0;
-
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('blended-rate-val',    fmtHr(blendedCost)   + '/hr');
-  set('blended-charge-val',  fmtHr(blendedCharge) + '/hr');
-  set('fin-avg-rate',        fmtHr(blendedCost));
-  set('fin-avg-charge-rate', fmtHr(blendedCharge));
-}
-
-// ── Markup adjust ─────────────────────────────────────────────
-function adjustMarkup(deltaPct) {
-  MARKUP = Math.max(0, Math.min(2, MARKUP + deltaPct / 100));
-  MARKUP = Math.round(MARKUP * 100) / 100;
-
-  const disp = document.getElementById('markup-display');
-  if (disp) disp.textContent = fmtPct(MARKUP);
-  const badge = document.getElementById('markup-badge');
-  if (badge) badge.textContent = '+' + fmtPct(MARKUP) + ' markup';
-
-  // Refresh charge cells in rate table if visible
-  const tbody = document.getElementById('rate-tbody');
-  if (tbody) {
-    RATES.forEach(r => {
-      const cc = tbody.querySelector(`[data-charge-cell="${CSS.escape(r.id)}"]`);
-      if (cc) cc.textContent = fmtHr(r.rate * (1 + MARKUP)) + '/hr';
-    });
-  }
-
-  renderJobCostTable();
-  renderRateSummary();
-}
-
-function resetRates() {
-  RATES = DEFAULT_RATES.map(r => ({ ...r }));
-  MARKUP = 0.25;
-  const disp = document.getElementById('markup-display');
-  if (disp) disp.textContent = '25%';
-  const badge = document.getElementById('markup-badge');
-  if (badge) badge.textContent = '+25% markup';
-  renderRateTable();
-  renderJobCostTable();
-  renderRateSummary();
-}
-
-function finTab(tab) {
-  document.getElementById('fin-pane-jobs').style.display  = tab === 'jobs'  ? 'block' : 'none';
-  document.getElementById('fin-pane-rates').style.display = tab === 'rates' ? 'block' : 'none';
-  document.getElementById('fin-tab-jobs').classList.toggle('active',  tab === 'jobs');
-  document.getElementById('fin-tab-rates').classList.toggle('active', tab === 'rates');
-  if (tab === 'rates') { renderRateTable(); renderRateSummary(); }
-}
-
-// Init
-renderJobCostTable();
-
-
-// ── Hours / OT (40hr ST, free-form OT per person) ────────────
-// All jobs are on 40s (40hr straight time base).
-// OT hours are entered per-person per-job — no fixed day count.
-const HR_WEEK_ST    = 40;
-const OT_MULTIPLIER = 1.5;
-
-// Weekly labor cost: 40hr ST + user-entered OT hrs at 1.5x
-function weekCostForRate(rate, otHrs) {
-  const ot = Math.max(0, parseFloat(otHrs) || 0);
-  return rate * HR_WEEK_ST + rate * OT_MULTIPLIER * ot;
-}
-
 // ── Job data with schedule, lead, and email ───────────────────
 // ── JOBS — number is the SOURCE OF TRUTH (matches Spectrum) ──
 // id is internal only; number is what users see and what Spectrum uses.
@@ -5207,26 +4470,21 @@ function renderDragSchedule() {
         <span style="font-size:10.5px;font-weight:500">${members.length} crew</span>
       </div>
       <!-- Column headers -->
-      <div style="display:grid;grid-template-columns:160px 70px 70px 80px 80px;gap:0;background:var(--ff-bg);padding:5px 12px;border-bottom:1px solid var(--ff-bdr)">
+      <div style="display:grid;grid-template-columns:1fr 70px 80px;gap:0;background:var(--ff-bg);padding:5px 12px;border-bottom:1px solid var(--ff-bdr)">
         <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em">Employee</div>
         <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:center">Role</div>
         <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:right">OT hrs/wk</div>
-        <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:right">ST cost</div>
-        <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:right">Total cost</div>
       </div>
       <!-- Drop zone for dragged people -->
       <div class="ds-drop-zone" data-job="${esc(jobName)}" style="min-height:${members.length?0:44}px">`;
 
     members.forEach(m => {
-      const rate    = rateForRole(m.role);
       const otHrs   = getOT(m.key);
-      const stCost  = rate * HR_WEEK_ST;
-      const totCost = weekCostForRate(rate, otHrs);
       const ini     = esc((m.first[0]||'')+(m.last[0]||''));
       const rid     = reg({ key: m.key, last: m.last, first: m.first, role: m.role, weekIdx, fromJob: jobName });
 
       html += `<div class="ds-person-row" draggable="true" data-rid="${rid}" data-emp-key="${esc(m.key)}" data-from-job="${esc(jobName)}"
-        style="display:grid;grid-template-columns:160px 70px 70px 80px 80px;gap:0;padding:7px 12px;border-bottom:1px solid var(--ff-bdr);align-items:center;cursor:grab;transition:background .1s"
+        style="display:grid;grid-template-columns:1fr 70px 80px;gap:0;padding:7px 12px;border-bottom:1px solid var(--ff-bdr);align-items:center;cursor:grab;transition:background .1s"
         onmouseenter="this.style.background='#FFFDF5'" onmouseleave="this.style.background=''">
         <div style="display:flex;align-items:center;gap:7px">
           <div style="width:22px;height:22px;border-radius:50%;background:${isUnassigned?'#FEE2E2':esc(color)}33;color:${isUnassigned?'#7F1D1D':esc(color)};display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:500;flex-shrink:0">${ini}</div>
@@ -5238,8 +4496,6 @@ function renderDragSchedule() {
             type="number" min="0" max="40" step="0.5" value="${otHrs||''}"
             placeholder="0" title="OT hours this week">
         </div>
-        <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--ff-tx2)">${fmt$(stCost)}</div>
-        <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;font-weight:500" data-total-cell="${esc(m.key)}">${fmt$(totCost)}</div>
       </div>`;
     });
 
@@ -5258,9 +4514,6 @@ function renderDragSchedule() {
     inp.addEventListener('change', () => {
       const key = inp.dataset.empKey;
       setOT(key, inp.value);
-      const rate    = (() => { const e = Object.entries(SCHED).find(([k])=>k===key); return e ? rateForRole(e[0].split(',')[2]) : 0; })();
-      const totCell = board.querySelector(`[data-total-cell="${CSS.escape(key)}"]`);
-      if (totCell) totCell.textContent = fmt$(weekCostForRate(rate, getOT(key)));
     });
     // Prevent drag starting from input
     inp.addEventListener('mousedown', e => e.stopPropagation());
@@ -5474,25 +4727,6 @@ function getJobCrew(j) {
     });
 }
 
-function getCompositeRate(crew) {
-  // Sum of hourly rates / headcount = blended $/hr for the job
-  if (!crew || crew.length === 0) return { rate: 0, count: 0, breakdown: {} };
-  let total = 0;
-  const breakdown = {};
-  for (const person of crew) {
-    const r = rateForRole(person.role);
-    total += r;
-    const key = person.role || 'unassigned';
-    breakdown[key] = (breakdown[key] || 0) + 1;
-  }
-  return {
-    rate: total / crew.length,
-    count: crew.length,
-    breakdown,
-    chargeRate: (total / crew.length) * (1 + MARKUP),
-  };
-}
-
 function getRatioStatus(crew) {
   // Check JN-or-higher : apprentice ratio. Must be >= 1.0.
   const jn  = crew.filter(p => isJourneymanOrHigher(p.role)).length;
@@ -5506,10 +4740,9 @@ function getRatioStatus(crew) {
 function renderJobCompositePanel(j) {
   const crew = getJobCrew(j);
   if (crew.length === 0) {
-    return `<div style="font-size:11.5px;color:var(--muted);text-align:center;padding:14px">No crew assigned this week — composite rate and ratio unavailable.</div>`;
+    return `<div style="font-size:11.5px;color:var(--muted);text-align:center;padding:14px">No crew assigned this week — compliance check unavailable.</div>`;
   }
 
-  const comp  = getCompositeRate(crew);
   const ratio = getRatioStatus(crew);
 
   const ratioText = ratio.app === 0
@@ -5521,28 +4754,25 @@ function renderJobCompositePanel(j) {
   const ratioBg = ratio.ok ? 'var(--white)' : '#FEF2F2';
   const ratioBorder = ratio.ok ? 'var(--line)' : 'var(--bad)';
 
-  // Breakdown rows sorted by count descending
-  const breakdownRows = Object.entries(comp.breakdown)
+  // Crew breakdown rows — counts only, no dollar figures
+  const roleCounts = {};
+  crew.forEach(p => {
+    const k = p.role || 'unassigned';
+    roleCounts[k] = (roleCounts[k] || 0) + 1;
+  });
+  const breakdownRows = Object.entries(roleCounts)
     .sort((a, b) => b[1] - a[1])
-    .map(([role, count]) => {
-      const hourly = rateForRole(role);
-      return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
-        <span style="font-family:var(--mono);color:var(--ink-soft)">${esc(role)} × ${count}</span>
-        <span style="font-family:var(--mono);color:var(--ink)">$${hourly.toFixed(2)}/hr</span>
-      </div>`;
-    }).join('');
+    .map(([role, count]) => `
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
+        <span style="font-family:var(--mono);color:var(--ink-soft)">${esc(role)}</span>
+        <span style="font-family:var(--mono);color:var(--ink)">${count}</span>
+      </div>`).join('');
 
   return `
     <div style="background:${ratioBg};border:1.5px solid ${ratioBorder};border-radius:10px;padding:14px 16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:-0.02em">Composite <em style="color:var(--accent);font-style:italic">rate</em></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:-0.02em">Crew <em style="color:var(--accent);font-style:italic">compliance</em></div>
         ${ratioBadge}
-      </div>
-
-      <!-- Big headline rate -->
-      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
-        <div style="font-family:var(--serif);font-size:32px;font-weight:400;letter-spacing:-0.025em;color:var(--ink)">$${comp.rate.toFixed(2)}</div>
-        <div style="font-size:12px;color:var(--muted)">/hr blended across ${comp.count} workers</div>
       </div>
 
       <!-- Ratio detail -->
@@ -5567,22 +4797,10 @@ function renderJobCompositePanel(j) {
         Currently ${ratio.jn} JN+ supervising ${ratio.app} apprentices — need ${ratio.app - ratio.jn} more JN+ or fewer apprentices.
       </div>` : ''}
 
-      <!-- Crew breakdown by role -->
+      <!-- Crew breakdown by role (counts only) -->
       <div style="margin-top:4px">
-        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Crew breakdown</div>
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Crew breakdown · ${crew.length} total</div>
         ${breakdownRows}
-      </div>
-
-      <!-- Cost summary -->
-      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px">
-        <div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Weekly cost (40hr ST)</div>
-          <div style="font-family:var(--mono);font-weight:500;color:var(--ink)">$${(comp.rate * 40 * comp.count).toFixed(0)}</div>
-        </div>
-        <div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Weekly charge (+${(MARKUP*100).toFixed(0)}%)</div>
-          <div style="font-family:var(--mono);font-weight:500;color:var(--accent-dark)">$${(comp.chargeRate * 40 * comp.count).toFixed(0)}</div>
-        </div>
       </div>
     </div>`;
 }
@@ -6062,118 +5280,6 @@ const ACTUALS_BY_PERSON = [
   { last:'Dik',       first:'Stefhan',   role:'JN',  job:'Live Work',   stHrs:160, otHrs:10, rate:101.17 },
 ];
 
-function fmt$r(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
-function varStyle(v) {
-  if (v > 0)  return `color:var(--ff-red);font-weight:500`;
-  if (v < 0)  return `color:var(--ff-green);font-weight:500`;
-  return `color:var(--ff-tx3)`;
-}
-function varStr(v) {
-  const prefix = v > 0 ? '+' : v < 0 ? '−' : '';
-  return prefix + fmt$r(Math.abs(v));
-}
-
-function renderReports() {
-  renderRptWeekly();
-  renderRptJobs();
-  renderRptPeople();
-}
-
-function renderRptWeekly() {
-  const tbody = document.getElementById('rpt-weekly-tbody');
-  if (!tbody) return;
-  let totST=0, totOT=0, totActual=0, totForecast=0, totBilled=0;
-  tbody.innerHTML = ACTUALS_WEEKLY.map(w => {
-    const variance = w.actualCost - w.forecast;
-    totST += w.stHrs; totOT += w.otHrs;
-    totActual += w.actualCost; totForecast += w.forecast; totBilled += w.billed;
-    return `<tr style="border-bottom:1px solid var(--ff-bdr)">
-      <td style="padding:7px 10px;font-weight:500">${esc(w.week)}</td>
-      <td style="padding:7px 10px;text-align:center;font-family:'DM Mono',monospace">${w.crew}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace">${w.stHrs.toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:${w.otHrs>0?'var(--ff-amber)':'var(--ff-tx4)'}">${w.otHrs||'—'}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(w.actualCost)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--ff-tx3)">${fmt$r(w.forecast)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;${varStyle(variance)}">${varStr(variance)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">${fmt$r(w.billed)}</td>
-    </tr>`;
-  }).join('') + `<tr style="background:var(--ff-bg);border-top:2px solid var(--ff-bdr-m)">
-    <td style="padding:8px 10px;font-weight:500">Total</td>
-    <td></td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${totST.toLocaleString()}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--ff-amber);font-weight:500">${totOT}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(totActual)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--ff-tx3)">${fmt$r(totForecast)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;${varStyle(totActual-totForecast)}">${varStr(totActual-totForecast)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">${fmt$r(totBilled)}</td>
-  </tr>`;
-}
-
-function renderRptJobs() {
-  const tbody = document.getElementById('rpt-jobs-tbody');
-  if (!tbody) return;
-  let totActual=0, totForecast=0, totBilled=0;
-  tbody.innerHTML = ACTUALS_BY_JOB.map(j => {
-    const variance = j.actualCost - j.forecast;
-    const margin   = j.billed - j.actualCost;
-    const mPct     = j.actualCost > 0 ? (margin/j.actualCost*100).toFixed(0)+'%' : '—';
-    totActual += j.actualCost; totForecast += j.forecast; totBilled += j.billed;
-    return `<tr style="border-bottom:1px solid var(--ff-bdr)">
-      <td style="padding:7px 10px;font-weight:500">${esc(j.job)}</td>
-      <td style="padding:7px 10px;text-align:center;font-family:'DM Mono',monospace">${j.crew}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace">${j.stHrs.toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:${j.otHrs>0?'var(--ff-amber)':'var(--ff-tx4)'}">${j.otHrs||'—'}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(j.actualCost)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--ff-tx3)">${fmt$r(j.forecast)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;${varStyle(variance)}">${varStr(variance)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">${fmt$r(j.billed)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11">+${fmt$r(margin)} <span style="font-size:9.5px;opacity:.7">${mPct}</span></td>
-    </tr>`;
-  }).join('') + `<tr style="background:var(--ff-bg);border-top:2px solid var(--ff-bdr-m)">
-    <td style="padding:8px 10px;font-weight:500">Total</td><td></td><td></td><td></td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(totActual)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:var(--ff-tx3)">${fmt$r(totForecast)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;${varStyle(totActual-totForecast)}">${varStr(totActual-totForecast)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">${fmt$r(totBilled)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;color:#3B6D11;font-weight:500">+${fmt$r(totBilled-totActual)}</td>
-  </tr>`;
-}
-
-function renderRptPeople() {
-  const tbody = document.getElementById('rpt-people-tbody');
-  if (!tbody) return;
-  const sorted = [...ACTUALS_BY_PERSON].sort((a,b) => b.rate - a.rate);
-  let totCost = 0;
-  tbody.innerHTML = sorted.map(p => {
-    const stCost   = p.rate * p.stHrs;
-    const otCost   = p.rate * 1.5 * p.otHrs;
-    const total    = stCost + otCost;
-    totCost += total;
-    return `<tr style="border-bottom:1px solid var(--ff-bdr)">
-      <td style="padding:7px 10px;font-weight:500">${esc(p.last)}, ${esc(p.first)}</td>
-      <td style="padding:7px 10px">${roleBadge(p.role)}</td>
-      <td style="padding:7px 10px;font-size:11px;color:var(--ff-tx3)">${esc(p.job)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace">${p.stHrs}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;color:${p.otHrs>0?'var(--ff-amber)':'var(--ff-tx4)'}">${p.otHrs||'—'}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace">${fmtHr(p.rate)}</td>
-      <td style="padding:7px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(total)}</td>
-    </tr>`;
-  }).join('') + `<tr style="background:var(--ff-bg);border-top:2px solid var(--ff-bdr-m)">
-    <td style="padding:8px 10px;font-weight:500" colspan="6">Total (${sorted.length} employees shown)</td>
-    <td style="padding:8px 10px;text-align:right;font-family:'DM Mono',monospace;font-weight:500">${fmt$r(totCost)}</td>
-  </tr>`;
-}
-
-function rptTab(tab) {
-  ['weekly','jobs','people','transfers'].forEach(t => {
-    const pane = document.getElementById('rpt-pane-' + t);
-    const btn  = document.getElementById('rpt-tab-' + t);
-    if (pane) pane.style.display = t === tab ? 'block' : 'none';
-    if (btn)  btn.classList.toggle('active', t === tab);
-  });
-  if (tab === 'transfers') renderTransfers();
-}
-
 // ═══════════════════════════════════════════════════════════════
 //  LABOR TRANSFERS — unified system for crew reassignments +
 //  payroll corrections. Both types create notifications and
@@ -6464,8 +5570,8 @@ function submitTransfer() {
   notifyTransfer(tx, 'created');
 
   closeNewTransfer();
-  // Make sure transfers tab is active
-  rptTab('transfers');
+  // Re-render the transfers screen to show the new row
+  renderTransfers();
 
   // Flash the new row
   setTimeout(() => {
@@ -6556,6 +5662,16 @@ function ffShowApp(email, name, role) {
     const p = name.trim().split(' ');
     sbAv.textContent = (p[0]?.[0]||'') + (p[1]?.[0]||'');
   }
+
+  // ── Admin gating ────────────────────────────────────────────
+  // Show/hide .admin-only nav items based on user role.
+  // Admin roles: superintendent, admin. All others hidden.
+  const ADMIN_ROLES = ['superintendent', 'admin'];
+  const isAdmin = ADMIN_ROLES.includes((role || '').toLowerCase());
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+
   // Honor user's home screen preference from Settings
   try {
     const s = typeof loadSettings === 'function' ? loadSettings() : null;
@@ -6646,13 +5762,6 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
-  // ── DEV MODE: bypass login for editing/preview ──
-  // Remove this block and uncomment the real auth block below before publishing
-  ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
-  return;
-
-  // ── Real auth (re-enable before publishing) ──
-  /*
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
@@ -6661,7 +5770,6 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   } else {
     ffShowLogin();
   }
-  */
 })();
 
 // ── Settings (persisted to localStorage) ──────────────────────
