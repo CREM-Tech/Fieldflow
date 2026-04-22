@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co; frame-ancestors *;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co https://api.weather.gov; frame-ancestors *;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>FieldFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -779,6 +779,60 @@ html.dark .theme-toggle.on {
 
 /* ── Roster table ───────────────────────────────────────── */
 .roster-tbl { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+/* Cert drill-down tabs */
+.cert-tabs .cert-tab {
+  flex: 1; padding: 9px 8px; border: none; background: transparent;
+  font-family: var(--sans); font-size: 11.5px; font-weight: 500;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.cert-tabs .cert-tab:hover { color: var(--ink); background: var(--accent-ghost); }
+.cert-tabs .cert-tab.active { color: var(--accent-dark); border-bottom-color: var(--accent); background: var(--white); }
+/* Profile section */
+.profile-photo {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-family: var(--serif); font-weight: 500; font-size: 28px;
+  flex-shrink: 0; font-style: italic;
+}
+.profile-field {
+  padding: 8px 0; border-bottom: 1px solid var(--line-soft);
+  display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: center;
+  font-size: 12px;
+}
+.profile-field:last-child { border-bottom: none; }
+.profile-field-label {
+  font-size: 10px; font-weight: 500; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.profile-field-value { color: var(--ink); font-weight: 500; }
+.profile-field-value.empty { color: var(--muted); font-weight: 400; font-style: italic; }
+/* Org chain */
+.org-node {
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 6px;
+  border: 1px solid var(--line); background: var(--white);
+  display: flex; align-items: center; gap: 10px;
+}
+.org-node.current { background: var(--ink); color: white; border-color: var(--ink); }
+.org-node.current .org-node-role { color: var(--accent-light); }
+.org-node.manager { background: var(--accent-faint); border-color: var(--accent); }
+.org-node-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-faint); color: var(--accent-dark);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0;
+}
+.org-node.current .org-node-av { background: var(--accent); color: var(--ink); }
+.org-node-name { font-size: 12px; font-weight: 500; }
+.org-node-role { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.org-connector {
+  width: 2px; height: 14px; background: var(--line);
+  margin-left: 27px;
+}
+.roster-tbl th[data-sort]:hover { background: var(--accent-ghost); color: var(--accent-dark); }
+.roster-tbl .sort-arrow { font-size: 9px; margin-left: 2px; color: var(--accent-dark); }
 .roster-tbl th {
   text-align: left; padding: 7px 10px;
   background: var(--ff-bg); color: var(--ff-tx3);
@@ -1681,27 +1735,27 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
   <div class="ff-login-deco ff-deco-vtext">Manpower Command</div>
   <div class="ff-login-deco ff-deco-ticker">
     <div class="ff-deco-ticker-inner">
-      GF · Mike Munson<br>
-      JN · Chayce Sorbel<br>
-      AP · Zech Noel<br>
-      FM · Marsolek<br>
-      GF · Siharath<br>
-      JN · Braught<br>
-      FM · Frison<br>
-      AP · Chirhart<br>
-      GF · Mike Munson<br>
-      JN · Chayce Sorbel<br>
-      AP · Zech Noel<br>
-      FM · Marsolek<br>
-      GF · Siharath<br>
-      JN · Braught<br>
-      FM · Frison<br>
-      AP · Chirhart
+      ROSTER · ACTIVE<br>
+      DISPATCH · OPEN<br>
+      SCHEDULE · SYNCED<br>
+      CREW · ASSIGNED<br>
+      LABOR · TRACKING<br>
+      FORECAST · READY<br>
+      COSTING · LIVE<br>
+      HANDOFF · CLEAR<br>
+      ROSTER · ACTIVE<br>
+      DISPATCH · OPEN<br>
+      SCHEDULE · SYNCED<br>
+      CREW · ASSIGNED<br>
+      LABOR · TRACKING<br>
+      FORECAST · READY<br>
+      COSTING · LIVE<br>
+      HANDOFF · CLEAR
     </div>
   </div>
   <div class="ff-login-deco ff-deco-counter">
-    <span class="big">44</span>
-    <span class="small">crew · 7 jobs</span>
+    <span class="big">Field<em style="color:inherit">flow</em></span>
+    <span class="small">workforce · command</span>
   </div>
   <div class="ff-login-card" style="position:relative;z-index:1;background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;border:1px solid rgba(234,179,8,.15);box-shadow:0 30px 80px rgba(161,98,7,.25),0 10px 30px rgba(161,98,7,.12),0 0 0 1px rgba(255,255,255,.5) inset">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
@@ -2000,8 +2054,24 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             <div class="panel-header"><div class="panel-title">Alerts</div></div>
             <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">37 school conflicts need resolution</div><div class="alert-sub">Apprentices scheduled during school weeks</div></div></div>
             <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Siharath, Braught, Chirhart unassigned</div><div class="alert-sub">Showing ??? — assign before Monday</div></div></div>
-            <div class="alert-item"><div class="alert-pip" style="background:#10B981"></div><div><div class="alert-text">Memorial Day May 25 — 3 active jobs</div><div class="alert-sub">Check staffing for that week</div></div></div>
+          <div id="alert-union-holidays"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- 7-day weather forecast — heat-advisory aware -->
+      <div class="panel" style="margin-bottom:13px">
+        <div class="panel-header">
+          <div class="panel-title">Weather <em>forecast</em> · Umatilla, OR</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span id="weather-status" style="font-size:11px;color:var(--muted);font-family:var(--mono)">Loading…</span>
+            <button onclick="refreshWeather()" title="Refresh forecast now" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.background='var(--surface-2)';this.style.color='var(--accent-dark)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">↻</button>
+          </div>
+        </div>
+        <div id="weather-strip" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px"></div>
+        <div style="margin-top:10px;display:flex;gap:14px;font-size:11px;color:var(--muted);align-items:center;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FEF3C7;border:1px solid #D97706"></span>Caution · 90°F+</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FEE2E2;border:1px solid #DC2626"></span>Red flag · 100°F+ (outdoor work blocked)</span>
         </div>
       </div>
 
@@ -2059,7 +2129,24 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <span class="ctrl-lbl">Weeks</span>
         <select class="ctrl-sel"><option>4</option><option selected>8</option><option>12</option></select>
         <span class="ctrl-lbl">Role</span>
-        <select class="ctrl-sel"><option>All employees</option><option>GF / FM</option><option>Journeymen</option><option>Apprentices</option></select>
+        <select class="ctrl-sel" id="sched-role-filter" onchange="buildSchedTbody()">
+          <option value="all">All employees</option>
+          <option value="gf-fm">GF / FM only</option>
+          <option value="journey">Journeymen</option>
+          <option value="apprentice">Apprentices</option>
+          <option value="mh">Material Handlers</option>
+        </select>
+        <span class="ctrl-lbl">Sort</span>
+        <select class="ctrl-sel" id="sched-sort" onchange="buildSchedTbody()">
+          <option value="name-asc">Name · A → Z</option>
+          <option value="name-desc">Name · Z → A</option>
+          <option value="role-sen">Role · seniority</option>
+          <option value="role-jr">Role · apprentice first</option>
+          <option value="job">Current job</option>
+          <option value="conflict">Conflicts first</option>
+          <option value="unassigned">Unassigned first</option>
+        </select>
+        <button class="btn btn-sm" onclick="exportScheduleCSV()" style="margin-left:auto">Export CSV</button>
         <div class="legend">
           <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>Job</div>
           <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>School</div>
@@ -2097,7 +2184,14 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <span class="ctrl-lbl">Start week</span>
         <select class="ctrl-sel"><option>Apr 13, 2026</option><option>Apr 20, 2026</option></select>
         <span class="ctrl-lbl">Sort by</span>
-        <select class="ctrl-sel"><option>Headcount</option><option>Job name</option><option>School first</option></select>
+        <select class="ctrl-sel" id="jv-sort" onchange="renderJobView()">
+          <option value="headcount">Headcount (high → low)</option>
+          <option value="headcount-asc">Headcount (low → high)</option>
+          <option value="name">Job name (A → Z)</option>
+          <option value="number">Job number</option>
+          <option value="school-first">School first</option>
+          <option value="ratio">Ratio violations first</option>
+        </select>
       </div>
       <div class="tbl-wrap">
         <table class="jv-tbl">
@@ -2137,16 +2231,18 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <div class="tbl-wrap" style="flex:1">
           <table class="roster-tbl">
             <thead><tr>
-              <th>Name</th><th>Role</th><th>Badged</th>
+              <th data-sort="name"   style="cursor:pointer">Name <span class="sort-arrow"></span></th>
+              <th data-sort="role"   style="cursor:pointer">Role <span class="sort-arrow"></span></th>
+              <th>Badged</th>
               <th>WA Lic</th><th>OR Lic</th><th>Aerial</th>
               <th>Forklift</th><th>HAZWOPER</th><th>OSHA 10</th><th>OSHA 30</th>
-              <th>This week</th>
+              <th data-sort="thisweek" style="cursor:pointer">This week <span class="sort-arrow"></span></th>
             </tr></thead>
             <tbody id="roster-tbody"></tbody>
           </table>
         </div>
-        <!-- Cert expiry panel -->
-        <div id="cert-panel" style="display:none;width:300px;flex-shrink:0;overflow-y:auto"></div>
+        <!-- Cert expiry panel — sticky so it follows scroll -->
+        <div id="cert-panel" style="display:none;width:320px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 120px);overflow-y:auto"></div>
       </div>
     </div>
 
@@ -2293,8 +2389,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             <div style="font-size:9.5px;color:var(--ff-tx4);margin-top:8px" id="fin-rate-note"></div>
           </div>
 
-          <!-- JOB DETAIL PANEL — slides in on job click -->
-          <div id="fin-job-detail" style="display:none;width:310px;flex-shrink:0"></div>
+          <!-- JOB DETAIL PANEL — slides in on job click, sticky to follow scroll -->
+          <div id="fin-job-detail" style="display:none;width:310px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 120px);overflow-y:auto"></div>
         </div>
       </div>
 
@@ -2390,6 +2486,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <button class="fin-tab active" id="rpt-tab-weekly" onclick="rptTab('weekly')">Weekly actuals</button>
         <button class="fin-tab" id="rpt-tab-jobs" onclick="rptTab('jobs')">By job</button>
         <button class="fin-tab" id="rpt-tab-people" onclick="rptTab('people')">By person</button>
+        <button class="fin-tab" id="rpt-tab-transfers" onclick="rptTab('transfers')">Transfers <span id="rpt-transfer-count" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:var(--accent-faint);color:var(--accent-dark);font-size:10px;font-weight:600">0</span></button>
         <div style="margin-left:auto;padding-bottom:8px;display:flex;align-items:center;gap:8px">
           <span style="font-size:11px;color:var(--ff-tx3)">Period</span>
           <select class="ctrl-sel" id="rpt-period">
@@ -2462,6 +2559,84 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             </thead>
             <tbody id="rpt-people-tbody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ── Transfers pane (labor redistributions + payroll corrections) ── -->
+      <div id="rpt-pane-transfers" style="display:none">
+        <!-- Summary metrics -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+          <div class="metric" style="padding:14px 16px">
+            <div class="metric-label">Pending approval</div>
+            <div class="metric-value" id="tx-pending-count" style="font-size:26px">0</div>
+            <div class="metric-sub" id="tx-pending-hrs">0 hrs across 0 jobs</div>
+          </div>
+          <div class="metric" style="padding:14px 16px">
+            <div class="metric-label">Approved · this period</div>
+            <div class="metric-value" id="tx-approved-count" style="font-size:26px">0</div>
+            <div class="metric-sub up" id="tx-approved-hrs">0 hrs redistributed</div>
+          </div>
+          <div class="metric" style="padding:14px 16px">
+            <div class="metric-label">Crew reassignments</div>
+            <div class="metric-value" id="tx-reassign-count" style="font-size:26px">0</div>
+            <div class="metric-sub">Person-moves</div>
+          </div>
+          <div class="metric" style="padding:14px 16px">
+            <div class="metric-label">Payroll corrections</div>
+            <div class="metric-value" id="tx-correct-count" style="font-size:26px">0</div>
+            <div class="metric-sub">Hours re-coded</div>
+          </div>
+        </div>
+
+        <!-- Filter + action bar -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <select class="ctrl-sel" id="tx-filter-type" onchange="renderTransfers()">
+            <option value="all">All transfers</option>
+            <option value="reassign">Crew reassignments</option>
+            <option value="correction">Payroll corrections</option>
+          </select>
+          <select class="ctrl-sel" id="tx-filter-status" onchange="renderTransfers()">
+            <option value="all">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="denied">Denied</option>
+          </select>
+          <input id="tx-filter-search" placeholder="Search employee or job…" oninput="renderTransfers()"
+            style="padding:6px 10px;border:1px solid var(--ff-bdr-m);border-radius:6px;font-size:12px;font-family:inherit;min-width:200px;background:var(--white);color:var(--ink)">
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-sm" onclick="exportTransfersCSV()">Export CSV</button>
+            <button class="btn btn-sm btn-primary" onclick="openNewTransfer()">+ New transfer</button>
+          </div>
+        </div>
+
+        <!-- Transfer table -->
+        <div class="panel" style="padding:0;overflow:hidden">
+          <div class="tbl-wrap">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Status</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Type</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Effective</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Employee</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">From</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">To</th>
+                  <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Hrs</th>
+                  <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Requested by</th>
+                  <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tx-tbody"></tbody>
+            </table>
+          </div>
+          <div id="tx-empty" style="display:none;padding:48px 20px;text-align:center;color:var(--muted);font-size:13px">
+            <div style="font-size:28px;margin-bottom:8px;opacity:.4">⇄</div>
+            No transfers match the current filters.
+          </div>
+        </div>
+
+        <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
+          Every transfer creates a notification to the requester, sending foreman, receiving foreman, and the person's superintendent. Approved transfers flow into Spectrum's labor redistribution export on the next sync.
         </div>
       </div>
 
@@ -2735,7 +2910,6 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
   </div>
 </div><!-- end .fieldflow -->
 </div><!-- end #ff-app -->
-</div><!-- end #ff-app -->
 
 <!-- ASSIGN MODAL ──────────────────────────────────────── -->
 <div class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
@@ -2772,6 +2946,71 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
     <div class="modal-actions">
       <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="document.querySelector('.modal-overlay').classList.remove('open')">Assign worker</button>
       <button class="btn" onclick="document.querySelector('.modal-overlay').classList.remove('open')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW TRANSFER MODAL ───────────────────────────────── -->
+<div class="modal-overlay" id="tx-modal-overlay" onclick="if(event.target===this)closeNewTransfer()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">New labor <em style="color:var(--accent);font-style:italic">transfer</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5">
+      Create a structured record of a labor move or payroll correction. Both create notifications to affected parties and flow into Spectrum on next sync.
+    </div>
+
+    <!-- Transfer type toggle -->
+    <div class="form-group">
+      <label class="form-label">Transfer type</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button type="button" id="tx-type-reassign" class="btn btn-primary" style="padding:10px 12px;justify-content:center" onclick="setTransferType('reassign')">
+          <strong>Crew reassignment</strong><br><span style="font-size:10px;font-weight:400;opacity:.85">Person moves to a new job</span>
+        </button>
+        <button type="button" id="tx-type-correction" class="btn" style="padding:10px 12px;justify-content:center" onclick="setTransferType('correction')">
+          <strong>Payroll correction</strong><br><span style="font-size:10px;font-weight:400;opacity:.85">Re-code hours already logged</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Employee</label>
+      <select class="form-input" id="tx-employee"></select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label">From job</label>
+        <select class="form-input" id="tx-from-job"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">To job</label>
+        <select class="form-input" id="tx-to-job"></select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group">
+        <label class="form-label"><span id="tx-date-label">Effective date</span></label>
+        <input type="date" class="form-input" id="tx-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="tx-hours-label" style="display:none">Hours to transfer</label>
+        <input type="number" class="form-input" id="tx-hours" placeholder="8" min="0" max="60" step="0.5" style="display:none">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Reason / notes</label>
+      <textarea class="form-input" id="tx-reason" rows="2" placeholder="e.g. Moved to cover LW outage · Miscoded Tuesday hours as PDX247, should be LW" style="resize:vertical;font-family:inherit"></textarea>
+    </div>
+
+    <div id="tx-preview" style="background:var(--accent-ghost);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11.5px;color:var(--ink-soft);display:none">
+      <div style="font-weight:600;margin-bottom:4px;color:var(--accent-dark)">Notifications will be sent to</div>
+      <div id="tx-notify-list" style="line-height:1.6"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="submitTransfer()">Submit transfer</button>
+      <button class="btn" onclick="closeNewTransfer()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2912,7 +3151,63 @@ const entries = Object.entries(SCHED).sort((a, b) => a[0].localeCompare(b[0]));
 function buildSchedTbody() {
   const tbody = document.getElementById('sched-tbody');
   if (!tbody) return;
-  tbody.innerHTML = entries.map(([key, weeks]) => {
+
+  // Read current filter + sort
+  const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
+  const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
+
+  // Filter by role
+  const filtered = Object.entries(SCHED).filter(([key]) => {
+    const [, , role] = key.split(',');
+    if (roleFilter === 'all')        return true;
+    if (roleFilter === 'gf-fm')      return role === 'GF' || role === 'FM';
+    if (roleFilter === 'journey')    return role === 'JN' || role === 'JW';
+    if (roleFilter === 'apprentice') return /^\d/.test(role);
+    if (roleFilter === 'mh')         return role === 'MH';
+    return true;
+  });
+
+  // Sort
+  const sorted = [...filtered].sort((a, b) => {
+    const [la, fa, ra] = a[0].split(',');
+    const [lb, fb, rb] = b[0].split(',');
+    const nameA = la + ' ' + fa;
+    const nameB = lb + ' ' + fb;
+    const jobA  = (a[1][0]?.[0] || '').toString();
+    const jobB  = (b[1][0]?.[0] || '').toString();
+
+    // Count conflicts / unassigned in the first week
+    const conflictsA = (a[1][0] || []).filter(d => d === '???' || d === 'CONFLICT').length;
+    const conflictsB = (b[1][0] || []).filter(d => d === '???' || d === 'CONFLICT').length;
+    const unassignedA = (a[1][0] || []).filter(d => !d || d === '' || d === '???').length;
+    const unassignedB = (b[1][0] || []).filter(d => !d || d === '' || d === '???').length;
+
+    switch (sortKey) {
+      case 'name-desc':
+        return nameB.localeCompare(nameA);
+      case 'role-sen':
+        // Seniority: SUPER → GF → FM → JN → apprentice (5→1) → MH
+        return roleRank(ra) - roleRank(rb) || nameA.localeCompare(nameB);
+      case 'role-jr':
+        return roleRank(rb) - roleRank(ra) || nameA.localeCompare(nameB);
+      case 'job':
+        return jobA.localeCompare(jobB) || nameA.localeCompare(nameB);
+      case 'conflict':
+        return conflictsB - conflictsA || nameA.localeCompare(nameB);
+      case 'unassigned':
+        return unassignedB - unassignedA || nameA.localeCompare(nameB);
+      case 'name-asc':
+      default:
+        return nameA.localeCompare(nameB);
+    }
+  });
+
+  if (sorted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="16" style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">No employees match the current filter.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
     return `<tr>
       <td class="stick"><div class="emp-name">${esc(last)}, ${esc(first)}</div><div class="emp-role">${esc(role)}</div></td>
@@ -2930,16 +3225,51 @@ function buildSchedTbody() {
       ).join('')}
     </tr>`;
   }).join('');
+}
 
-  // Event delegation — one listener on tbody
+// Export current filtered + sorted schedule as CSV
+function exportScheduleCSV() {
+  const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
+  const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
+  const filtered = Object.entries(SCHED).filter(([key]) => {
+    const [, , role] = key.split(',');
+    if (roleFilter === 'all')        return true;
+    if (roleFilter === 'gf-fm')      return role === 'GF' || role === 'FM';
+    if (roleFilter === 'journey')    return role === 'JN' || role === 'JW';
+    if (roleFilter === 'apprentice') return /^\d/.test(role);
+    if (roleFilter === 'mh')         return role === 'MH';
+    return true;
+  });
+  const days = ['Mon 4/13','Tue 4/14','Wed 4/15','Thu 4/16','Fri 4/17',
+                'Mon 4/20','Tue 4/21','Wed 4/22','Thu 4/23','Fri 4/24',
+                'Mon 4/27','Tue 4/28','Wed 4/29','Thu 4/30','Fri 5/1'];
+  const rows = [['Last','First','Role', ...days].join(',')];
+  filtered.forEach(([key, weeks]) => {
+    const [last, first, role] = key.split(',');
+    const flat = weeks.slice(0, 3).flat();
+    rows.push([last, first, role, ...flat.map(d => `"${d || ''}"`)].join(','));
+  });
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `schedule-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Attach click handler once on the tbody (not inside render — renders replace innerHTML)
+(function attachSchedClicks() {
+  const tbody = document.getElementById('sched-tbody');
+  if (!tbody) return;
   tbody.addEventListener('click', e => {
     const td = e.target.closest('td[data-cell-rid]');
     if (!td) { closeDayPopover(); return; }
     const crid = parseInt(td.dataset.cellRid, 10);
     openDayPopover(td, crid);
   });
-}
-buildSchedTbody();
+})();
+// Initial buildSchedTbody() call moved to end of script (needs JOBS for ratio sort)
 
 // ── Org chart data ────────────────────────────────────────────
 // Structure: who reports to who, and who they manage
@@ -3038,42 +3368,92 @@ function openEmpProfile(last, first, role) {
 // ev-tbody removed — employee view screen was removed
 
 // ── Build job view ────────────────────────────────────────────
-const jvMap = {};
-entries.forEach(([key, weeks]) => {
-  const [last, first] = key.split(',');
-  const name = `${last}, ${first}`;
-  weeks.forEach((wk, wi) => {
-    const { lbl, cls } = primaryJob(wk);
-    if (lbl && lbl !== '—') {
-      if (!jvMap[lbl]) jvMap[lbl] = { cls, weeks: Array(8).fill(null).map(() => []) };
-      if (wi < 8) jvMap[lbl].weeks[wi].push(name);
+function renderJobView() {
+  const tbody = document.getElementById('jv-tbody');
+  if (!tbody) return;
+
+  const sortKey = document.getElementById('jv-sort')?.value || 'headcount';
+
+  const jvMap = {};
+  Object.entries(SCHED).forEach(([key, weeks]) => {
+    const [last, first] = key.split(',');
+    const name = `${last}, ${first}`;
+    weeks.forEach((wk, wi) => {
+      const { lbl, cls } = primaryJob(wk);
+      if (lbl && lbl !== '—') {
+        if (!jvMap[lbl]) jvMap[lbl] = { cls, weeks: Array(8).fill(null).map(() => []) };
+        if (wi < 8) jvMap[lbl].weeks[wi].push(name);
+      }
+    });
+  });
+
+  const entriesArr = Object.entries(jvMap);
+
+  // Helper: get unique headcount for a job
+  const headcount = data => [...new Set(data.weeks.flat())].length;
+  // Helper: get matching JOB row to check ratio (if exists)
+  const jobRatioViolation = jobLabel => {
+    const j = JOBS.find(x => x.name === jobLabel);
+    if (!j) return false;
+    const crew = getJobCrew(j);
+    if (crew.length === 0) return false;
+    return !getRatioStatus(crew).ok;
+  };
+
+  const sorted = entriesArr.sort((a, b) => {
+    switch (sortKey) {
+      case 'headcount-asc':
+        return headcount(a[1]) - headcount(b[1]);
+      case 'name':
+        return a[0].localeCompare(b[0]);
+      case 'number': {
+        const ja = JOBS.find(x => x.name === a[0])?.number || 'zzz';
+        const jb = JOBS.find(x => x.name === b[0])?.number || 'zzz';
+        return ja.localeCompare(jb);
+      }
+      case 'school-first':
+        if (a[0].includes('School')) return -1;
+        if (b[0].includes('School')) return 1;
+        if (a[0] === 'Varies') return 1;
+        if (b[0] === 'Varies') return -1;
+        return headcount(b[1]) - headcount(a[1]);
+      case 'ratio': {
+        const va = jobRatioViolation(a[0]) ? 0 : 1;
+        const vb = jobRatioViolation(b[0]) ? 0 : 1;
+        return va - vb || headcount(b[1]) - headcount(a[1]);
+      }
+      case 'headcount':
+      default:
+        return headcount(b[1]) - headcount(a[1]);
     }
   });
-});
-const jvSorted = Object.entries(jvMap).sort((a, b) => {
-  if (a[0].includes('School')) return -1;
-  if (b[0].includes('School')) return 1;
-  if (a[0] === 'Varies') return 1;
-  if (b[0] === 'Varies') return -1;
-  return b[1].weeks.flat().length - a[1].weeks.flat().length;
-});
-document.getElementById('jv-tbody').innerHTML = jvSorted.map(([job, data]) => {
-  const all = [...new Set(data.weeks.flat())];
-  const bg = job.includes('School') ? 'background:var(--school-bg)' : job === 'Varies' ? 'background:var(--var-bg)' : '';
-  return `<tr style="${bg}">
-    <td><div class="jv-job">${esc(job)}</div></td>
-    <td><div class="jv-count">${all.length}</div></td>
-    ${data.weeks.slice(0, 6).map(names =>
-      !names.length
-        ? '<td><div class="jv-empty">—</div></td>'
-        : `<td><div class="jv-wk-n">${names.length} ▸</div><div class="jv-names">${names.map(n => esc(n)).join('<br>')}</div></td>`
-    ).join('')}
-  </tr>`;
-}).join('');
+
+  tbody.innerHTML = sorted.map(([job, data]) => {
+    const all = [...new Set(data.weeks.flat())];
+    const hasViolation = jobRatioViolation(job);
+    const bg = hasViolation
+      ? 'background:var(--bad-bg)'
+      : job.includes('School') ? 'background:var(--school-bg)'
+      : job === 'Varies' ? 'background:var(--var-bg)' : '';
+    const violationBadge = hasViolation
+      ? ' <span style="background:var(--bad);color:#fff;font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:.04em">⚠ RATIO</span>'
+      : '';
+    return `<tr style="${bg}">
+      <td><div class="jv-job">${esc(job)}${violationBadge}</div></td>
+      <td><div class="jv-count">${all.length}</div></td>
+      ${data.weeks.slice(0, 6).map(names =>
+        !names.length
+          ? '<td><div class="jv-empty">—</div></td>'
+          : `<td><div class="jv-wk-n">${names.length} ▸</div><div class="jv-names">${names.map(n => esc(n)).join('<br>')}</div></td>`
+      ).join('')}
+    </tr>`;
+  }).join('');
+}
+// Initial renderJobView() call moved to end of script (needs JOBS)
 
 // ── Build roster ──────────────────────────────────────────────
 const ROSTER = [
-  {last:'Berry',     first:'Vanessa',   role:'',   ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
+  {last:'Berry',     first:'Vanessa',   role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Boden',     first:'Charlie',   role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
   {last:'Boles',     first:'James',     role:'FM', ba:'',    wa:1,or:0,ae:1,fk:1,hz:1,o10:1,o30:1},
   {last:'Braught',   first:'Isaiah',    role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
@@ -3109,7 +3489,7 @@ const ROSTER = [
   {last:'Reynolds',  first:'Brendan',   role:'5A', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Robins',    first:'Jason',     role:'4A', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Rodgers',   first:'Shawn',     role:'JN', ba:'var', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Schroder',  first:'Hailey',    role:'',   ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
+  {last:'Schroder',  first:'Hailey',    role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Sholotyuk', first:'Alexsei',   role:'2E', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Siharath',  first:'Vayourinh', role:'GF', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:0,o10:1,o30:1},
   {last:'Sorbel',    first:'Chayce',    role:'GF', ba:'AWS', wa:1,or:1,ae:1,fk:1,hz:1,o10:1,o30:1},
@@ -3117,6 +3497,26 @@ const ROSTER = [
   {last:'Walker',    first:'Rodger',    role:'5A', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
   {last:'Weaver',    first:'Corey',     role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
 ];
+
+// ── Normalize roles ────────────────────────────────────────────
+// Anyone without an assigned role is treated as a 1st-year apprentice
+// without a class (role '0' → lowest wage scale of $41.70/hr).
+// This is the rule: no role = new hire = 1st year unassigned.
+ROSTER.forEach(e => {
+  if (!e.role || !e.role.trim()) e.role = '0';
+});
+
+// Normalize SCHED keys too — they're formatted 'Last,First,Role' and
+// some have empty trailing role (e.g. 'Berry,Vanessa,'). Rewrite those
+// keys with role '0' so filters and sorts pick them up as apprentices.
+Object.keys(SCHED).forEach(k => {
+  const parts = k.split(',');
+  if (parts.length === 3 && !parts[2].trim()) {
+    const newKey = parts[0] + ',' + parts[1] + ',0';
+    SCHED[newKey] = SCHED[k];
+    delete SCHED[k];
+  }
+});
 
 const ck = v => v ? '<span class="ck">✓</span>' : '<span class="dash">—</span>';
 const thisWeekJob = last => {
@@ -3149,6 +3549,71 @@ function certStatus(expiryDate) {
   return 'ok';
 }
 
+// ── Roster sort state ─────────────────────────────────────────
+let _rosterSort = { key: null, dir: 'asc' }; // 'asc' | 'desc'
+
+// Role ranking for sorting by seniority (GF > FM > JN > apprentices by year)
+const ROLE_RANK = {
+  'SUPER': 0, 'GF': 1, 'FM': 2, 'JN': 3, 'JW': 3, 'WLD': 4,
+  '5A': 5, '5B': 5,
+  '4A': 6, '4B': 6, '4C': 6,
+  '3A': 7, '3B': 7, '3C': 7,
+  '2A': 8, '2B': 8, '2C': 8, '2D': 8, '2E': 8, '2LE': 8,
+  '1A': 9, '1B': 9, '1C': 9, '1D': 9, '1E': 9, '1': 9, '1A(LE)': 9, '1B(LE)': 9,
+  '0': 10, '0A': 10, '0B': 10, '0C': 10, '0D': 10, '0E': 10,
+  'MH': 11,
+};
+function roleRank(r) {
+  if (r in ROLE_RANK) return ROLE_RANK[r];
+  if (/^\d/.test(r)) return 10; // any unknown apprentice code
+  return 99;
+}
+
+function sortRoster(list) {
+  if (!_rosterSort.key) return list;
+  const dir = _rosterSort.dir === 'desc' ? -1 : 1;
+  const copy = [...list];
+  copy.sort((a, b) => {
+    let va, vb;
+    if (_rosterSort.key === 'name') {
+      va = (a.last + ' ' + a.first).toLowerCase();
+      vb = (b.last + ' ' + b.first).toLowerCase();
+    } else if (_rosterSort.key === 'role') {
+      va = roleRank(a.role); vb = roleRank(b.role);
+    } else if (_rosterSort.key === 'thisweek') {
+      va = (thisWeekJob(a.last) || 'zzz').toLowerCase();
+      vb = (thisWeekJob(b.last) || 'zzz').toLowerCase();
+    } else {
+      return 0;
+    }
+    return va < vb ? -1 * dir : va > vb ? 1 * dir : 0;
+  });
+  return copy;
+}
+
+function setRosterSort(key) {
+  if (_rosterSort.key === key) {
+    _rosterSort.dir = _rosterSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    _rosterSort = { key, dir: 'asc' };
+  }
+  renderRosterTable();
+  updateSortArrows();
+}
+
+function updateSortArrows() {
+  document.querySelectorAll('.roster-tbl th[data-sort]').forEach(th => {
+    const arrow = th.querySelector('.sort-arrow');
+    if (!arrow) return;
+    if (th.dataset.sort === _rosterSort.key) {
+      arrow.textContent = _rosterSort.dir === 'asc' ? ' ▲' : ' ▼';
+      arrow.style.color = 'var(--accent-dark)';
+    } else {
+      arrow.textContent = '';
+    }
+  });
+}
+
 function buildRosterRows(filter, roleFilter) {
   const filtered = ROSTER.filter(e => {
     const name = (e.last + ' ' + e.first).toLowerCase();
@@ -3162,7 +3627,10 @@ function buildRosterRows(filter, roleFilter) {
     return matchName && matchRole;
   });
 
-  return filtered.map(e => {
+  // Apply sort if set
+  const ranked = sortRoster(filtered);
+
+  return ranked.map(e => {
     const expiry = CERT_EXPIRY[e.last] || {};
 
     function certCell(has, key) {
@@ -3205,8 +3673,151 @@ function filterRoster(val) { renderRosterTable(); }
 // Initial render
 renderRosterTable();
 
+// Wire sort headers on roster table
+document.querySelectorAll('.roster-tbl th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => setRosterSort(th.dataset.sort));
+});
+
 // ── Cert expiry panel ─────────────────────────────────────────
 let certPanelOpen = null;
+
+// ── Profile + org drill-down renderers ────────────────────────
+// These are placeholders — real photo/email/phone data will come from
+// Supabase `employees` table once wired. For now, display what we know
+// (from ROSTER) and mark missing fields as "Not set".
+
+function apprenticeYear(role) {
+  if (!role) return null;
+  if (role === '0' || /^0[A-Z]/.test(role)) return '1st year (unassigned class)';
+  if (role === '1' || /^1[A-Z]/.test(role)) return '1st year · ' + role;
+  if (/^2[A-Z]/.test(role)) return '2nd year · ' + role;
+  if (/^3[A-Z]/.test(role)) return '3rd year · ' + role;
+  if (/^4[A-Z]/.test(role)) return '4th year · ' + role;
+  if (/^5[A-Z]/.test(role)) return '5th year · ' + role;
+  return null;
+}
+
+function renderProfileSection(last, first, role, emp) {
+  const initials = (first?.[0] || '') + (last?.[0] || '');
+  const appYear = apprenticeYear(role);
+  const isApp = !!appYear;
+  const hourly = rateForRole(role);
+
+  // Training / licenses derived from cert fields
+  const trainings = [];
+  if (emp.o10) trainings.push('OSHA 10');
+  if (emp.o30) trainings.push('OSHA 30');
+  if (emp.hz)  trainings.push('HAZWOPER');
+  if (emp.ae)  trainings.push('Aerial Lift');
+  if (emp.fk)  trainings.push('Forklift');
+  const licenses = [];
+  if (emp.wa) licenses.push('WA Electrical');
+  if (emp.or) licenses.push('OR Electrical');
+
+  return `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div class="profile-photo">${esc(initials)}</div>
+      <div>
+        <div style="font-family:var(--serif);font-size:18px;font-weight:500;color:var(--ink);letter-spacing:-.02em">${esc(last)}, ${esc(first)}</div>
+        <div style="margin-top:3px">${roleBadge(role)}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column">
+      <div class="profile-field">
+        <div class="profile-field-label">Role</div>
+        <div class="profile-field-value">${esc(role || 'Not assigned')}</div>
+      </div>
+      ${isApp ? `
+      <div class="profile-field">
+        <div class="profile-field-label">Class</div>
+        <div class="profile-field-value">${esc(appYear)}</div>
+      </div>` : ''}
+      <div class="profile-field">
+        <div class="profile-field-label">Wage rate</div>
+        <div class="profile-field-value" style="font-family:var(--mono)">$${hourly.toFixed(2)}/hr</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Badged</div>
+        <div class="profile-field-value ${emp.ba ? '' : 'empty'}">${esc(emp.ba || 'Not badged')}</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Licenses</div>
+        <div class="profile-field-value ${licenses.length ? '' : 'empty'}">${licenses.length ? esc(licenses.join(' · ')) : 'None on file'}</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Training</div>
+        <div class="profile-field-value ${trainings.length ? '' : 'empty'}">${trainings.length ? esc(trainings.join(' · ')) : 'None on file'}</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Email</div>
+        <div class="profile-field-value empty">Not set</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Phone</div>
+        <div class="profile-field-value empty">Not set</div>
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">This week</div>
+        <div class="profile-field-value">${esc(thisWeekJob(last) || '—')}</div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5">
+      Photo upload, contact info, and full training records will be editable here once connected to the employees table.
+    </div>
+  `;
+}
+
+function renderOrgSection(last, first) {
+  const node = ORG[last];
+  const initials = f => (f && f.length ? f[0] : '');
+
+  // Build chain: who they manage (below) · themselves (middle) · who they report to (above)
+  // ORG keys use last-name only — we need to resolve full names from ROSTER
+  function nodeFor(lastKey, tag) {
+    const e = ROSTER.find(r => r.last === lastKey);
+    if (!e) {
+      // Placeholder (superintendent or external)
+      return `<div class="org-node ${tag}">
+        <div class="org-node-av">${esc(lastKey.slice(0,2).toUpperCase())}</div>
+        <div><div class="org-node-name">${esc(lastKey)}</div><div class="org-node-role">${esc(ORG[lastKey]?.title || 'Leadership')}</div></div>
+      </div>`;
+    }
+    return `<div class="org-node ${tag}">
+      <div class="org-node-av">${esc(initials(e.first))}${esc(initials(e.last))}</div>
+      <div>
+        <div class="org-node-name">${esc(e.last)}, ${esc(e.first)}</div>
+        <div class="org-node-role">${esc(ORG[lastKey]?.title || e.role)}</div>
+      </div>
+    </div>`;
+  }
+
+  let html = '';
+
+  // Who they report to (above)
+  if (node?.reportsTo) {
+    // reportsTo is formatted like "Munson, Mike" or "Super — Zech S."
+    const reportKey = node.reportsTo.split(',')[0].replace('Super — ','').trim();
+    html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Reports to</div>`;
+    html += nodeFor(reportKey, 'manager');
+    html += `<div class="org-connector"></div>`;
+  }
+
+  // Current person
+  html += nodeFor(last, 'current');
+
+  // Who they manage (below)
+  if (node?.manages && node.manages.length) {
+    html += `<div class="org-connector"></div>`;
+    html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">Manages (${node.manages.length})</div>`;
+    html += node.manages.map(m => nodeFor(m, '')).join('');
+  } else if (!node?.reportsTo) {
+    html += `<div style="margin-top:12px;font-size:11px;color:var(--muted);font-style:italic;text-align:center">No reporting chain on file.</div>`;
+  }
+
+  return html;
+}
 
 function openCertPanel(last, first, role) {
   certPanelOpen = last;
@@ -3257,33 +3868,65 @@ function openCertPanel(last, first, role) {
         <button onclick="closeCertPanel()" style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:16px;color:var(--ff-tx3)">×</button>
       </div>
 
-      ${anyExpired || anyExpiring ? `
-      <div style="padding:8px 14px;background:${anyExpired?'#FEF2F2':'#FFFBEB'};border-bottom:1px solid ${anyExpired?'#FCA5A5':'#FCD34D'}">
-        <div style="font-size:11px;font-weight:500;color:${anyExpired?'var(--ff-red)':'var(--ff-amber)'}">
-          ${anyExpired ? '⚠ Expired certs — HR notification needed' : '⚠ Certs expiring soon'}
-        </div>
-        <button class="btn btn-sm" style="margin-top:6px;font-size:10.5px;${anyExpired?'color:var(--ff-red);border-color:var(--ff-red)':''}"
-          onclick="sendHRAlert('${esc(last)}','${esc(first)}')">
-          Send alert to HR
-        </button>
-      </div>` : ''}
-
-      <div style="font-size:9.5px;color:var(--ff-tx3);padding:8px 14px 4px;text-transform:uppercase;letter-spacing:.05em;font-weight:500">
-        Set expiry dates — will auto-alert HR when expired
+      <!-- Drill-down tabs -->
+      <div class="cert-tabs" style="display:flex;border-bottom:1px solid var(--ff-bdr);background:var(--ff-bg)">
+        <button class="cert-tab active" data-cert-tab="certs">Certs</button>
+        <button class="cert-tab" data-cert-tab="profile">Profile</button>
+        <button class="cert-tab" data-cert-tab="org">Chain</button>
       </div>
 
-      ${rows}
+      <!-- Profile section (hidden by default) -->
+      <div id="cert-section-profile" style="display:none;padding:14px">
+        ${renderProfileSection(last, first, role, emp)}
+      </div>
 
-      <div style="padding:12px 14px;border-top:1px solid var(--ff-bdr)">
-        <button class="btn btn-primary" style="width:100%;justify-content:center"
-          id="cert-hr-btn">
-          📧 Send cert summary to HR
-        </button>
-        <div style="font-size:10px;color:var(--ff-tx3);text-align:center;margin-top:6px">
-          HR contact will be configured when HR user is added
+      <!-- Org chain section (hidden by default) -->
+      <div id="cert-section-org" style="display:none;padding:14px">
+        ${renderOrgSection(last, first)}
+      </div>
+
+      <!-- Certs section (default visible) -->
+      <div id="cert-section-certs">
+        ${anyExpired || anyExpiring ? `
+        <div style="padding:8px 14px;background:${anyExpired?'#FEF2F2':'#FFFBEB'};border-bottom:1px solid ${anyExpired?'#FCA5A5':'#FCD34D'}">
+          <div style="font-size:11px;font-weight:500;color:${anyExpired?'var(--ff-red)':'var(--ff-amber)'}">
+            ${anyExpired ? '⚠ Expired certs — HR notification needed' : '⚠ Certs expiring soon'}
+          </div>
+          <button class="btn btn-sm" style="margin-top:6px;font-size:10.5px;${anyExpired?'color:var(--ff-red);border-color:var(--ff-red)':''}"
+            onclick="sendHRAlert('${esc(last)}','${esc(first)}')">
+            Send alert to HR
+          </button>
+        </div>` : ''}
+
+        <div style="font-size:9.5px;color:var(--ff-tx3);padding:8px 14px 4px;text-transform:uppercase;letter-spacing:.05em;font-weight:500">
+          Set expiry dates — will auto-alert HR when expired
+        </div>
+
+        ${rows}
+
+        <div style="padding:12px 14px;border-top:1px solid var(--ff-bdr)">
+          <button class="btn btn-primary" style="width:100%;justify-content:center"
+            id="cert-hr-btn">
+            📧 Send cert summary to HR
+          </button>
+          <div style="font-size:10px;color:var(--ff-tx3);text-align:center;margin-top:6px">
+            HR contact will be configured when HR user is added
+          </div>
         </div>
       </div>
     </div>`;
+
+  // Tab switching
+  panel.querySelectorAll('.cert-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const which = btn.dataset.certTab;
+      panel.querySelectorAll('.cert-tab').forEach(b => b.classList.toggle('active', b === btn));
+      ['certs','profile','org'].forEach(sec => {
+        const el = panel.querySelector('#cert-section-' + sec);
+        if (el) el.style.display = sec === which ? 'block' : 'none';
+      });
+    });
+  });
 
   // Event delegation — no user data in onclick/oninput attributes
   panel.querySelectorAll('.cert-date-input').forEach(inp => {
@@ -3766,7 +4409,7 @@ const DEFAULT_RATES = [
   { id:'app65',  label:'Apprentice Local 112 — 65%',    rate: 70.33, roleKeys:['3A','3B','3C'] },
   { id:'app50',  label:'Apprentice Local 112 — 50%',    rate: 57.12, roleKeys:['2A','2B','2C','2D','2E','2LE'] },
   { id:'app45',  label:'Apprentice Local 112 — 45%',    rate: 52.71, roleKeys:['1C','1D','1E'] },
-  { id:'app40',  label:'Apprentice Local 112 — 40%',    rate: 41.70, roleKeys:['1A','1B','1','1B(LE)','1A(LE)'] },
+  { id:'app40',  label:'Apprentice 112 — 40% (1st yr / unassigned)', rate: 41.70, roleKeys:['0','0A','0B','0C','0D','0E','1A','1B','1','1B(LE)','1A(LE)'] },
   { id:'welder', label:'Welder Local 112',              rate:114.14, roleKeys:['WLD'] },
   { id:'mh',     label:'Material Handler Local 112',    rate: 49.11, roleKeys:['MH'] },
 ];
@@ -3777,11 +4420,245 @@ let MARKUP   = 0.25; // 25% default — adjustable
 const HOURS_PER_DAY  = 8;
 const HOURS_PER_WEEK = 40;
 
+// ── Union holidays ───────────────────────────────────────────
+// IBEW Local 112 recognized paid holidays. No crew works these days.
+// Dates computed dynamically so the list stays correct year over year.
+function _thursdayOfNov(year) {
+  // 4th Thursday of November = Thanksgiving
+  const d = new Date(year, 10, 1); // Nov 1
+  const firstThu = 1 + ((4 - d.getDay() + 7) % 7); // first Thursday
+  return new Date(year, 10, firstThu + 21);
+}
+function _mondayOfSep(year) {
+  // 1st Monday of September = Labor Day
+  const d = new Date(year, 8, 1); // Sep 1
+  const firstMon = 1 + ((1 - d.getDay() + 7) % 7);
+  return new Date(year, 8, firstMon);
+}
+function _toISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function buildUnionHolidays(year) {
+  return [
+    { date: `${year}-07-04`,               name: 'Independence Day' },
+    { date: _toISO(_mondayOfSep(year)),    name: 'Labor Day'         },
+    { date: _toISO(_thursdayOfNov(year)),  name: 'Thanksgiving'      },
+    { date: `${year}-12-25`,               name: 'Christmas'          },
+  ];
+}
+
+// Union holidays for the current and next year (schedule can span boundary)
+const UNION_HOLIDAYS = [
+  ...buildUnionHolidays(new Date().getFullYear()),
+  ...buildUnionHolidays(new Date().getFullYear() + 1),
+];
+
+// Fast lookup: {'2026-07-04': 'Independence Day', ...}
+const UNION_HOLIDAY_MAP = Object.fromEntries(UNION_HOLIDAYS.map(h => [h.date, h.name]));
+
+function isUnionHoliday(dateOrIso) {
+  if (!dateOrIso) return null;
+  const iso = typeof dateOrIso === 'string' ? dateOrIso : _toISO(dateOrIso);
+  return UNION_HOLIDAY_MAP[iso] || null;
+}
+
+function upcomingUnionHolidays(weeksAhead = 8) {
+  const now = new Date();
+  const cutoff = new Date(now.getTime() + weeksAhead * 7 * 86400000);
+  return UNION_HOLIDAYS.filter(h => {
+    const d = new Date(h.date + 'T12:00:00');
+    return d >= now && d <= cutoff;
+  });
+}
+
+function renderUnionHolidayAlerts() {
+  const el = document.getElementById('alert-union-holidays');
+  if (!el) return;
+  const upcoming = upcomingUnionHolidays(10);
+  if (upcoming.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = upcoming.map(h => {
+    const d = new Date(h.date + 'T12:00:00');
+    const nice = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `
+      <div class="alert-item">
+        <div class="alert-pip" style="background:#D97706"></div>
+        <div>
+          <div class="alert-text">${esc(h.name)} — ${esc(nice)}</div>
+          <div class="alert-sub">Union holiday · no crew scheduled</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Call after DOM renders
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderUnionHolidayAlerts);
+} else {
+  renderUnionHolidayAlerts();
+}
+
+// ── Weather forecast (NWS — no API key needed) ────────────────
+// Umatilla, OR — served by NWS Pendleton (PDT) office.
+// Grid point resolved from lat 45.92, lon -119.29.
+// Temp thresholds: 90°F caution, 100°F red flag (outdoor work blocked).
+const NWS_ENDPOINT = 'https://api.weather.gov/gridpoints/PDT/128,100/forecast';
+const CAUTION_TEMP = 90;
+const RED_FLAG_TEMP = 100;
+
+// Cache weather for 6 hours — NWS issues new forecasts roughly every
+// 6 hours (midnight, 6am, noon, 6pm local), so this matches their cadence.
+// Cached in localStorage so repeat page loads are instant and we don't
+// re-fetch the same unchanged data. Cost: $0 (NOAA is free, no
+// infrastructure is touched).
+const WEATHER_CACHE_KEY = 'fieldflow-weather-cache-v1';
+const WEATHER_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
+
+function getCachedWeather() {
+  try {
+    const raw = localStorage.getItem(WEATHER_CACHE_KEY);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (!cached.timestamp || !cached.data) return null;
+    const age = Date.now() - cached.timestamp;
+    if (age > WEATHER_CACHE_TTL_MS) return null; // expired
+    return cached;
+  } catch { return null; }
+}
+
+function cacheWeather(data) {
+  try {
+    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+      timestamp: Date.now(),
+      data,
+    }));
+  } catch { /* quota exceeded — silently skip */ }
+}
+
+async function loadWeather() {
+  const strip   = document.getElementById('weather-strip');
+  const status  = document.getElementById('weather-status');
+  if (!strip) return;
+
+  // Try cache first
+  const cached = getCachedWeather();
+  if (cached) {
+    renderWeatherFromData(cached.data, cached.timestamp, true);
+    return;
+  }
+
+  // Otherwise fetch fresh
+  try {
+    const res  = await fetch(NWS_ENDPOINT, { headers: { 'Accept': 'application/geo+json' } });
+    if (!res.ok) throw new Error('NWS fetch failed: ' + res.status);
+    const data = await res.json();
+    const periods = data?.properties?.periods || [];
+
+    // Collapse to daily highs — keep only daytime ("isDaytime": true) periods
+    const days = periods.filter(p => p.isDaytime).slice(0, 7);
+    if (days.length === 0) throw new Error('No daytime periods');
+
+    cacheWeather(days);
+    renderWeatherFromData(days, Date.now(), false);
+  } catch (err) {
+    status.textContent = 'Unavailable';
+    status.style.color = 'var(--muted)';
+    strip.innerHTML = `<div style="grid-column:1/-1;padding:16px;text-align:center;font-size:12px;color:var(--muted)">Weather forecast unavailable. ${esc(err.message || '')}</div>`;
+  }
+}
+
+// Manual refresh — bypasses cache. Button on the weather panel header.
+async function refreshWeather() {
+  try { localStorage.removeItem(WEATHER_CACHE_KEY); } catch {}
+  const status = document.getElementById('weather-status');
+  if (status) status.textContent = 'Refreshing…';
+  await loadWeather();
+}
+
+function renderWeatherFromData(days, timestamp, fromCache) {
+  const strip  = document.getElementById('weather-strip');
+  const status = document.getElementById('weather-status');
+  if (!strip || !status) return;
+
+  strip.innerHTML = days.map(p => renderWeatherDay(p)).join('');
+
+  const caution = days.filter(p => p.temperature >= CAUTION_TEMP && p.temperature < RED_FLAG_TEMP).length;
+  const redFlag = days.filter(p => p.temperature >= RED_FLAG_TEMP).length;
+  let msg;
+  if (redFlag > 0)      msg = `${redFlag} red-flag day${redFlag>1?'s':''} ahead`;
+  else if (caution > 0) msg = `${caution} caution day${caution>1?'s':''}`;
+  else                  msg = 'All clear · 7 days';
+
+  // Append "updated X ago" so users know the data is current
+  const ageMinutes = Math.floor((Date.now() - timestamp) / 60000);
+  let ageLabel;
+  if (ageMinutes < 60)       ageLabel = `${ageMinutes}m ago`;
+  else if (ageMinutes < 1440) ageLabel = `${Math.floor(ageMinutes / 60)}h ago`;
+  else                       ageLabel = `${Math.floor(ageMinutes / 1440)}d ago`;
+  status.textContent = `${msg} · updated ${ageLabel}`;
+
+  if (redFlag > 0)      status.style.color = 'var(--bad)';
+  else if (caution > 0) status.style.color = 'var(--warn)';
+  else                  status.style.color = 'var(--good)';
+}
+
+function renderWeatherDay(p) {
+  const t      = p.temperature;
+  const d      = new Date(p.startTime);
+  const day    = d.toLocaleDateString('en-US', { weekday: 'short' });
+  const date   = d.getDate() + '/' + (d.getMonth() + 1);
+  const icon   = weatherIcon(p.shortForecast || '');
+  let bg = 'var(--white)', border = 'var(--line)', tempColor = 'var(--ink)', badge = '';
+
+  if (t >= RED_FLAG_TEMP) {
+    bg = '#FEE2E2'; border = '#DC2626'; tempColor = '#B91C1C';
+    badge = `<div style="font-size:9.5px;font-weight:600;color:#B91C1C;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Red flag</div>`;
+  } else if (t >= CAUTION_TEMP) {
+    bg = '#FEF3C7'; border = '#D97706'; tempColor = '#92400E';
+    badge = `<div style="font-size:9.5px;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Caution</div>`;
+  }
+
+  return `<div style="background:${bg};border:1px solid ${border};border-radius:8px;padding:9px 8px;text-align:center">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${esc(day)}</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${esc(date)}</div>
+    <div style="font-size:18px;line-height:1;margin-bottom:4px">${icon}</div>
+    <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:${tempColor};line-height:1">${t}°</div>
+    ${badge}
+  </div>`;
+}
+
+function weatherIcon(forecast) {
+  const f = forecast.toLowerCase();
+  if (f.includes('thunder'))              return '⛈';
+  if (f.includes('snow') || f.includes('sleet')) return '❄️';
+  if (f.includes('rain') || f.includes('shower')) return '🌧';
+  if (f.includes('cloudy') && f.includes('partly')) return '⛅';
+  if (f.includes('cloudy'))               return '☁️';
+  if (f.includes('fog') || f.includes('haze')) return '🌫';
+  if (f.includes('sunny') || f.includes('clear')) return '☀️';
+  return '🌤';
+}
+
+// Kick off once DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadWeather);
+} else {
+  loadWeather();
+}
+
 function rateForRole(roleCode) {
   if (!roleCode) return RATES.find(r => r.id === 'jn')?.rate || 101.17;
   for (const r of RATES) {
     if (r.roleKeys.includes(roleCode.trim())) return r.rate;
   }
+  // Any digit-starting code (0, 0A, etc.) that wasn't matched = lowest apprentice scale
+  // (new hires not yet assigned to a class default to 1st-year pay)
   if (/^\d/.test(roleCode)) return RATES.find(r => r.id === 'app40')?.rate || 41.70;
   return RATES.find(r => r.id === 'jn')?.rate || 101.17;
 }
@@ -4203,29 +5080,55 @@ function weekCostForRate(rate, otHrs) {
 }
 
 // ── Job data with schedule, lead, and email ───────────────────
+// ── JOBS — number is the SOURCE OF TRUTH (matches Spectrum) ──
+// id is internal only; number is what users see and what Spectrum uses.
 const JOBS = [
-  { id:'j1', name:'PDX247 BMS',  number:'PDX247', location:'Portland, OR',
+  { id:'j1', name:'PDX247 BMS',  number:'PDX247-BMS', location:'Portland, OR',
     status:'active',  days:5, lead:'Porter, Billy',   leadEmail:'bporter@crem.com',
     notes:'BMS install — Level 3 & 4', color:'#FACC15' },
-  { id:'j2', name:'PDX246 SEC',  number:'PDX246', location:'Portland, OR',
+  { id:'j2', name:'PDX246 SEC',  number:'PDX246-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Olveda, Tanner',  leadEmail:'tolveda@crem.com',
     notes:'Security system rough-in', color:'#8B5CF6' },
-  { id:'j3', name:'PDX247 SEC',  number:'PDX247', location:'Portland, OR',
+  { id:'j3', name:'PDX247 SEC',  number:'PDX247-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Frison, Brad',    leadEmail:'bfrison@crem.com',
     notes:'Security panels — west wing', color:'#EC4899' },
-  { id:'j4', name:'CAMPUS WIDE', number:'CW-01',  location:'Portland, OR',
+  { id:'j4', name:'CAMPUS WIDE', number:'CW-01',      location:'Portland, OR',
     status:'active',  days:4, lead:'Marsolek, Tyler', leadEmail:'tmarsolek@crem.com',
     notes:'Campus-wide conduit run', color:'#F59E0B' },
-  { id:'j5', name:'Live Work',   number:'LW-OPS', location:'Various',
+  { id:'j5', name:'Live Work',   number:'LW-OPS',     location:'Various',
     status:'active',  days:5, lead:'Munson, Mike',    leadEmail:'mmunson@crem.com',
     notes:'On-call live work / outages', color:'#EF4444' },
-  { id:'j6', name:'WTB',         number:'WTB-01', location:'Portland, OR',
+  { id:'j6', name:'WTB',         number:'WTB-01',     location:'Portland, OR',
     status:'active',  days:5, lead:'Isley, Mike',     leadEmail:'misley@crem.com',
     notes:'Warehouse to building feeder', color:'#10B981' },
-  { id:'j7', name:'SERVICE',     number:'SVC-01', location:'Various',
+  { id:'j7', name:'SERVICE',     number:'SVC-01',     location:'Various',
     status:'active',  days:5, lead:'Clugston, Cody',  leadEmail:'cclugston@crem.com',
     notes:'Service calls', color:'#6B7280' },
 ];
+
+// Canonical lookup — job number resolves everything else
+function jobByNumber(num) {
+  if (!num) return null;
+  return JOBS.find(j => j.number === num) || null;
+}
+function jobByName(name) {
+  if (!name) return null;
+  return JOBS.find(j => j.name === name) || null;
+}
+function jobById(id) {
+  if (!id) return null;
+  return JOBS.find(j => j.id === id) || null;
+}
+// Validate uniqueness at load (prevents silent data corruption)
+(function _validateJobNumbers() {
+  const seen = new Set();
+  for (const j of JOBS) {
+    if (seen.has(j.number)) {
+      console.error(`FieldFlow: duplicate job number "${j.number}" — numbers must be unique (source of truth for Spectrum).`);
+    }
+    seen.add(j.number);
+  }
+})();
 
 // Live schedule: empKey → array of job IDs per day [M,T,W,Th,F] per week
 // We'll build this from SCHED data
@@ -4429,6 +5332,7 @@ function openMoveConfirm(move) {
         <div class="email-recipient"><strong>${esc(fromLead)}</strong> — losing ${esc(eLast)} from ${esc(move.fromJob)}<div style="font-size:10px;color:var(--ff-tx3)">${esc(fromEmail)}</div></div>
         <div class="email-recipient"><strong>${esc(toLead)}</strong> — gaining ${esc(eLast)} on ${esc(move.toJob)}<div style="font-size:10px;color:var(--ff-tx3)">${esc(toEmail)}</div></div>
         <div class="email-recipient"><strong>${esc(eFirst)} ${esc(eLast)}</strong> — your schedule updated<div style="font-size:10px;color:var(--ff-tx3)">${esc(eLast.toLowerCase())}@crew.com</div></div>
+        <div class="email-recipient" style="border-top:1px dashed var(--line);padding-top:8px;margin-top:4px"><strong>You</strong> — confirmation receipt for your records<div style="font-size:10px;color:var(--ff-tx3)" id="move-preview-you">${esc(getCurrentUserEmail())}</div></div>
       </div>
     </div>
     <div style="font-size:11px;font-weight:500;color:var(--ff-tx2);margin-bottom:8px">Apply this change to…</div>
@@ -4477,8 +5381,12 @@ function confirmMove() {
     <div style="font-size:28px;margin-bottom:10px">✓</div>
     <div class="move-modal-title" style="text-align:center">Move confirmed</div>
     <div style="font-size:12px;color:var(--ff-tx2);margin-bottom:14px">${esc(eLast)}, ${esc(eFirst)} moved to <strong>${esc(toJob)}</strong>. Notifications sent.</div>
-    <div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;padding:10px 14px;text-align:left;font-size:11px;color:#065F46;margin-bottom:14px">
-      📧 Emails queued: losing lead · gaining lead · worker
+    <div style="background:#ECFDF5;border:1px solid #6EE7B7;border-radius:8px;padding:10px 14px;text-align:left;font-size:11px;color:#065F46;margin-bottom:14px;line-height:1.6">
+      📧 Emails queued:<br>
+      · Losing lead (${esc(JOBS.find(j=>j.name===fromJob)?.lead || 'lead')})<br>
+      · Gaining lead (${esc(JOBS.find(j=>j.name===toJob)?.lead || 'lead')})<br>
+      · Worker (${esc(eLast)}, ${esc(eFirst)})<br>
+      · You — confirmation receipt
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="closeMoveModal()">Done</button>
   </div>`;
@@ -4507,14 +5415,25 @@ function renderJobManager() {
     const isActive = selectedJobId === j.id;
     const dotColor = j.status === 'active' ? '#10B981' : '#9CA3AF';
     const otLabel  = j.otHrs ? `${j.otHrs}hr OT/wk` : '40hr ST only';
-    return `<div class="jm-card${isActive?' active':''}" data-job-id="${esc(j.id)}" onclick="selectJob('${esc(j.id)}')">
+    // Check JN:apprentice ratio for this job — flag red if violated
+    const crew = getJobCrew(j);
+    const ratio = crew.length > 0 ? getRatioStatus(crew) : null;
+    const ratioFlag = ratio && !ratio.ok
+      ? `<span class="jm-tag" style="background:var(--bad-bg);color:var(--bad);font-weight:600" title="Ratio violation: ${ratio.jn} JN+ supervising ${ratio.app} apprentices">⚠ Ratio</span>`
+      : '';
+    const cardStyle = ratio && !ratio.ok && !isActive
+      ? 'border-left:3px solid var(--bad)'
+      : '';
+    return `<div class="jm-card${isActive?' active':''}" data-job-id="${esc(j.id)}" onclick="selectJob('${esc(j.id)}')" style="${cardStyle}">
       <div class="jm-status-dot" style="background:${dotColor}"></div>
       <div class="jm-body">
-        <div class="jm-name">${esc(j.name)}</div>
-        <div class="jm-meta">${esc(j.number)} · ${esc(j.location)}</div>
+        <div class="jm-name" style="font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--accent-dark);text-transform:uppercase">${esc(j.number)}</div>
+        <div class="jm-meta" style="font-family:var(--serif);font-size:15px;font-weight:500;color:var(--ink);letter-spacing:-.01em;margin-top:2px">${esc(j.name)}</div>
+        <div class="jm-meta" style="margin-top:4px">${esc(j.location)}</div>
         <div class="jm-tags">
           <span class="jm-tag ${j.status==='active'?'jm-tag-active':'jm-tag-inactive'}">${esc(j.status)}</span>
           <span class="jm-tag jm-tag-days">${esc(otLabel)}</span>
+          ${ratioFlag}
         </div>
       </div>
     </div>`;
@@ -4526,6 +5445,146 @@ function renderJobManager() {
 function selectJob(id) {
   selectedJobId = id;
   renderJobManager();
+}
+
+// ── Job composite rate + JN:apprentice ratio ──────────────────
+// Ratio rule: at least 1 Journeyman-or-higher per apprentice on the job.
+// Anything below that flags the job red (violates apprentice supervision).
+// "Journeyman or higher" = SUPER, GF, FM, JN, JW, WLD
+// "Apprentice" = any role code starting with a digit (0–5)
+const JN_OR_HIGHER = new Set(['SUPER','GF','FM','JN','JW','WLD']);
+
+function isJourneymanOrHigher(role) {
+  if (!role) return false;
+  if (JN_OR_HIGHER.has(role)) return true;
+  return false;
+}
+function isApprentice(role) {
+  return role && /^\d/.test(role);
+}
+
+function getJobCrew(j) {
+  // Return all employees currently assigned to this job in the current week
+  // Matches DS_SCHEDULE keys 'Last,First,Role'
+  return Object.entries(DS_SCHEDULE)
+    .filter(([key, weeks]) => (weeks[0] || []).some(d => d === j.name))
+    .map(([key]) => {
+      const [last, first, role] = key.split(',');
+      return { last, first, role };
+    });
+}
+
+function getCompositeRate(crew) {
+  // Sum of hourly rates / headcount = blended $/hr for the job
+  if (!crew || crew.length === 0) return { rate: 0, count: 0, breakdown: {} };
+  let total = 0;
+  const breakdown = {};
+  for (const person of crew) {
+    const r = rateForRole(person.role);
+    total += r;
+    const key = person.role || 'unassigned';
+    breakdown[key] = (breakdown[key] || 0) + 1;
+  }
+  return {
+    rate: total / crew.length,
+    count: crew.length,
+    breakdown,
+    chargeRate: (total / crew.length) * (1 + MARKUP),
+  };
+}
+
+function getRatioStatus(crew) {
+  // Check JN-or-higher : apprentice ratio. Must be >= 1.0.
+  const jn  = crew.filter(p => isJourneymanOrHigher(p.role)).length;
+  const app = crew.filter(p => isApprentice(p.role)).length;
+  // Other roles (MH, unlabeled) don't count toward either bucket
+  const ratio = app === 0 ? Infinity : jn / app;
+  const ok = ratio >= 1.0;
+  return { jn, app, ratio, ok, other: crew.length - jn - app };
+}
+
+function renderJobCompositePanel(j) {
+  const crew = getJobCrew(j);
+  if (crew.length === 0) {
+    return `<div style="font-size:11.5px;color:var(--muted);text-align:center;padding:14px">No crew assigned this week — composite rate and ratio unavailable.</div>`;
+  }
+
+  const comp  = getCompositeRate(crew);
+  const ratio = getRatioStatus(crew);
+
+  const ratioText = ratio.app === 0
+    ? 'No apprentices on this job'
+    : ratio.ratio === Infinity ? '∞' : ratio.ratio.toFixed(2);
+  const ratioBadge = ratio.ok
+    ? `<span style="background:var(--good-bg);color:var(--good);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;font-family:var(--mono)">✓ Ratio OK</span>`
+    : `<span style="background:var(--bad-bg);color:var(--bad);padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;font-family:var(--mono)">⚠ Ratio violation</span>`;
+  const ratioBg = ratio.ok ? 'var(--white)' : '#FEF2F2';
+  const ratioBorder = ratio.ok ? 'var(--line)' : 'var(--bad)';
+
+  // Breakdown rows sorted by count descending
+  const breakdownRows = Object.entries(comp.breakdown)
+    .sort((a, b) => b[1] - a[1])
+    .map(([role, count]) => {
+      const hourly = rateForRole(role);
+      return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
+        <span style="font-family:var(--mono);color:var(--ink-soft)">${esc(role)} × ${count}</span>
+        <span style="font-family:var(--mono);color:var(--ink)">$${hourly.toFixed(2)}/hr</span>
+      </div>`;
+    }).join('');
+
+  return `
+    <div style="background:${ratioBg};border:1.5px solid ${ratioBorder};border-radius:10px;padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:-0.02em">Composite <em style="color:var(--accent);font-style:italic">rate</em></div>
+        ${ratioBadge}
+      </div>
+
+      <!-- Big headline rate -->
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+        <div style="font-family:var(--serif);font-size:32px;font-weight:400;letter-spacing:-0.025em;color:var(--ink)">$${comp.rate.toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--muted)">/hr blended across ${comp.count} workers</div>
+      </div>
+
+      <!-- Ratio detail -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">
+        <div style="text-align:center;padding:10px 8px;background:${ratio.ok?'var(--good-bg)':'var(--surface-2)'};border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">JN or higher</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:var(--ink)">${ratio.jn}</div>
+        </div>
+        <div style="text-align:center;padding:10px 8px;background:${ratio.ok?'var(--surface-2)':'var(--bad-bg)'};border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">Apprentices</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:${ratio.ok?'var(--ink)':'var(--bad)'}">${ratio.app}</div>
+        </div>
+        <div style="text-align:center;padding:10px 8px;background:var(--surface-2);border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">Ratio</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:${ratio.ok?'var(--good)':'var(--bad)'};margin-top:3px">${ratioText}</div>
+        </div>
+      </div>
+
+      ${!ratio.ok ? `
+      <div style="padding:10px 12px;background:var(--bad-bg);border-radius:6px;font-size:11.5px;color:var(--bad);line-height:1.5;margin-bottom:12px">
+        <strong>Rule:</strong> at least 1 Journeyman (or higher) required per apprentice on a job.
+        Currently ${ratio.jn} JN+ supervising ${ratio.app} apprentices — need ${ratio.app - ratio.jn} more JN+ or fewer apprentices.
+      </div>` : ''}
+
+      <!-- Crew breakdown by role -->
+      <div style="margin-top:4px">
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Crew breakdown</div>
+        ${breakdownRows}
+      </div>
+
+      <!-- Cost summary -->
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11.5px">
+        <div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Weekly cost (40hr ST)</div>
+          <div style="font-family:var(--mono);font-weight:500;color:var(--ink)">$${(comp.rate * 40 * comp.count).toFixed(0)}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Weekly charge (+${(MARKUP*100).toFixed(0)}%)</div>
+          <div style="font-family:var(--mono);font-weight:500;color:var(--accent-dark)">$${(comp.chargeRate * 40 * comp.count).toFixed(0)}</div>
+        </div>
+      </div>
+    </div>`;
 }
 
 function renderJobDetail(id) {
@@ -4591,6 +5650,10 @@ function renderJobDetail(id) {
           <label class="form-label">Notes</label>
           <input id="je-notes" class="form-input" value="${esc(j.notes || '')}">
         </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
+        ${renderJobCompositePanel(j)}
       </div>
 
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
@@ -5102,10 +6165,337 @@ function renderRptPeople() {
 }
 
 function rptTab(tab) {
-  ['weekly','jobs','people'].forEach(t => {
-    document.getElementById('rpt-pane-' + t).style.display = t === tab ? 'block' : 'none';
-    document.getElementById('rpt-tab-' + t).classList.toggle('active', t === tab);
+  ['weekly','jobs','people','transfers'].forEach(t => {
+    const pane = document.getElementById('rpt-pane-' + t);
+    const btn  = document.getElementById('rpt-tab-' + t);
+    if (pane) pane.style.display = t === tab ? 'block' : 'none';
+    if (btn)  btn.classList.toggle('active', t === tab);
   });
+  if (tab === 'transfers') renderTransfers();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LABOR TRANSFERS — unified system for crew reassignments +
+//  payroll corrections. Both types create notifications and
+//  flow into Spectrum's labor redistribution export.
+// ═══════════════════════════════════════════════════════════════
+
+// In-memory store. Once Supabase tables are ready, swap to
+// _sb.from('labor_transfers') calls — same data shape.
+const TRANSFERS = [
+  {
+    id: 'tx-001',
+    type: 'reassign',
+    status: 'approved',
+    effectiveDate: '2026-04-07',
+    employee: 'Boden, Charlie',
+    fromJob: 'PDX247-BMS',
+    toJob: 'CAMPUS-01',
+    hours: null,
+    reason: 'Needed for campus-wide rough-in push',
+    requestedBy: 'Munson, Mike',
+    approvedBy: 'Zech S.',
+    decidedAt: '2026-04-06 14:22',
+    createdAt: '2026-04-05 09:12',
+  },
+  {
+    id: 'tx-002',
+    type: 'correction',
+    status: 'pending',
+    effectiveDate: '2026-04-14',
+    employee: 'Davis, Jayden',
+    fromJob: 'PDX247-BMS',
+    toJob: 'LW-OPS',
+    hours: 8,
+    reason: 'Tuesday logged wrong cost code — was on LW outage all day',
+    requestedBy: 'Frison, Brad',
+    approvedBy: null,
+    decidedAt: null,
+    createdAt: '2026-04-15 16:45',
+  },
+  {
+    id: 'tx-003',
+    type: 'reassign',
+    status: 'pending',
+    effectiveDate: '2026-04-20',
+    employee: 'Rodgers, Shawn',
+    fromJob: 'PDX246-SEC',
+    toJob: 'PDX247-SEC',
+    hours: null,
+    reason: 'Reassigning to cover Frison\'s crew next week',
+    requestedBy: 'Sorbel, Chayce',
+    approvedBy: null,
+    decidedAt: null,
+    createdAt: '2026-04-15 08:30',
+  },
+  {
+    id: 'tx-004',
+    type: 'correction',
+    status: 'approved',
+    effectiveDate: '2026-04-02',
+    employee: 'Chirhart, Phillip',
+    fromJob: 'WTB-01',
+    toJob: 'PDX247-BMS',
+    hours: 16,
+    reason: '2 days miscoded in timesheet',
+    requestedBy: 'Munson, Mike',
+    approvedBy: 'Zech S.',
+    decidedAt: '2026-04-03 10:11',
+    createdAt: '2026-04-02 17:20',
+  },
+  {
+    id: 'tx-005',
+    type: 'reassign',
+    status: 'denied',
+    effectiveDate: '2026-04-13',
+    employee: 'Kegel, Alex',
+    fromJob: 'SCHOOL',
+    toJob: 'CAMPUS-01',
+    hours: null,
+    reason: 'Need apprentice for a day',
+    requestedBy: 'Marsolek, Tyler',
+    approvedBy: 'Zech S.',
+    decidedAt: '2026-04-12 19:00',
+    createdAt: '2026-04-12 15:40',
+  },
+];
+
+// In-app notification feed for transfer events
+const TRANSFER_NOTIFICATIONS = [];
+
+function getFilteredTransfers() {
+  const type   = document.getElementById('tx-filter-type')?.value   || 'all';
+  const status = document.getElementById('tx-filter-status')?.value || 'all';
+  const q      = (document.getElementById('tx-filter-search')?.value || '').toLowerCase();
+  return TRANSFERS.filter(t => {
+    if (type   !== 'all' && t.type !== type)     return false;
+    if (status !== 'all' && t.status !== status) return false;
+    if (q) {
+      const blob = (t.employee + ' ' + t.fromJob + ' ' + t.toJob + ' ' + t.requestedBy).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderTransfers() {
+  const tbody = document.getElementById('tx-tbody');
+  const empty = document.getElementById('tx-empty');
+  const countBadge = document.getElementById('rpt-transfer-count');
+  if (!tbody) return;
+
+  const list = getFilteredTransfers();
+  const pendingAll = TRANSFERS.filter(t => t.status === 'pending');
+
+  // Top metric cards
+  const apr = TRANSFERS.filter(t => t.effectiveDate?.startsWith('2026-04'));
+  document.getElementById('tx-pending-count').textContent  = pendingAll.length;
+  document.getElementById('tx-pending-hrs').textContent    =
+    `${pendingAll.filter(t=>t.hours).reduce((s,t)=>s+t.hours,0)} hrs · ${new Set(pendingAll.map(t=>t.toJob)).size} jobs`;
+  const approved = apr.filter(t => t.status === 'approved');
+  document.getElementById('tx-approved-count').textContent = approved.length;
+  document.getElementById('tx-approved-hrs').textContent   =
+    `${approved.filter(t=>t.hours).reduce((s,t)=>s+t.hours,0)} hrs redistributed`;
+  document.getElementById('tx-reassign-count').textContent = apr.filter(t=>t.type==='reassign').length;
+  document.getElementById('tx-correct-count').textContent  = apr.filter(t=>t.type==='correction').length;
+
+  if (countBadge) {
+    countBadge.textContent = pendingAll.length;
+    countBadge.style.background = pendingAll.length > 0 ? 'var(--accent-faint)' : 'var(--surface-2)';
+    countBadge.style.color      = pendingAll.length > 0 ? 'var(--accent-dark)'  : 'var(--muted)';
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map(t => {
+    const statusStyle =
+      t.status === 'pending'  ? 'background:var(--accent-faint);color:var(--accent-dark)' :
+      t.status === 'approved' ? 'background:var(--good-bg);color:var(--good)' :
+      t.status === 'denied'   ? 'background:var(--bad-bg);color:var(--bad)' :
+                                'background:var(--surface-2);color:var(--muted)';
+    const typeBadge =
+      t.type === 'reassign'   ? '<span style="font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;background:var(--surface-2);color:var(--ink-soft)">↷ REASSIGN</span>' :
+                                '<span style="font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;background:var(--warn-bg);color:var(--warn)">± CORRECT</span>';
+    const hoursCell = t.hours != null
+      ? `<span style="font-family:var(--mono);font-weight:500">${t.hours}</span>`
+      : '<span style="color:var(--muted);font-size:11px">full wk</span>';
+    const action = t.status === 'pending'
+      ? `<button class="btn btn-sm" style="padding:3px 9px;font-size:11px;color:var(--good);border-color:var(--good)" onclick="decideTransfer('${esc(t.id)}','approved')">Approve</button>
+         <button class="btn btn-sm" style="padding:3px 9px;font-size:11px;color:var(--bad);border-color:var(--bad);margin-left:4px" onclick="decideTransfer('${esc(t.id)}','denied')">Deny</button>`
+      : `<span style="font-size:10.5px;color:var(--muted)">${t.approvedBy ? esc(t.approvedBy) : ''}${t.decidedAt ? '<br>' + esc(t.decidedAt) : ''}</span>`;
+    return `<tr style="border-bottom:1px solid var(--line-soft)">
+      <td style="padding:10px 12px"><span style="padding:3px 9px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;${statusStyle}">${esc(t.status)}</span></td>
+      <td style="padding:10px 12px">${typeBadge}</td>
+      <td style="padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)">${esc(t.effectiveDate)}</td>
+      <td style="padding:10px 12px;font-weight:500">${esc(t.employee)}<div style="font-size:10.5px;color:var(--muted);margin-top:2px">${esc(t.reason || '').slice(0,60)}${(t.reason||'').length>60?'…':''}</div></td>
+      <td style="padding:10px 12px;font-family:var(--mono);font-size:11px">${esc(t.fromJob)}</td>
+      <td style="padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--accent-dark);font-weight:500">${esc(t.toJob)}</td>
+      <td style="padding:10px 12px;text-align:right">${hoursCell}</td>
+      <td style="padding:10px 12px;font-size:11px;color:var(--ink-soft)">${esc(t.requestedBy)}</td>
+      <td style="padding:10px 12px;text-align:right;white-space:nowrap">${action}</td>
+    </tr>`;
+  }).join('');
+}
+
+function decideTransfer(id, decision) {
+  const t = TRANSFERS.find(x => x.id === id);
+  if (!t) return;
+  const verb = decision === 'approved' ? 'approve' : 'deny';
+  if (!confirm(`${verb === 'approve' ? 'Approve' : 'Deny'} this transfer?\n\n${t.employee}\n${t.fromJob} → ${t.toJob}\n${t.hours ? t.hours + ' hrs' : 'Full week'} · effective ${t.effectiveDate}`)) return;
+
+  t.status = decision;
+  t.approvedBy = 'Cameron Laws';
+  t.decidedAt  = new Date().toISOString().slice(0,16).replace('T',' ');
+
+  // Log notifications
+  notifyTransfer(t, decision);
+
+  renderTransfers();
+}
+
+function notifyTransfer(t, event) {
+  // In production: POST to /api/notifications with recipients derived from
+  // ORG chain (from-foreman, to-foreman, super of employee, requester).
+  // For now, log to in-app feed so it's visible during demo.
+  const recipients = [
+    `Requester (${t.requestedBy})`,
+    `From-job foreman`,
+    `To-job foreman`,
+    `Superintendent`,
+  ];
+  TRANSFER_NOTIFICATIONS.unshift({
+    when: new Date().toISOString().slice(0,16).replace('T',' '),
+    event: event === 'created' ? 'Transfer submitted' : event === 'approved' ? 'Transfer approved' : event === 'denied' ? 'Transfer denied' : 'Transfer updated',
+    txId: t.id,
+    detail: `${t.employee} · ${t.fromJob} → ${t.toJob}`,
+    recipients,
+  });
+  console.log('[Notification]', TRANSFER_NOTIFICATIONS[0]);
+}
+
+// ── New Transfer modal ──────────────────────────────────────
+let _txType = 'reassign';
+
+function openNewTransfer() {
+  _txType = 'reassign';
+  setTransferType('reassign');
+  // Populate dropdowns
+  const empSel = document.getElementById('tx-employee');
+  const fromSel = document.getElementById('tx-from-job');
+  const toSel   = document.getElementById('tx-to-job');
+  empSel.innerHTML  = ROSTER.filter(e => e.role).map(e =>
+    `<option>${esc(e.last)}, ${esc(e.first)}${e.role ? ' ('+esc(e.role)+')' : ''}</option>`).join('');
+  const jobOpts = JOBS.map(j => `<option value="${esc(j.number)}">${esc(j.number)} · ${esc(j.name)}</option>`).join('');
+  fromSel.innerHTML = jobOpts;
+  toSel.innerHTML   = jobOpts;
+  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('tx-hours').value = '';
+  document.getElementById('tx-reason').value = '';
+  updateTransferPreview();
+  document.getElementById('tx-modal-overlay').classList.add('open');
+}
+function closeNewTransfer() {
+  document.getElementById('tx-modal-overlay').classList.remove('open');
+}
+
+function setTransferType(type) {
+  _txType = type;
+  const r = document.getElementById('tx-type-reassign');
+  const c = document.getElementById('tx-type-correction');
+  r.classList.toggle('btn-primary', type === 'reassign');
+  c.classList.toggle('btn-primary', type === 'correction');
+  // Hours field only for corrections + partial-week reassignments
+  document.getElementById('tx-hours').style.display       = type === 'correction' ? 'block' : 'none';
+  document.getElementById('tx-hours-label').style.display = type === 'correction' ? 'block' : 'none';
+  document.getElementById('tx-date-label').textContent    = type === 'correction' ? 'Date of corrected hours' : 'Effective date';
+  updateTransferPreview();
+}
+
+function updateTransferPreview() {
+  const preview = document.getElementById('tx-preview');
+  const list    = document.getElementById('tx-notify-list');
+  if (!preview || !list) return;
+  const emp = document.getElementById('tx-employee')?.value || '[employee]';
+  const from = document.getElementById('tx-from-job')?.value || '[from]';
+  const to   = document.getElementById('tx-to-job')?.value   || '[to]';
+  list.innerHTML = `
+    <div>• You (requester)</div>
+    <div>• Current foreman on <b style="font-family:var(--mono);font-size:11px">${esc(from)}</b></div>
+    <div>• Receiving foreman on <b style="font-family:var(--mono);font-size:11px">${esc(to)}</b></div>
+    <div>• ${esc(emp.split('(')[0].trim())}'s superintendent</div>
+  `;
+  preview.style.display = 'block';
+}
+
+function submitTransfer() {
+  const emp    = document.getElementById('tx-employee').value;
+  const from   = document.getElementById('tx-from-job').value;
+  const to     = document.getElementById('tx-to-job').value;
+  const date   = document.getElementById('tx-date').value;
+  const hours  = parseFloat(document.getElementById('tx-hours').value) || null;
+  const reason = document.getElementById('tx-reason').value.trim();
+
+  if (!emp || !from || !to) { alert('Employee, from-job, and to-job are required.'); return; }
+  if (from === to)           { alert('From and to job cannot be the same.'); return; }
+  if (!reason)               { alert('Please provide a reason for the transfer.'); return; }
+  if (_txType === 'correction' && !hours) { alert('Hours are required for payroll corrections.'); return; }
+
+  const tx = {
+    id: 'tx-' + Date.now(),
+    type: _txType,
+    status: 'pending',
+    effectiveDate: date,
+    employee: emp.split(' (')[0],
+    fromJob: from,
+    toJob: to,
+    hours: _txType === 'correction' ? hours : null,
+    reason,
+    requestedBy: 'Cameron Laws',
+    approvedBy: null,
+    decidedAt: null,
+    createdAt: new Date().toISOString().slice(0,16).replace('T',' '),
+  };
+  TRANSFERS.unshift(tx);
+  notifyTransfer(tx, 'created');
+
+  closeNewTransfer();
+  // Make sure transfers tab is active
+  rptTab('transfers');
+
+  // Flash the new row
+  setTimeout(() => {
+    const row = document.querySelector(`#tx-tbody tr:first-child`);
+    if (row) {
+      row.style.transition = 'background 0.6s';
+      row.style.background = 'var(--accent-faint)';
+      setTimeout(() => row.style.background = '', 1400);
+    }
+  }, 50);
+}
+
+function exportTransfersCSV() {
+  const rows = getFilteredTransfers();
+  const header = ['ID','Type','Status','Effective','Employee','From Job #','To Job #','Hours','Reason','Requested By','Approved By','Decided At','Created At'];
+  const csv = [header.join(',')].concat(
+    rows.map(t => [
+      t.id, t.type, t.status, t.effectiveDate, t.employee, t.fromJob, t.toJob,
+      t.hours ?? '', '"' + (t.reason || '').replace(/"/g,'""') + '"',
+      t.requestedBy, t.approvedBy || '', t.decidedAt || '', t.createdAt,
+    ].join(','))
+  ).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `labor-transfers-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ── Supabase Auth ─────────────────────────────────────────────
@@ -5138,7 +6528,15 @@ function ffShowLogin() {
   ffShowSignin();
 }
 
+// ── Current user tracking ────────────────────────────────────
+let _currentUser = { email: '', name: '', role: '' };
+function getCurrentUserEmail() { return _currentUser.email || 'you@crem-inc.com'; }
+function getCurrentUserName()  { return _currentUser.name  || ''; }
+function getCurrentUserRole()  { return _currentUser.role  || ''; }
+
 function ffShowApp(email, name, role) {
+  // Track current user for notifications and audit trails
+  _currentUser = { email: email || '', name: name || '', role: role || '' };
   const l = document.getElementById('ff-login');
   const t = document.getElementById('ff-topbar');
   const a = document.getElementById('ff-app');
@@ -5228,6 +6626,7 @@ async function ffSetPassword() {
 }
 
 async function ffSignOut() {
+  _currentUser = { email: '', name: '', role: '' };
   await _sb.auth.signOut();
   ffShowLogin();
 }
@@ -5247,6 +6646,13 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
+  // ── DEV MODE: bypass login for editing/preview ──
+  // Remove this block and uncomment the real auth block below before publishing
+  ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
+  return;
+
+  // ── Real auth (re-enable before publishing) ──
+  /*
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
@@ -5255,6 +6661,7 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   } else {
     ffShowLogin();
   }
+  */
 })();
 
 // ── Settings (persisted to localStorage) ──────────────────────
@@ -5381,6 +6788,13 @@ document.querySelectorAll('.nav-item').forEach(item => {
     if (window.innerWidth <= 768) closeSidebar();
   });
 });
+
+// ── Deferred initial renders (run after all `const` declarations exist) ──
+// renderJobView + buildSchedTbody use JOBS for ratio checks — JOBS is defined
+// further down the file than where these functions are first called, so we
+// kick the first render here at the bottom of the script to avoid TDZ errors.
+try { if (typeof renderJobView === 'function') renderJobView(); } catch (e) { console.error('renderJobView init failed', e); }
+try { if (typeof buildSchedTbody === 'function') buildSchedTbody(); } catch (e) { console.error('buildSchedTbody init failed', e); }
 </script>
 </body>
 </html>
