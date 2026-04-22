@@ -206,12 +206,130 @@ html.dark .up   { color: var(--good) !important; }
 html.dark .warn { color: var(--warn) !important; }
 html.dark .dn   { color: var(--bad)  !important; }
 
-/* Dark mode: inline-styled pale backgrounds become dark */
+/* ── Dark mode contrast fixes ───────────────────────────────
+   Inline-styled pale backgrounds throughout the app get forced to
+   darker surfaces so the text on them stays legible. */
 html.dark [style*="background:#fff"],
 html.dark [style*="background: #fff"],
 html.dark [style*="background:#FFFFFF"],
-html.dark [style*="background: #FFFFFF"] {
-  background: var(--white) !important;
+html.dark [style*="background: #FFFFFF"],
+html.dark [style*="background:var(--white)"],
+html.dark [style*="background: var(--white)"] {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+}
+
+/* Pale fills (surface-2 / FFFBEB / FFFDF5 / etc.) become dark surface */
+html.dark [style*="background:#FFFBEB"],
+html.dark [style*="background: #FFFBEB"],
+html.dark [style*="background:#FFFDF5"],
+html.dark [style*="background: #FFFDF5"],
+html.dark [style*="background:#FEF3C7"],
+html.dark [style*="background: #FEF3C7"],
+html.dark [style*="background:#FEF9C3"],
+html.dark [style*="background: #FEF9C3"] {
+  background: var(--surface-2) !important;
+}
+
+/* Pale greens/reds/blues become their dark equivalents */
+html.dark [style*="background:#F0FDF4"],
+html.dark [style*="background: #F0FDF4"],
+html.dark [style*="background:#ECFDF5"],
+html.dark [style*="background: #ECFDF5"],
+html.dark [style*="background:#D1FAE5"],
+html.dark [style*="background: #D1FAE5"] {
+  background: var(--good-bg) !important;
+  color: var(--good) !important;
+}
+html.dark [style*="background:#FEF2F2"],
+html.dark [style*="background: #FEF2F2"],
+html.dark [style*="background:#FEE2E2"],
+html.dark [style*="background: #FEE2E2"] {
+  background: var(--bad-bg) !important;
+  color: var(--bad) !important;
+}
+html.dark [style*="background:#DBEAFE"],
+html.dark [style*="background: #DBEAFE"],
+html.dark [style*="background:#EFF6FF"],
+html.dark [style*="background: #EFF6FF"],
+html.dark [style*="background:#E0F2FE"],
+html.dark [style*="background: #E0F2FE"] {
+  background: rgba(96, 165, 250, 0.15) !important;
+  color: #93C5FD !important;
+}
+
+/* Pale text colors that vanish on dark need a bump */
+html.dark [style*="color:var(--ff-tx3)"],
+html.dark [style*="color: var(--ff-tx3)"],
+html.dark [style*="color:var(--muted)"],
+html.dark [style*="color: var(--muted)"] {
+  color: var(--ff-tx2) !important;
+}
+
+/* Any hardcoded dark ink on dark bg needs to flip to light */
+html.dark [style*="color:#1A1625"],
+html.dark [style*="color: #1A1625"],
+html.dark [style*="color:#111"],
+html.dark [style*="color: #111"],
+html.dark [style*="color:#000"],
+html.dark [style*="color: #000"] {
+  color: var(--ink) !important;
+}
+
+/* Role badge backgrounds are all pale in light mode — darken in dark mode */
+html.dark .role-super { background: rgba(139, 92, 246, 0.2); color: #DDD6FE; }
+html.dark .role-gf    { background: rgba(245, 158, 11, 0.2); color: #FDE68A; }
+html.dark .role-fm    { background: rgba(59, 130, 246, 0.2); color: #93C5FD; }
+html.dark .role-wld   { background: rgba(244, 63, 94, 0.2);  color: #FDA4AF; }
+html.dark .role-jn    { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; }
+html.dark .role-ap5   { background: rgba(20, 184, 166, 0.2); color: #5EEAD4; }
+html.dark .role-ap4   { background: rgba(6, 182, 212, 0.2);  color: #67E8F9; }
+html.dark .role-ap3   { background: rgba(14, 165, 233, 0.2); color: #7DD3FC; }
+html.dark .role-ap2   { background: rgba(99, 102, 241, 0.2); color: #A5B4FC; }
+html.dark .role-ap1   { background: rgba(139, 92, 246, 0.2); color: #C4B5FD; }
+html.dark .role-mh    { background: rgba(148, 163, 184, 0.2); color: #CBD5E1; }
+html.dark .role-ap    { background: rgba(251, 146, 60, 0.2);  color: #FED7AA; }
+
+/* Cert tier backgrounds — dark-mode versions */
+html.dark .cert-expired  { background: rgba(248, 113, 113, 0.2); color: #FCA5A5; border-color: rgba(248, 113, 113, 0.4); }
+html.dark .cert-expiring { background: rgba(251, 191, 36, 0.2);  color: #FCD34D; border-color: rgba(251, 191, 36, 0.4); }
+html.dark .cert-soon     { background: rgba(96, 165, 250, 0.2);  color: #93C5FD; border-color: rgba(96, 165, 250, 0.4); }
+html.dark .cert-ok       { background: rgba(52, 211, 153, 0.2);  color: #6EE7B7; border-color: rgba(52, 211, 153, 0.4); }
+
+/* Panels with inline "background:var(--ff-bg)" get a subtle tint */
+html.dark .panel[style*="background:var(--ff-bg)"] {
+  background: var(--surface-2) !important;
+}
+
+/* Form inputs: legible against any surface */
+html.dark input, html.dark select, html.dark textarea, html.dark .form-input {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+html.dark input::placeholder, html.dark textarea::placeholder {
+  color: var(--muted);
+}
+
+/* Tables — rows should have readable contrast */
+html.dark .roster-tbl tbody tr:hover td,
+html.dark .sched-tbl tbody tr:hover td {
+  background: var(--surface-2) !important;
+}
+
+/* Day popover for schedule grid */
+html.dark .day-popover {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+html.dark .day-popover-opt:hover {
+  background: var(--accent-ghost);
+}
+
+/* Toast readable on dark */
+html.dark #ff-toast-host > div {
+  box-shadow: 0 8px 24px rgba(0,0,0,.6);
 }
 
 /* Dark-mode brand mark keeps dark bg — accent dot pops more */
@@ -357,10 +475,54 @@ html.dark .theme-toggle.on {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ff-bdr-m); border-radius: 2px; }
 
+/* ── Jump-to-current-week button: impossible to miss ─────── */
+.jump-today-btn {
+  display: inline-flex; align-items: center;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: var(--ink);
+  border: 1.5px solid var(--accent-dark);
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: all .15s;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+}
+.jump-today-btn:hover {
+  background: var(--accent-light, #FDE047);
+  border-color: var(--accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(234, 179, 8, 0.35);
+}
+.jump-today-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(234, 179, 8, 0.25);
+}
+html.dark .jump-today-btn {
+  background: var(--accent);
+  color: #0D0A10;
+  border-color: var(--accent-light);
+  box-shadow: 0 2px 8px rgba(250, 204, 21, 0.4);
+}
+html.dark .jump-today-btn:hover {
+  background: var(--accent-light);
+  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.5);
+}
+
+/* ── Toast ──────────────────────────────────────────────── */
+@keyframes ffToastIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── App shell ──────────────────────────────────────────── */
 .fieldflow {
   display: flex;
   height: 100vh;
+  height: 100dvh; /* dynamic viewport - accounts for mobile address bar */
   width: 100%;
   overflow: hidden;
 }
@@ -514,7 +676,7 @@ html.dark .theme-toggle.on {
 .btn svg { width: 14px; height: 14px; }
 
 /* ── Screens ────────────────────────────────────────────── */
-.screen { flex: 1; overflow-y: auto; padding: 16px 20px; display: none; }
+.screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 20px; padding-bottom: max(40px, env(safe-area-inset-bottom, 20px)); display: none; -webkit-overflow-scrolling: touch; }
 .screen.active { display: block; animation: fadeIn 0.18s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 
@@ -789,6 +951,30 @@ html.dark .theme-toggle.on {
 }
 .cert-tabs .cert-tab:hover { color: var(--ink); background: var(--accent-ghost); }
 .cert-tabs .cert-tab.active { color: var(--accent-dark); border-bottom-color: var(--accent); background: var(--white); }
+
+/* Admin consolidated tabs */
+.admin-tab {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  margin-bottom: -1px;
+  display: flex;
+  align-items: center;
+}
+.admin-tab:hover { color: var(--ink); background: var(--accent-ghost); }
+.admin-tab.active { color: var(--accent-dark); border-bottom-color: var(--accent); }
+.admin-pane { animation: fadeInPane 0.2s ease; }
+@keyframes fadeInPane {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 /* Profile section */
 .profile-photo {
   width: 72px; height: 72px; border-radius: 50%;
@@ -842,12 +1028,33 @@ html.dark .theme-toggle.on {
 }
 .roster-tbl td { padding: 7px 10px; border-bottom: 1px solid var(--ff-bdr); color: var(--ff-tx2); }
 .roster-tbl tr:hover td { background: var(--ff-bg); }
-.role-badge { display: inline-flex; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 500; }
-.role-gf { background: #FEF3C7; color: #78350F; }
-.role-fm { background: var(--ff-blue-dim); color: #A16207; }
-.role-jn { background: #F0FDF4; color: #14532D; }
-.role-mh { background: #F5F3FF; color: #4C1D95; }
-.role-ap { background: #FFF7ED; color: #7C2D12; }
+/* ── Role badges: consistent color scheme across the app ──
+   Hierarchy is color-temperature based, top to bottom:
+   SUPER  → deep purple      (executive)
+   GF     → amber            (senior field leadership)
+   FM     → blue             (field leadership)
+   WLD    → rose             (specialist trade)
+   JN/JW  → green            (journey level)
+   5*     → teal             (senior apprentice)
+   4*     → cyan             (4th year)
+   3*     → sky              (3rd year)
+   2*     → indigo           (2nd year)
+   1*/0*  → violet            (1st year / new hire)
+   MH     → slate            (support role)
+*/
+.role-badge { display: inline-flex; padding: 2px 7px; border-radius: 4px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; }
+.role-super { background: #EDE9FE; color: #4C1D95; }
+.role-gf    { background: #FEF3C7; color: #78350F; }
+.role-fm    { background: #DBEAFE; color: #1E40AF; }
+.role-wld   { background: #FFE4E6; color: #9F1239; }
+.role-jn    { background: #D1FAE5; color: #065F46; }
+.role-ap5   { background: #CCFBF1; color: #115E59; }
+.role-ap4   { background: #CFFAFE; color: #155E75; }
+.role-ap3   { background: #E0F2FE; color: #0C4A6E; }
+.role-ap2   { background: #E0E7FF; color: #3730A3; }
+.role-ap1   { background: #EDE9FE; color: #5B21B6; }
+.role-mh    { background: #F1F5F9; color: #334155; }
+.role-ap    { background: #FFF7ED; color: #7C2D12; }
 .ck  { color: var(--ff-green); font-size: 11px; }
 .dash { color: var(--ff-tx4); font-size: 11px; }
 
@@ -1048,6 +1255,41 @@ html.dark .theme-toggle.on {
 .form-input:focus { outline: none; border-color: var(--ff-blue); }
 .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
 
+/* ── New request modal grid ─────────────────────────────── */
+.req-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px 12px;
+  margin-bottom: 10px;
+}
+.req-form-grid .form-group { margin-bottom: 0; min-width: 0; }
+.req-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 8px 11px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+textarea.req-input {
+  height: auto;
+  padding: 10px 11px;
+}
+/* iOS/Safari date input fix — keep height consistent with other inputs */
+input.req-input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--mono, monospace);
+  color: var(--ff-tx);
+}
+input.req-input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+input.req-input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
 /* ── Employee profile panel ─────────────────────────────── */
 .ev-row { cursor: pointer; }
 .ev-row:hover td { background: #FFFBEB !important; }
@@ -1109,6 +1351,7 @@ html.dark .theme-toggle.on {
 .cert-date-input:focus { outline: none; border-color: var(--ff-blue); }
 .cert-expired  { background: #FEF2F2; border-color: #FCA5A5; color: var(--ff-red); }
 .cert-expiring { background: #FFFBEB; border-color: #FCD34D; color: var(--ff-amber); }
+.cert-soon     { background: #EFF6FF; border-color: #93C5FD; color: #1D4ED8; }
 .cert-ok       { background: #ECFDF5; border-color: #6EE7B7; color: var(--ff-green); }
 
 /* ── Drag schedule person-row dragging ───────────────────── */
@@ -1888,10 +2131,6 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v4M11 1v4M1 7h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Schedule grid
       </div>
-      <div class="nav-item" data-screen="drag-schedule">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M3 5h10M3 8h7M3 11h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="11" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
-        Reassign crew
-      </div>
       <div class="nav-item" data-screen="job-view">
         <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Job view
@@ -1910,16 +2149,6 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <div class="nav-item" data-screen="school">
         <svg viewBox="0 0 16 16" fill="none"><path d="M8 1v6l4 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/></svg>
         School schedule
-      </div>
-
-      <div class="nav-section admin-only" style="display:none">Admin</div>
-      <div class="nav-item admin-only" data-screen="job-manager" style="display:none">
-        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Job manager
-      </div>
-      <div class="nav-item admin-only" data-screen="transfers" style="display:none">
-        <svg viewBox="0 0 16 16" fill="none"><path d="M2 5h11M9 2l4 3-4 3M13 11H2M6 8l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Labor transfers
       </div>
 
       <div class="nav-section">System</div>
@@ -1952,10 +2181,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <div class="topbar-title" id="screen-title">Dashboard</div>
         <div class="topbar-sub"   id="screen-sub">Week of Apr 13, 2026</div>
       </div>
-      <div class="topbar-right" id="topbar-right">
-        <button class="btn" onclick="goScreen('school')">School schedule</button>
-        <button class="btn btn-primary" onclick="document.querySelector('.modal-overlay').classList.add('open')">+ Assign worker</button>
-      </div>
+      <div class="topbar-right" id="topbar-right"></div>
     </div>
 
     <!-- DASHBOARD ──────────────────────────────────────── -->
@@ -2048,8 +2274,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </div>
           <div class="panel">
             <div class="panel-header"><div class="panel-title">Alerts</div></div>
-            <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">37 school conflicts need resolution</div><div class="alert-sub">Apprentices scheduled during school weeks</div></div></div>
-            <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Siharath, Braught, Chirhart unassigned</div><div class="alert-sub">Showing ??? — assign before Monday</div></div></div>
+            <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">1 school conflict to resolve</div><div class="alert-sub">Apprentice scheduled during a school week</div></div></div>
+            <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Weaver returns from vacation Apr 20</div><div class="alert-sub">Assignment to LW crew confirmed</div></div></div>
           <div id="alert-union-holidays"></div>
           </div>
         </div>
@@ -2082,14 +2308,9 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <div class="bar-row"><div class="bar-lbl">Varies</div><div class="bar-track"><div class="bar-fill" style="width:57%;background:#8B5CF6"></div></div><div class="bar-val">4</div></div>
         </div>
         <div class="panel">
-          <div class="panel-header"><div class="panel-title">Labor cost — this week</div><span class="panel-link" onclick="goScreen('costing')">Finance →</span></div>
-          <div class="fin-row"><div class="fin-job">PDX247 BMS</div><div class="fin-amt">$18,240</div><span class="pill pill-g">On budget</span></div>
-          <div class="fin-row"><div class="fin-job">PDX246 SEC</div><div class="fin-amt">$15,200</div><span class="pill pill-a">+4%</span></div>
-          <div class="fin-row"><div class="fin-job">CAMPUS WIDE</div><div class="fin-amt">$9,120</div><span class="pill pill-g">On budget</span></div>
-          <div class="fin-row"><div class="fin-job">Live Work</div><div class="fin-amt">$6,080</div><span class="pill pill-r">+11%</span></div>
-          <div style="border-top:1px solid var(--ff-bdr);padding-top:7px;margin-top:3px;display:flex;justify-content:space-between">
-            <span style="font-size:11px;color:var(--ff-tx2)">Total this week</span>
-            <span style="font-size:13px;font-weight:500;font-family:'DM Mono',monospace">$74,800</span>
+          <div class="panel-header"><div class="panel-title">Pending <em>requests</em></div><span class="panel-link" onclick="goScreen('requests')">All requests →</span></div>
+          <div id="dash-req-preview" style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:11px;color:var(--muted);padding:6px 0">Loading…</div>
           </div>
         </div>
         <div class="panel">
@@ -2120,10 +2341,17 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
     <!-- SCHEDULE GRID ──────────────────────────────────── -->
     <div class="screen" id="screen-schedule">
       <div class="controls">
-        <span class="ctrl-lbl">Start week</span>
-        <select class="ctrl-sel"><option>Apr 13, 2026</option><option>Apr 20, 2026</option><option>Apr 27, 2026</option><option>May 4, 2026</option></select>
-        <span class="ctrl-lbl">Weeks</span>
-        <select class="ctrl-sel"><option>4</option><option selected>8</option><option>12</option></select>
+        <button class="btn jump-today-btn" onclick="schedJumpToday()">
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:4px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor"/></svg>
+          This week
+        </button>
+        <div style="width:1px;height:22px;background:var(--line);margin:0 4px"></div>
+        <button class="btn btn-sm" onclick="schedNav(-3)" title="Back 3 weeks">◀◀</button>
+        <button class="btn btn-sm" onclick="schedNav(-1)" title="Back 1 week">◀</button>
+        <button class="btn btn-sm" onclick="schedNav(1)"  title="Forward 1 week">▶</button>
+        <button class="btn btn-sm" onclick="schedNav(3)"  title="Forward 3 weeks">▶▶</button>
+        <span class="ctrl-lbl" style="margin-left:10px">Jump to</span>
+        <select class="ctrl-sel" id="sched-jump" onchange="schedJumpTo(parseInt(this.value))" style="max-width:180px"></select>
         <span class="ctrl-lbl">Role</span>
         <select class="ctrl-sel" id="sched-role-filter" onchange="buildSchedTbody()">
           <option value="all">All employees</option>
@@ -2143,30 +2371,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="unassigned">Unassigned first</option>
         </select>
         <button class="btn btn-sm" onclick="exportScheduleCSV()" style="margin-left:auto">Export CSV</button>
-        <div class="legend">
-          <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>Job</div>
-          <div class="leg"><div class="leg-swatch" style="background:#FEF3C7"></div>School</div>
-          <div class="leg"><div class="leg-swatch" style="background:#FEE2E2"></div>Conflict</div>
-          <div class="leg"><div class="leg-swatch" style="background:#ECFDF5"></div>Vacation</div>
-          <div class="leg"><div class="leg-swatch" style="background:#EDE9FE"></div>Varies</div>
-        </div>
       </div>
       <div class="tbl-wrap">
         <table class="sched-tbl">
-          <thead>
-            <tr>
-              <th class="stick">Employee</th>
-              <th colspan="5" class="wk-hdr">Apr 13–17, 2026</th>
-              <th colspan="5" class="wk-hdr2">Apr 20–24, 2026</th>
-              <th colspan="5" class="wk-hdr">Apr 27–May 1</th>
-            </tr>
-            <tr>
-              <th class="stick"></th>
-              <th>M 4/13</th><th>T 4/14</th><th>W 4/15</th><th>Th 4/16</th><th class="wsep">F 4/17</th>
-              <th>M 4/20</th><th>T 4/21</th><th>W 4/22</th><th>Th 4/23</th><th class="wsep">F 4/24</th>
-              <th>M 4/27</th><th>T 4/28</th><th>W 4/29</th><th>Th 4/30</th><th>F 5/1</th>
-            </tr>
-          </thead>
+          <thead id="sched-thead"></thead>
           <tbody id="sched-tbody"></tbody>
         </table>
       </div>
@@ -2207,8 +2415,15 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
     <!-- REQUESTS ───────────────────────────────────────── -->
     <div class="screen" id="screen-requests">
       <div style="display:flex;gap:8px;margin-bottom:13px;align-items:center">
-        <button class="btn btn-primary btn-sm">+ New request</button>
-        <select class="ctrl-sel"><option>All requests</option><option>Pending</option><option>Approved</option><option>Denied</option></select>
+        <button class="btn btn-primary btn-sm" onclick="openNewRequest()">+ New request</button>
+        <select class="ctrl-sel" id="req-filter" onchange="renderRequestsList()">
+          <option value="all">All requests</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="denied">Denied</option>
+          <option value="union">Union call needed</option>
+        </select>
+        <span style="font-size:11px;color:var(--ff-tx3);margin-left:4px">Requests poll all directors · auto-escalates to union after 48hrs</span>
       </div>
       <div id="req-full-list"></div>
     </div>
@@ -2251,266 +2466,243 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <div class="school-grid" id="school-grid"></div>
     </div>
 
-    <!-- LABOR TRANSFERS ──────────────────────────── -->
-    <div class="screen" id="screen-transfers">
-      <!-- Summary metrics -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
-        <div class="metric" style="padding:14px 16px">
-          <div class="metric-label">Pending approval</div>
-          <div class="metric-value" id="tx-pending-count" style="font-size:26px">0</div>
-          <div class="metric-sub" id="tx-pending-hrs">0 hrs across 0 jobs</div>
-        </div>
-        <div class="metric" style="padding:14px 16px">
-          <div class="metric-label">Approved · this period</div>
-          <div class="metric-value" id="tx-approved-count" style="font-size:26px">0</div>
-          <div class="metric-sub up" id="tx-approved-hrs">0 hrs redistributed</div>
-        </div>
-        <div class="metric" style="padding:14px 16px">
-          <div class="metric-label">Crew reassignments</div>
-          <div class="metric-value" id="tx-reassign-count" style="font-size:26px">0</div>
-          <div class="metric-sub">Person-moves</div>
-        </div>
-        <div class="metric" style="padding:14px 16px">
-          <div class="metric-label">Payroll corrections</div>
-          <div class="metric-value" id="tx-correct-count" style="font-size:26px">0</div>
-          <div class="metric-sub">Hours re-coded</div>
-        </div>
-      </div>
-
-      <!-- Filter + action bar -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-        <select class="ctrl-sel" id="tx-filter-type" onchange="renderTransfers()">
-          <option value="all">All transfers</option>
-          <option value="reassign">Crew reassignments</option>
-          <option value="correction">Payroll corrections</option>
-        </select>
-        <select class="ctrl-sel" id="tx-filter-status" onchange="renderTransfers()">
-          <option value="all">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="denied">Denied</option>
-        </select>
-        <input id="tx-filter-search" placeholder="Search employee or job…" oninput="renderTransfers()"
-          style="padding:6px 10px;border:1px solid var(--ff-bdr-m);border-radius:6px;font-size:12px;font-family:inherit;min-width:200px;background:var(--white);color:var(--ink)">
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button class="btn btn-sm" onclick="exportTransfersCSV()">Export CSV</button>
-          <button class="btn btn-sm btn-primary" onclick="openNewTransfer()">+ New transfer</button>
-        </div>
-      </div>
-
-      <!-- Transfer table -->
-      <div class="panel" style="padding:0;overflow:hidden">
-        <div class="tbl-wrap">
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead>
-              <tr>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Status</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Type</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Effective</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Employee</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">From</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">To</th>
-                <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Hrs</th>
-                <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Requested by</th>
-                <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Action</th>
-              </tr>
-            </thead>
-            <tbody id="tx-tbody"></tbody>
-          </table>
-        </div>
-        <div id="tx-empty" style="display:none;padding:48px 20px;text-align:center;color:var(--muted);font-size:13px">
-          <div style="font-size:28px;margin-bottom:8px;opacity:.4">⇄</div>
-          No transfers match the current filters.
-        </div>
-      </div>
-
-      <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
-        Every transfer creates a notification to the requester, sending foreman, receiving foreman, and the person's superintendent. Approved transfers flow into Spectrum's labor redistribution export on the next sync.
-      </div>
-    </div>
-
-    <!-- SETTINGS ───────────────────────────────────────── -->
-    <div class="screen" id="screen-settings">
-      <div style="max-width:720px;display:flex;flex-direction:column;gap:16px">
-
-        <!-- Appearance -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Appear<em>ance</em></div>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-            Control how FieldFlow looks. Changes apply immediately.
-          </div>
-
-          <!-- Dark mode row -->
-          <div class="settings-row">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Dark mode</div>
-              <div class="settings-row-desc">Dims surfaces and brightens the amber accent for low-light environments.</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="set-dark" onchange="setDark(this.checked)">
-              <span class="switch-slider"></span>
-            </label>
-          </div>
-
-          <!-- High contrast row -->
-          <div class="settings-row">
-            <div class="settings-row-info">
-              <div class="settings-row-label">High contrast</div>
-              <div class="settings-row-desc">Thicker borders and stronger focus rings for better visibility.</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="set-hc" checked onchange="setHC(this.checked)">
-              <span class="switch-slider"></span>
-            </label>
-          </div>
-
-          <!-- Reduce motion row -->
-          <div class="settings-row">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Reduce motion</div>
-              <div class="settings-row-desc">Disables hover transforms and fade animations.</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="set-rm" onchange="setReduceMotion(this.checked)">
-              <span class="switch-slider"></span>
-            </label>
-          </div>
-
-          <!-- Compact density row -->
-          <div class="settings-row" style="border-bottom:none">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Compact density</div>
-              <div class="settings-row-desc">Tighter padding throughout — fits more on screen.</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="set-compact" onchange="setCompact(this.checked)">
-              <span class="switch-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Typography -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Typo<em>graphy</em></div>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-            Adjust reading comfort.
-          </div>
-
-          <div class="settings-row" style="border-bottom:none">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Text size</div>
-              <div class="settings-row-desc">Scale all text by a percentage. Default is 100%.</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <button class="btn btn-sm" onclick="setTextSize(-1)">A−</button>
-              <span id="set-textsize-label" style="font-family:var(--mono);font-size:12px;color:var(--ink);min-width:40px;text-align:center">100%</span>
-              <button class="btn btn-sm" onclick="setTextSize(1)">A+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Defaults / per-user -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">De<em>faults</em></div>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
-            Personalize what opens when you sign in.
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Home screen</div>
-              <div class="settings-row-desc">The screen that loads first after sign in.</div>
-            </div>
-            <select id="set-home" onchange="setHomeScreen(this.value)" style="padding:7px 28px 7px 12px;border-radius:7px;border:1px solid var(--line);font-family:var(--sans);font-size:13px;background:var(--white);color:var(--ink);cursor:pointer">
-              <option value="dashboard">Dashboard</option>
-              <option value="schedule">Schedule grid</option>
-              <option value="roster">Crew roster</option>
-              <option value="requests">Requests</option>
-            </select>
-          </div>
-
-          <div class="settings-row" style="border-bottom:none">
-            <div class="settings-row-info">
-              <div class="settings-row-label">Reset to defaults</div>
-              <div class="settings-row-desc">Clears all personalizations on this device.</div>
-            </div>
-            <button class="btn btn-sm" onclick="resetSettings()">Reset</button>
-          </div>
-        </div>
-
-        <div id="settings-saved" style="display:none;font-size:12px;color:var(--good);text-align:center;padding:8px">
-          ✓ Saved
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN ──────────────────────────────────────────── -->
+    <!-- CONSOLIDATED ADMIN ─────────────────────────── -->
     <div class="screen" id="screen-admin">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
 
-        <!-- Authorized users panel -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Authorized users</div>
-            <button class="btn btn-sm btn-primary" onclick="adminAddUser()">+ Add email</button>
-          </div>
-          <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
-            Only these email addresses can sign in. Email must match their Supabase auth account exactly.
-          </div>
+      <!-- Admin tab strip -->
+      <div style="display:flex;align-items:center;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--line)">
+        <button class="admin-tab active" data-admin-tab="users"     onclick="adminTab('users')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="6" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-2.761 2.239-5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M9.5 14c0-1.933 1.119-3.5 2.5-3.5s2.5 1.567 2.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Users
+        </button>
+        <button class="admin-tab"        data-admin-tab="jobs"      onclick="adminTab('jobs')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Jobs
+        </button>
+        <button class="admin-tab"        data-admin-tab="reassign"  onclick="adminTab('reassign')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M3 5h10M3 8h7M3 11h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="11" r="2" stroke="currentColor" stroke-width="1.3"/></svg>
+          Reassign crew
+        </button>
+        <button class="admin-tab"        data-admin-tab="transfers" onclick="adminTab('transfers')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M2 5h11M9 2l4 3-4 3M13 11H2M6 8l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Labor transfers <span id="admin-tx-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:var(--accent-faint);color:var(--accent-dark);font-size:10px;font-weight:600">0</span>
+        </button>
+        <button class="admin-tab"        data-admin-tab="system"    onclick="adminTab('system')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          System
+        </button>
+      </div>
 
-          <!-- Add form (hidden by default) -->
-          <div id="admin-add-form" style="display:none;background:var(--ff-bg);border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid var(--ff-bdr)">
-            <div class="form-group" style="margin-bottom:8px">
-              <label class="form-label">Full name</label>
-              <input id="admin-new-name" class="form-input" placeholder="First Last" style="font-size:12px">
+      <!-- ── USERS PANE ── -->
+      <div id="admin-pane-users" class="admin-pane">
+        <div style="max-width:560px">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Authorized users</div>
+              <button class="btn btn-sm btn-primary" onclick="adminAddUser()">+ Add email</button>
             </div>
-            <div class="form-group" style="margin-bottom:8px">
-              <label class="form-label">Email address</label>
-              <input id="admin-new-email" class="form-input" type="email" placeholder="name@company.com" style="font-size:12px">
+            <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
+              Only these email addresses can sign in. Email must match their Supabase auth account exactly.
             </div>
-            <div class="form-group" style="margin-bottom:10px">
-              <label class="form-label">Role</label>
-              <select id="admin-new-role" class="form-input" style="font-size:12px">
-                <option value="superintendent">Superintendent</option>
-                <option value="foreman">Foreman / General Foreman</option>
-                <option value="hr">HR (cert alerts only)</option>
-                <option value="finance">Finance (read-only)</option>
-              </select>
-            </div>
-            <div style="display:flex;gap:7px">
-              <button class="btn btn-primary btn-sm" onclick="adminSaveUser()" style="flex:1;justify-content:center">Add user</button>
-              <button class="btn btn-sm" onclick="adminCancelAdd()">Cancel</button>
-            </div>
-          </div>
 
-          <!-- User list -->
-          <div id="admin-user-list"></div>
+            <!-- Add form (hidden by default) -->
+            <div id="admin-add-form" style="display:none;background:var(--ff-bg);border-radius:8px;padding:12px;margin-bottom:12px;border:1px solid var(--ff-bdr)">
+              <div class="form-group" style="margin-bottom:8px">
+                <label class="form-label">Full name</label>
+                <input id="admin-new-name" class="form-input" placeholder="First Last" style="font-size:12px">
+              </div>
+              <div class="form-group" style="margin-bottom:8px">
+                <label class="form-label">Email address</label>
+                <input id="admin-new-email" class="form-input" type="email" placeholder="name@company.com" style="font-size:12px">
+              </div>
+              <div class="form-group" style="margin-bottom:10px">
+                <label class="form-label">Role</label>
+                <select id="admin-new-role" class="form-input" style="font-size:12px">
+                  <option value="superintendent">Superintendent</option>
+                  <option value="foreman">Foreman / General Foreman</option>
+                  <option value="hr">HR (cert alerts only)</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:7px">
+                <button class="btn btn-primary btn-sm" onclick="adminSaveUser()" style="flex:1;justify-content:center">Add user</button>
+                <button class="btn btn-sm" onclick="adminCancelAdd()">Cancel</button>
+              </div>
+            </div>
+
+            <!-- User list -->
+            <div id="admin-user-list"></div>
+          </div>
         </div>
+      </div>
 
-        <!-- Right column: notifications + system -->
-        <div style="display:flex;flex-direction:column;gap:13px">
+      <!-- ── JOBS PANE ── -->
+      <div id="admin-pane-jobs" class="admin-pane" style="display:none">
+              <div style="display:flex;gap:13px;height:100%">
+                <!-- Job list -->
+                <div style="width:280px;flex-shrink:0;overflow-y:auto">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                    <span style="font-size:12.5px;font-weight:500">Jobs</span>
+                    <button class="btn btn-sm btn-primary" onclick="openNewJobForm()">+ New job</button>
+                  </div>
+                  <div id="jm-job-list"></div>
+                </div>
+                <!-- Job detail / edit form -->
+                <div style="flex:1;overflow-y:auto" id="jm-detail-pane">
+                  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;gap:8px;color:var(--ff-tx3)">
+                    <svg width="32" height="32" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    <div style="font-size:13px">Select a job to view or edit</div>
+                  </div>
+                </div>
+              </div>
+      </div>
+
+      <!-- ── REASSIGN CREW PANE ── -->
+      <div id="admin-pane-reassign" class="admin-pane" style="display:none">
+        <div class="controls" style="margin-bottom:12px">
+          <button class="btn jump-today-btn" onclick="dsJumpToday()">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:4px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor"/></svg>
+            This week
+          </button>
+          <div style="width:1px;height:22px;background:var(--line);margin:0 8px"></div>
+          <span class="ctrl-lbl">Week of</span>
+          <select class="ctrl-sel" id="ds-week-sel"></select>
+          <span style="font-size:11px;color:var(--ff-tx3);margin-left:10px">
+            Drag any cell to a different job to reassign. A confirmation will appear before any change is saved.
+          </span>
+        </div>
+        <div id="ds-board" style="overflow:auto"></div>
+      </div>
+
+      <!-- ── TRANSFERS PANE ── -->
+      <div id="admin-pane-transfers" class="admin-pane" style="display:none">
+              <!-- Summary metrics -->
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+                <div class="metric" style="padding:14px 16px">
+                  <div class="metric-label">Pending approval</div>
+                  <div class="metric-value" id="tx-pending-count" style="font-size:26px">0</div>
+                  <div class="metric-sub" id="tx-pending-hrs">0 hrs across 0 jobs</div>
+                </div>
+                <div class="metric" style="padding:14px 16px">
+                  <div class="metric-label">Approved · this period</div>
+                  <div class="metric-value" id="tx-approved-count" style="font-size:26px">0</div>
+                  <div class="metric-sub up" id="tx-approved-hrs">0 hrs redistributed</div>
+                </div>
+                <div class="metric" style="padding:14px 16px">
+                  <div class="metric-label">Crew reassignments</div>
+                  <div class="metric-value" id="tx-reassign-count" style="font-size:26px">0</div>
+                  <div class="metric-sub">Person-moves</div>
+                </div>
+                <div class="metric" style="padding:14px 16px">
+                  <div class="metric-label">Payroll corrections</div>
+                  <div class="metric-value" id="tx-correct-count" style="font-size:26px">0</div>
+                  <div class="metric-sub">Hours re-coded</div>
+                </div>
+              </div>
+        
+              <!-- Filter + action bar -->
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+                <select class="ctrl-sel" id="tx-filter-type" onchange="renderTransfers()">
+                  <option value="all">All transfers</option>
+                  <option value="reassign">Crew reassignments</option>
+                  <option value="correction">Payroll corrections</option>
+                </select>
+                <select class="ctrl-sel" id="tx-filter-status" onchange="renderTransfers()">
+                  <option value="all">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="denied">Denied</option>
+                </select>
+                <input id="tx-filter-search" placeholder="Search employee or job…" oninput="renderTransfers()"
+                  style="padding:6px 10px;border:1px solid var(--ff-bdr-m);border-radius:6px;font-size:12px;font-family:inherit;min-width:200px;background:var(--white);color:var(--ink)">
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <button class="btn btn-sm" onclick="exportTransfersCSV()">Export CSV</button>
+                  <button class="btn btn-sm btn-primary" onclick="openNewTransfer()">+ New transfer</button>
+                </div>
+              </div>
+        
+              <!-- Transfer table -->
+              <div class="panel" style="padding:0;overflow:hidden">
+                <div class="tbl-wrap">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <thead>
+                      <tr>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Status</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Type</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Effective</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Employee</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">From</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">To</th>
+                        <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Hrs</th>
+                        <th style="text-align:left;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Requested by</th>
+                        <th style="text-align:right;padding:9px 12px;background:var(--surface-2);color:var(--muted);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line)">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tx-tbody"></tbody>
+                  </table>
+                </div>
+                <div id="tx-empty" style="display:none;padding:48px 20px;text-align:center;color:var(--muted);font-size:13px">
+                  <div style="font-size:28px;margin-bottom:8px;opacity:.4">⇄</div>
+                  No transfers match the current filters.
+                </div>
+              </div>
+        
+              <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
+                Every transfer creates a notification to the requester, sending foreman, receiving foreman, and the person's superintendent. Approved transfers flow into Spectrum's labor redistribution export on the next sync.
+              </div>
+            </div>
+        
+            <!-- SETTINGS ───────────────────────────────────────── -->
+            <div class="screen" id="screen-settings">
+              <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
+
+                <!-- Appearance -->
+                <div class="panel">
+                  <div class="panel-header">
+                    <div class="panel-title">Appear<em>ance</em></div>
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
+                    Toggle dark mode for low-light environments.
+                  </div>
+
+                  <!-- Dark mode row -->
+                  <div class="settings-row" style="border-bottom:none">
+                    <div class="settings-row-info">
+                      <div class="settings-row-label">Dark mode</div>
+                      <div class="settings-row-desc">Dims surfaces and brightens the amber accent.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="set-dark" onchange="setDark(this.checked)">
+                      <span class="switch-slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div id="settings-saved" style="display:none;font-size:12px;color:var(--good);text-align:center;padding:8px">
+                  ✓ Saved
+                </div>
+              </div>
+
+      </div>
+
+      <!-- ── SYSTEM PANE ── -->
+      <div id="admin-pane-system" class="admin-pane" style="display:none">
+        <div style="max-width:720px;display:flex;flex-direction:column;gap:16px">
 
           <!-- HR contact -->
           <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">HR contact</div>
-            </div>
+            <div class="panel-header"><div class="panel-title">HR contact</div></div>
             <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
               Cert expiry alerts are sent to this address. Leave blank to disable HR emails.
             </div>
-            <div class="form-group" style="margin-bottom:8px">
-              <label class="form-label">HR name</label>
-              <input id="admin-hr-name" class="form-input" placeholder="e.g. Jane Smith" style="font-size:12px" value="">
-            </div>
-            <div class="form-group" style="margin-bottom:12px">
-              <label class="form-label">HR email</label>
-              <input id="admin-hr-email" class="form-input" type="email" placeholder="hr@company.com" style="font-size:12px" value="">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="form-group" style="margin-bottom:8px">
+                <label class="form-label">HR name</label>
+                <input id="admin-hr-name" class="form-input" placeholder="e.g. Jane Smith" style="font-size:12px" value="">
+              </div>
+              <div class="form-group" style="margin-bottom:8px">
+                <label class="form-label">HR email</label>
+                <input id="admin-hr-email" class="form-input" type="email" placeholder="hr@company.com" style="font-size:12px" value="">
+              </div>
             </div>
             <button class="btn btn-sm btn-primary" onclick="adminSaveHR()">Save HR contact</button>
             <div id="admin-hr-saved" style="display:none;font-size:11px;color:var(--ff-green);margin-top:8px">✓ Saved</div>
@@ -2530,109 +2722,104 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <!-- Stack info -->
           <div class="panel" style="background:var(--ff-bg)">
             <div class="panel-header"><div class="panel-title">Stack</div></div>
-            <div style="display:flex;flex-direction:column;gap:6px;font-size:11.5px">
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
               <div style="display:flex;justify-content:space-between">
-                <span style="color:var(--ff-tx3)">Auth + DB</span>
+                <span style="color:var(--ff-tx3)">Auth + Database</span>
                 <span style="font-weight:500">Supabase</span>
               </div>
               <div style="display:flex;justify-content:space-between">
-                <span style="color:var(--ff-tx3)">API</span>
-                <span style="font-weight:500">Node / Express · Railway</span>
+                <span style="color:var(--ff-tx3)">Hosting</span>
+                <span style="font-weight:500">Railway</span>
               </div>
               <div style="display:flex;justify-content:space-between">
-                <span style="color:var(--ff-tx3)">Frontend</span>
-                <span style="font-weight:500">React / Vite · Railway</span>
+                <span style="color:var(--ff-tx3)">Weather API</span>
+                <span style="font-weight:500">National Weather Service · Umatilla (PDT)</span>
               </div>
               <div style="display:flex;justify-content:space-between">
                 <span style="color:var(--ff-tx3)">Email</span>
                 <span style="font-weight:500">Resend</span>
               </div>
-              <div style="display:flex;justify-content:space-between">
+              <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--ff-bdr);margin-top:4px">
                 <span style="color:var(--ff-tx3)">Version</span>
-                <span style="font-weight:500;font-family:'DM Mono',monospace">FieldFlow v0.1 · prototype</span>
+                <span style="font-weight:500;font-family:'DM Mono',monospace">FieldFlow · v0.1 prototype</span>
               </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header"><div class="panel-title">Parent application</div></div>
+            <div style="font-size:12px;color:var(--ff-tx3);line-height:1.6">
+              FieldFlow is one app inside the CremFlow suite. Links to related apps will appear here once the CremFlow launcher is connected.
             </div>
           </div>
         </div>
       </div>
+
     </div>
 
-    <!-- REASSIGN CREW ───────────────────────────────────── -->
-    <div class="screen" id="screen-drag-schedule">
-      <div class="controls" style="margin-bottom:12px">
-        <span class="ctrl-lbl">Week of</span>
-        <select class="ctrl-sel" id="ds-week-sel">
-          <option value="0">Apr 13, 2026</option>
-          <option value="1">Apr 20, 2026</option>
-          <option value="2">Apr 27, 2026</option>
-          <option value="3">May 4, 2026</option>
-        </select>
-        <span style="font-size:11px;color:var(--ff-tx3);margin-left:4px">
-          Drag any cell to a different job to reassign. A confirmation will appear before any change is saved.
-        </span>
-      </div>
-      <div id="ds-board" style="overflow:auto;flex:1"></div>
-    </div>
 
-    <!-- JOB MANAGER ────────────────────────────────────── -->
-    <div class="screen" id="screen-job-manager">
-      <div style="display:flex;gap:13px;height:100%">
-        <!-- Job list -->
-        <div style="width:280px;flex-shrink:0;overflow-y:auto">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <span style="font-size:12.5px;font-weight:500">Jobs</span>
-            <button class="btn btn-sm btn-primary" onclick="openNewJobForm()">+ New job</button>
-          </div>
-          <div id="jm-job-list"></div>
-        </div>
-        <!-- Job detail / edit form -->
-        <div style="flex:1;overflow-y:auto" id="jm-detail-pane">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;gap:8px;color:var(--ff-tx3)">
-            <svg width="32" height="32" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v12M1 6h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <div style="font-size:13px">Select a job to view or edit</div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div><!-- end .fieldflow -->
 </div><!-- end #ff-app -->
 
-<!-- ASSIGN MODAL ──────────────────────────────────────── -->
-<div class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal">
-    <div class="modal-title">Assign worker</div>
-    <div class="form-group">
-      <label class="form-label">Employee</label>
-      <select class="form-input">
-        <option>Siharath, Vayourinh (GF)</option>
-        <option>Braught, Isaiah (JN)</option>
-        <option>Chirhart, Phillip (JN)</option>
-        <option>Rodgers, Shawn (JN)</option>
-      </select>
+<!-- NEW MANPOWER REQUEST MODAL ──────────────────────── -->
+<div class="modal-overlay" id="req-modal-overlay" onclick="if(event.target===this)closeNewRequest()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">New manpower <em style="color:var(--accent);font-style:italic">request</em></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">
+      Ping all directors with a manpower need. If all decline within 48 hours, you'll get an email to call the union hall.
     </div>
-    <div class="form-group">
-      <label class="form-label">Job</label>
-      <select class="form-input">
-        <option>LIVE WORK</option>
-        <option>PDX247 BMS</option>
-        <option>PDX247 SEC</option>
-        <option>PDX246 SEC</option>
-        <option>CAMPUS WIDE</option>
-        <option>LW</option>
-      </select>
+
+    <div class="req-form-grid">
+      <div class="form-group" style="grid-column:1 / 4">
+        <label class="form-label">Role needed</label>
+        <select class="form-input req-input" id="req-role">
+          <option value="SUPER">Superintendent</option>
+          <option value="GF">General Foreman (GF)</option>
+          <option value="FM">Foreman (FM)</option>
+          <option value="JN" selected>Journeyman (JN / JW)</option>
+          <option value="WLD">Welder (WLD)</option>
+          <option value="5">5th-year Apprentice (85%)</option>
+          <option value="4">4th-year Apprentice (80%)</option>
+          <option value="3">3rd-year Apprentice (65%)</option>
+          <option value="2">2nd-year Apprentice (50%)</option>
+          <option value="1">1st-year Apprentice (40-45%)</option>
+          <option value="0">New hire · unassigned class (40%)</option>
+          <option value="MH">Material Handler (MH)</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:4 / 5">
+        <label class="form-label">Count</label>
+        <input type="number" class="form-input req-input" id="req-count" min="1" max="20" value="1">
+      </div>
+
+      <div class="form-group" style="grid-column:1 / 5">
+        <label class="form-label">Job</label>
+        <select class="form-input req-input" id="req-job"></select>
+      </div>
+
+      <div class="form-group" style="grid-column:1 / 5">
+        <label class="form-label">Week starting (Monday)</label>
+        <input type="date" class="form-input req-input" id="req-week">
+      </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Start date</label>
-      <input type="date" class="form-input" value="2026-04-13">
+
+    <div class="form-group" style="margin-top:6px">
+      <label class="form-label">Reason / notes</label>
+      <textarea class="form-input req-input" id="req-reason" rows="2" placeholder="e.g. Project just released, need to ramp up coverage for the next 3 weeks" style="resize:vertical;font-family:inherit;min-height:56px"></textarea>
     </div>
-    <div class="form-group">
-      <label class="form-label">Notes (optional)</label>
-      <input type="text" class="form-input" placeholder="Any notes for this assignment…">
+
+    <div style="background:var(--accent-ghost);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11.5px;color:var(--ink-soft);line-height:1.55">
+      <div style="font-weight:600;margin-bottom:4px;color:var(--accent-dark)">Polling flow</div>
+      <div>1. Request is sent to all directors</div>
+      <div>2. Directors respond <strong>Yes</strong> (can spare someone) or <strong>No</strong></div>
+      <div>3. First Yes → request approved, director coordinates</div>
+      <div>4. All No within 48 hours → email requester to call the union</div>
     </div>
+
     <div class="modal-actions">
-      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="document.querySelector('.modal-overlay').classList.remove('open')">Assign worker</button>
-      <button class="btn" onclick="document.querySelector('.modal-overlay').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="submitRequest()">Submit request</button>
+      <button class="btn" onclick="closeNewRequest()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2736,14 +2923,14 @@ function get(id)  { return _reg[id] || {}; }
 // ── Data ──────────────────────────────────────────────────────
 const SCHED = {
   'Munson,Mike,GF':          [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW','']],
-  'Braught,Isaiah,JN':       [['???','???','???','???',''],      ['','','','',''],                  ['','','','',''],                  ['','','','','']],
-  'Chirhart,Phillip,JN':     [['???','???','???','???',''],      ['','','','',''],                  ['','','','',''],                  ['','','','','']],
-  'Fellows,Shay,4B':         [['???','???','???','???',''],      ['School','School','School','School','School'],['','','','',''],     ['','','','','']],
-  'Weaver,Corey,JN':         [['VACATION','VACATION','VACATION','VACATION',''],['','','','',''],   ['','','','',''],                  ['','','','','']],
-  'Siharath,Vayourinh,GF':   [['???','???','???','???',''],      ['','','','',''],                  ['','','','',''],                  ['','','','','']],
-  'Clugston,Cody,JN':        [['SERVICE','SERVICE','SERVICE','SERVICE',''],['SERVICE','SERVICE','SERVICE','SERVICE',''],['','','','',''],['','','','','']],
-  'Kegel,Alex,2D':           [['School','School','School','School','School'],['','','','',''],      ['School','School','School','School','School'],['','','','','']],
-  'Rodgers,Shawn,JN':        [['???','???','???','???',''],      ['','','','',''],                  ['','','','',''],                  ['','','','','']],
+  'Braught,Isaiah,JN':       [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
+  'Chirhart,Phillip,JN':     [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
+  'Fellows,Shay,4B':         [['WTB','WTB','WTB','WTB',''],     ['School','School','School','School','School'],['WTB','WTB','WTB','WTB',''],['WTB','WTB','WTB','WTB','']],
+  'Weaver,Corey,JN':         [['VACATION','VACATION','VACATION','VACATION',''],['LW','LW','LW','LW',''],['LW','LW','LW','LW',''],['LW','LW','LW','LW','']],
+  'Siharath,Vayourinh,GF':   [['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC','']],
+  'Clugston,Cody,JN':        [['SERVICE','SERVICE','SERVICE','SERVICE',''],['SERVICE','SERVICE','SERVICE','SERVICE',''],['SERVICE','SERVICE','SERVICE','SERVICE',''],['SERVICE','SERVICE','SERVICE','SERVICE','']],
+  'Kegel,Alex,2D':           [['School','School','School','School','School'],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC','']],
+  'Rodgers,Shawn,JN':        [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Ortega,Miguel,5B':        [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW','']],
   'Clark,Collin,MH':         [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW','']],
   'Marsolek,Tyler,GF':       [['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','']],
@@ -2753,33 +2940,97 @@ const SCHED = {
   'Olveda,Tanner,FM':        [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
   'Porter,Billy,FM':         [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Brundridge,Guinevere,JN': [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
-  'Mellotte,Colby,2B':       [['PDX245 BMS','PDX245 BMS','PDX245 BMS','PDX245 BMS',''],['PDX245 BMS','PDX245 BMS','PDX245 BMS','PDX245 BMS',''],['PDX245 BMS','PDX245 BMS','PDX245 BMS','PDX245 BMS',''],['PDX245 BMS','PDX245 BMS','PDX245 BMS','PDX245 BMS','']],
-  'Gunderson,Hunter,4B':     [['WTB','WTB','WTB','WTB',''],     ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB','']],
+  'Mellotte,Colby,2B':       [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
+  'Gunderson,Hunter,4B':     [['WTB','WTB','WTB','WTB',''],     ['School','School','School','School','School'],['WTB','WTB','WTB','WTB',''],['WTB','WTB','WTB','WTB','']],
   'Grossruck,Michael,JN':    [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Isley,Mike,FM':           [['WTB','WTB','WTB','WTB',''],     ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB','']],
-  'Sholotyuk,Alexsei,2E':    [['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC','']],
+  'Sholotyuk,Alexsei,2E':    [['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['School','School','School','School','School'],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC','']],
   'Davis,Jayden,1A':         [['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC',''],['PDX247 SEC','PDX247 SEC','PDX247 SEC','PDX247 SEC','']],
-  'Robins,Jason,4A':         [['School','School','School','School','School'],['','','','',''],       ['','','','',''],                  ['','','','','']],
+  'Robins,Jason,4A':         [['School','School','School','School','School'],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','']],
   'Reynolds,Brendan,5A':     [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Budan,Ryan,JN':           [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
   'Miller,Easton,1':         [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
   'Walker,Rodger,5A':        [['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC',''],['PDX246 SEC','PDX246 SEC','PDX246 SEC','PDX246 SEC','']],
   'Boles,James,FM':          [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
-  'Purser,Tim,FM':           [['PDX245 WTB','PDX245 WTB','PDX245 WTB','PDX245 WTB',''],['PDX245 WTB','PDX245 WTB','PDX245 WTB','PDX245 WTB',''],['PDX245 WTB','PDX245 WTB','PDX245 WTB','PDX245 WTB',''],['PDX245 WTB','PDX245 WTB','PDX245 WTB','PDX245 WTB','']],
+  'Purser,Tim,FM':           [['WTB','WTB','WTB','WTB',''],     ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB','']],
   'Pierce,Ernest,2A':        [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Schroder,Hailey,':        [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
-  'Lambert,Kevin,GF':        [['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB','']],
-  'Berry,Vanessa,':          [['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB',''],['PREFAB','PREFAB','PREFAB','PREFAB','']],
-  'Tikka,Alan,JN':           [['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE','']],
-  'Mercado,Fabian,MH':       [['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE',''],['WAREHOUSE','WAREHOUSE','WAREHOUSE','WAREHOUSE','']],
+  'Lambert,Kevin,GF':        [['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','']],
+  'Berry,Vanessa,':          [['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','']],
+  'Tikka,Alan,JN':           [['WTB','WTB','WTB','WTB',''],     ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB','']],
+  'Mercado,Fabian,MH':       [['WTB','WTB','WTB','WTB',''],     ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB',''],      ['WTB','WTB','WTB','WTB','']],
   'Sorbel,Chayce,GF':        [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW','']],
-  'Cramer,Mason,FM':         [['Williams','Williams','OFF','OFF',''],['Williams','Williams','OFF','OFF',''],['Williams','Williams','','',''],['Williams','Williams','','','']],
-  'Boden,Charlie,JN':        [['TK','TK','VA','LW',''],          ['TK','TK','VA','LW',''],          ['VA','VA','VA','VA',''],           ['LW','LW','LW','LW','']],
-  'Cole,Kolten,1C':          [['TK','TK','VA','LW',''],          ['TK','TK','VA','LW',''],          ['VA','VA','VA','VA',''],           ['LW','LW','LW','LW','']],
-  'Campuzano,Eric,1E':       [['Williams','Williams','LW','LW',''],['Williams','Williams','LW','LW',''],['LW','LW','LW','LW',''],       ['LW','LW','LW','LW','']],
+  'Cramer,Mason,FM':         [['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE',''],['CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','CAMPUS WIDE','']],
+  'Boden,Charlie,JN':        [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW','']],
+  'Cole,Kolten,1C':          [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],          ['School','School','School','School','School']],
+  'Campuzano,Eric,1E':       [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['School','School','School','School','School'],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
   'Dik,Stefhan,JN':          [['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW',''],          ['LW','LW','LW','LW','']],
-  'Neal,James,JN':           [['','','','',''],                  ['','','','',''],                  ['','','','',''],                  ['','','','','']],
 };
+
+// ─── Schedule date range expansion ────────────────────────────
+// Extend SCHED to cover 1 year back + 1 year forward (~105 weeks).
+// Current schedule data (seeded as indices 0-3) represents weeks starting
+// Apr 13, Apr 20, Apr 27, May 4, 2026. Map these into the larger array.
+const SCHED_WEEKS_TOTAL  = 105;
+const SCHED_CURRENT_WEEK = (() => {
+  // Compute "current Monday" index in the 105-week array.
+  // Week 0 = 52 weeks before today's Monday. Week 52 = today's Monday.
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const dow = today.getDay(); // 0=Sun
+  const daysSinceMon = dow === 0 ? 6 : dow - 1;
+  const thisMon = new Date(today); thisMon.setDate(today.getDate() - daysSinceMon);
+  // We'll use thisMon as "center" week = index 52
+  return { index: 52, date: thisMon };
+})();
+
+// Compute Monday-date for any week index
+function schedWeekDate(wkIdx) {
+  const d = new Date(SCHED_CURRENT_WEEK.date);
+  d.setDate(d.getDate() + (wkIdx - SCHED_CURRENT_WEEK.index) * 7);
+  return d;
+}
+
+// Format a week label: "Apr 13–17, 2026"
+function schedWeekLabel(wkIdx, short) {
+  const mon = schedWeekDate(wkIdx);
+  const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
+  const MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m1 = MONTH[mon.getMonth()], m2 = MONTH[fri.getMonth()];
+  const yr = mon.getFullYear();
+  if (short) return `${m1} ${mon.getDate()}`;
+  if (mon.getMonth() === fri.getMonth())
+    return `${m1} ${mon.getDate()}–${fri.getDate()}, ${yr}`;
+  return `${m1} ${mon.getDate()}–${m2} ${fri.getDate()}, ${yr}`;
+}
+
+// Day label for a given week+day index: "M 4/13"
+function schedDayLabel(wkIdx, dayIdx) {
+  const d = schedWeekDate(wkIdx);
+  d.setDate(d.getDate() + dayIdx);
+  const dayName = ['M','T','W','Th','F'][dayIdx] || '';
+  return `${dayName} ${d.getMonth()+1}/${d.getDate()}`;
+}
+
+// Expand SCHED: shift existing 4 weeks to indices 52-55, fill rest with blank
+(() => {
+  // The seeded data for the original April 2026 range needs to land on the
+  // week whose Monday = Apr 13, 2026. Compute its index in the 105-week array.
+  const apr13 = new Date(2026, 3, 13); // month 3 = April
+  const diffMs = apr13 - SCHED_CURRENT_WEEK.date;
+  const apr13Index = SCHED_CURRENT_WEEK.index + Math.round(diffMs / (7 * 86400000));
+
+  Object.keys(SCHED).forEach(key => {
+    const seeded = SCHED[key];
+    const blank = Array.from({ length: SCHED_WEEKS_TOTAL }, () => ['','','','','']);
+    // Place seeded weeks starting at apr13Index, clipping if out of bounds
+    seeded.forEach((wk, i) => {
+      const target = apr13Index + i;
+      if (target >= 0 && target < SCHED_WEEKS_TOTAL) blank[target] = wk;
+    });
+    SCHED[key] = blank;
+  });
+})();
 
 const SCHOOL_SESSIONS = [
   {code:'2D',  start:'Apr 13',end:'Apr 17, 2026',emps:['Kegel, Alex']},
@@ -2795,12 +3046,75 @@ const SCHOOL_SESSIONS = [
   {code:'2A',  start:'Feb 2', end:'Feb 6, 2026', emps:['Pierce, Ernest']},
 ];
 
+// ── Current user tracking (declared early — referenced by request polling) ──
+let _currentUser = { email: '', name: '', role: '' };
+
+// ── Manpower requests ────────────────────────────────
+// Structured request — directors (superintendent role) are polled.
+// If all respond No within 48 hours → email requester to call union.
+// First Yes approves the request.
+const REQUEST_DEADLINE_HOURS = 48;
+
+// role codes → display labels for the card title
+const REQ_ROLE_LABEL = {
+  SUPER: 'Superintendent', GF: 'General Foreman', FM: 'Foreman',
+  JN: 'Journeyman', WLD: 'Welder', MH: 'Material Handler',
+  '5':'5th-yr Apprentice','4':'4th-yr Apprentice','3':'3rd-yr Apprentice',
+  '2':'2nd-yr Apprentice','1':'1st-yr Apprentice','0':'New hire (unassigned)'
+};
+
 const REQUESTS_DATA = [
-  {id:1, title:'2 JNs — PDX248 SEC, wk May 4',          meta:'Frison · 2 hrs ago',    status:'pending'},
-  {id:2, title:'1 GF — LW Outage, wk May 4',            meta:'Sorbel · 5 hrs ago',    status:'pending'},
-  {id:3, title:'3 apprentices — CAMPUS WIDE, wk Apr 20', meta:'Marsolek · yesterday',  status:'pending'},
-  {id:4, title:'2 FMs — PDX247 BMS, wk Apr 27',         meta:'Boles · 3 days ago',    status:'approved'},
-  {id:5, title:'1 JN — SERVICE, wk Apr 20',             meta:'Clugston · 4 days ago', status:'denied'},
+  {
+    id:1,
+    roleNeeded:'JN', count:2, jobNumber:'PDX247-SEC', weekStart:'2026-05-04',
+    reason:'Need additional coverage for panel rough-in',
+    requestedBy:'Frison, Brad', requestedAt:Date.now() - 2*3600000,
+    status:'pending',
+    responses:{}, // { directorName: 'yes' | 'no' }
+    title:'2 JNs — PDX247-SEC, wk May 4',
+    meta:'Frison · 2 hrs ago',
+  },
+  {
+    id:2,
+    roleNeeded:'GF', count:1, jobNumber:'LW-OPS', weekStart:'2026-05-04',
+    reason:'Running simultaneous outages',
+    requestedBy:'Sorbel, Chayce', requestedAt:Date.now() - 5*3600000,
+    status:'pending',
+    responses:{},
+    title:'1 GF — LW Outage, wk May 4',
+    meta:'Sorbel · 5 hrs ago',
+  },
+  {
+    id:3,
+    roleNeeded:'2', count:3, jobNumber:'CW-01', weekStart:'2026-04-20',
+    reason:'Campus rough-in push needs 3 apprentices',
+    requestedBy:'Marsolek, Tyler', requestedAt:Date.now() - 26*3600000,
+    status:'pending',
+    responses:{'Zech S.':'no'},
+    title:'3 apprentices — CAMPUS WIDE, wk Apr 20',
+    meta:'Marsolek · yesterday',
+  },
+  {
+    id:4,
+    roleNeeded:'FM', count:2, jobNumber:'PDX247-BMS', weekStart:'2026-04-27',
+    reason:'Splitting crew for phase 2 start',
+    requestedBy:'Boles, James', requestedAt:Date.now() - 3*86400000,
+    status:'approved',
+    responses:{'Zech S.':'yes'},
+    approvedBy:'Zech S.',
+    title:'2 FMs — PDX247-BMS, wk Apr 27',
+    meta:'Boles · 3 days ago',
+  },
+  {
+    id:5,
+    roleNeeded:'JN', count:1, jobNumber:'SVC-01', weekStart:'2026-04-20',
+    reason:'Overflow service calls',
+    requestedBy:'Clugston, Cody', requestedAt:Date.now() - 4*86400000,
+    status:'union',  // all directors said no, past deadline
+    responses:{'Zech S.':'no','Jim/Jordin':'no'},
+    title:'1 JN — SERVICE, wk Apr 20',
+    meta:'Clugston · 4 days ago · call union',
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -2827,13 +3141,110 @@ function primaryJob(days) {
 }
 
 function roleBadge(role) {
-  const map = { GF:'role-gf', FM:'role-fm', JN:'role-jn', JW:'role-jn', MH:'role-mh' };
-  const cls = map[role] || (role ? 'role-ap' : '');
-  return cls ? `<span class="role-badge ${cls}">${esc(role)}</span>` : '—';
+  if (!role) return '—';
+  const r = String(role).trim();
+  // Top-level roles
+  const topMap = {
+    SUPER: 'role-super',
+    GF:    'role-gf',
+    FM:    'role-fm',
+    WLD:   'role-wld',
+    JN:    'role-jn',
+    JW:    'role-jn',
+    MH:    'role-mh',
+  };
+  if (topMap[r]) return `<span class="role-badge ${topMap[r]}">${esc(r)}</span>`;
+  // Apprentice — classify by leading digit
+  const firstChar = r.charAt(0);
+  if (firstChar === '5') return `<span class="role-badge role-ap5">${esc(r)}</span>`;
+  if (firstChar === '4') return `<span class="role-badge role-ap4">${esc(r)}</span>`;
+  if (firstChar === '3') return `<span class="role-badge role-ap3">${esc(r)}</span>`;
+  if (firstChar === '2') return `<span class="role-badge role-ap2">${esc(r)}</span>`;
+  if (firstChar === '1' || firstChar === '0') return `<span class="role-badge role-ap1">${esc(r)}</span>`;
+  // Fallback
+  return `<span class="role-badge role-ap">${esc(r)}</span>`;
 }
 
 // ── Build schedule table ──────────────────────────────────────
-const entries = Object.entries(SCHED).sort((a, b) => a[0].localeCompare(b[0]));
+// Viewing window: show 3 weeks at a time from the 105-week total range
+let _schedWindowStart = SCHED_CURRENT_WEEK.index; // Default to current week
+const SCHED_WINDOW_SIZE = 3;
+
+function schedNav(delta) {
+  const newStart = Math.max(0, Math.min(SCHED_WEEKS_TOTAL - SCHED_WINDOW_SIZE, _schedWindowStart + delta));
+  _schedWindowStart = newStart;
+  buildSchedThead();
+  buildSchedTbody();
+  const sel = document.getElementById('sched-jump');
+  if (sel) sel.value = String(_schedWindowStart);
+}
+function schedJumpTo(wkIdx) {
+  if (!Number.isFinite(wkIdx)) return;
+  _schedWindowStart = Math.max(0, Math.min(SCHED_WEEKS_TOTAL - SCHED_WINDOW_SIZE, wkIdx));
+  buildSchedThead();
+  buildSchedTbody();
+}
+function schedJumpToday() {
+  schedJumpTo(SCHED_CURRENT_WEEK.index);
+}
+
+// ── Reassign Crew week selector helpers ──
+function populateDsWeekSel() {
+  const sel = document.getElementById('ds-week-sel');
+  if (!sel) return;
+  // If already populated, leave alone (preserve selection)
+  if (sel.options.length >= SCHED_WEEKS_TOTAL) return;
+  const currentValue = sel.value;
+  const opts = [];
+  for (let i = 0; i < SCHED_WEEKS_TOTAL; i++) {
+    const isCurrent = i === SCHED_CURRENT_WEEK.index;
+    opts.push(`<option value="${i}">${schedWeekLabel(i)}${isCurrent?' · current':''}</option>`);
+  }
+  sel.innerHTML = opts.join('');
+  sel.value = currentValue || String(SCHED_CURRENT_WEEK.index);
+}
+function dsJumpToday() {
+  populateDsWeekSel();
+  const sel = document.getElementById('ds-week-sel');
+  if (sel) sel.value = String(SCHED_CURRENT_WEEK.index);
+  renderDragSchedule();
+}
+
+function buildSchedJumpOptions() {
+  const sel = document.getElementById('sched-jump');
+  if (!sel) return;
+  const opts = [];
+  for (let i = 0; i < SCHED_WEEKS_TOTAL; i++) {
+    const isCurrent = i === SCHED_CURRENT_WEEK.index;
+    opts.push(`<option value="${i}"${isCurrent?' data-today="1"':''}>${schedWeekLabel(i)}${isCurrent?' · current':''}</option>`);
+  }
+  sel.innerHTML = opts.join('');
+  sel.value = String(_schedWindowStart);
+}
+
+function buildSchedThead() {
+  const thead = document.getElementById('sched-thead');
+  if (!thead) return;
+  const weekRange = [];
+  for (let i = 0; i < SCHED_WINDOW_SIZE; i++) {
+    weekRange.push(_schedWindowStart + i);
+  }
+  const wkHdrs = weekRange.map((wi, idx) => {
+    const isCurrent = wi === SCHED_CURRENT_WEEK.index;
+    const cls = idx % 2 === 0 ? 'wk-hdr' : 'wk-hdr2';
+    const bg  = isCurrent ? 'background:var(--accent-ghost);color:var(--accent-dark);font-weight:600' : '';
+    return `<th colspan="5" class="${cls}" style="${bg}">${schedWeekLabel(wi)}${isCurrent?' · THIS WEEK':''}</th>`;
+  }).join('');
+  const dayHdrs = weekRange.map((wi, wkPos) => {
+    return [0,1,2,3,4].map(di => {
+      const sep = (di === 4 && wkPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
+      return `<th${sep}>${schedDayLabel(wi, di)}</th>`;
+    }).join('');
+  }).join('');
+  thead.innerHTML = `
+    <tr><th class="stick">Employee</th>${wkHdrs}</tr>
+    <tr><th class="stick"></th>${dayHdrs}</tr>`;
+}
 
 function buildSchedTbody() {
   const tbody = document.getElementById('sched-tbody');
@@ -2842,6 +3253,10 @@ function buildSchedTbody() {
   // Read current filter + sort
   const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
   const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
+
+  // Viewing window indices
+  const viewWeeks = [];
+  for (let i = 0; i < SCHED_WINDOW_SIZE; i++) viewWeeks.push(_schedWindowStart + i);
 
   // Filter by role
   const filtered = Object.entries(SCHED).filter(([key]) => {
@@ -2854,38 +3269,30 @@ function buildSchedTbody() {
     return true;
   });
 
-  // Sort
+  // Sort (using the first visible week for job / conflict sorts)
+  const firstVisible = viewWeeks[0];
   const sorted = [...filtered].sort((a, b) => {
     const [la, fa, ra] = a[0].split(',');
     const [lb, fb, rb] = b[0].split(',');
     const nameA = la + ' ' + fa;
     const nameB = lb + ' ' + fb;
-    const jobA  = (a[1][0]?.[0] || '').toString();
-    const jobB  = (b[1][0]?.[0] || '').toString();
+    const jobA  = (a[1][firstVisible]?.[0] || '').toString();
+    const jobB  = (b[1][firstVisible]?.[0] || '').toString();
 
-    // Count conflicts / unassigned in the first week
-    const conflictsA = (a[1][0] || []).filter(d => d === '???' || d === 'CONFLICT').length;
-    const conflictsB = (b[1][0] || []).filter(d => d === '???' || d === 'CONFLICT').length;
-    const unassignedA = (a[1][0] || []).filter(d => !d || d === '' || d === '???').length;
-    const unassignedB = (b[1][0] || []).filter(d => !d || d === '' || d === '???').length;
+    const conflictsA = (a[1][firstVisible] || []).filter(d => d === '???' || d === 'CONFLICT').length;
+    const conflictsB = (b[1][firstVisible] || []).filter(d => d === '???' || d === 'CONFLICT').length;
+    const unassignedA = (a[1][firstVisible] || []).filter(d => !d || d === '' || d === '???').length;
+    const unassignedB = (b[1][firstVisible] || []).filter(d => !d || d === '' || d === '???').length;
 
     switch (sortKey) {
-      case 'name-desc':
-        return nameB.localeCompare(nameA);
-      case 'role-sen':
-        // Seniority: SUPER → GF → FM → JN → apprentice (5→1) → MH
-        return roleRank(ra) - roleRank(rb) || nameA.localeCompare(nameB);
-      case 'role-jr':
-        return roleRank(rb) - roleRank(ra) || nameA.localeCompare(nameB);
-      case 'job':
-        return jobA.localeCompare(jobB) || nameA.localeCompare(nameB);
-      case 'conflict':
-        return conflictsB - conflictsA || nameA.localeCompare(nameB);
-      case 'unassigned':
-        return unassignedB - unassignedA || nameA.localeCompare(nameB);
+      case 'name-desc':   return nameB.localeCompare(nameA);
+      case 'role-sen':    return roleRank(ra) - roleRank(rb) || nameA.localeCompare(nameB);
+      case 'role-jr':     return roleRank(rb) - roleRank(ra) || nameA.localeCompare(nameB);
+      case 'job':         return jobA.localeCompare(jobB) || nameA.localeCompare(nameB);
+      case 'conflict':    return conflictsB - conflictsA || nameA.localeCompare(nameB);
+      case 'unassigned':  return unassignedB - unassignedA || nameA.localeCompare(nameB);
       case 'name-asc':
-      default:
-        return nameA.localeCompare(nameB);
+      default:            return nameA.localeCompare(nameB);
     }
   });
 
@@ -2897,10 +3304,10 @@ function buildSchedTbody() {
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
     return `<tr>
-      <td class="stick"><div class="emp-name">${esc(last)}, ${esc(first)}</div><div class="emp-role">${esc(role)}</div></td>
-      ${weeks.slice(0, 3).map((wk, wi) =>
-        wk.map((d, di) => {
-          const sep  = (di === 4 && wi < 2) ? ' class="wsep"' : '';
+      <td class="stick"><div class="emp-name">${esc(last)}, ${esc(first)}</div><div class="emp-role">${roleBadge(role)}</div></td>
+      ${viewWeeks.map((wi, wPos) =>
+        (weeks[wi] || ['','','','','']).map((d, di) => {
+          const sep  = (di === 4 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
           const crid = reg({ empKey: key, weekIdx: wi, dayIdx: di, value: d });
           return `<td${sep} style="cursor:pointer;position:relative" data-cell-rid="${crid}">
             <div class="sched-cell-wrap">
@@ -2914,10 +3321,9 @@ function buildSchedTbody() {
   }).join('');
 }
 
-// Export current filtered + sorted schedule as CSV
+// Export current filtered schedule as CSV — only the visible 3-week window
 function exportScheduleCSV() {
   const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
-  const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
   const filtered = Object.entries(SCHED).filter(([key]) => {
     const [, , role] = key.split(',');
     if (roleFilter === 'all')        return true;
@@ -2927,13 +3333,13 @@ function exportScheduleCSV() {
     if (roleFilter === 'mh')         return role === 'MH';
     return true;
   });
-  const days = ['Mon 4/13','Tue 4/14','Wed 4/15','Thu 4/16','Fri 4/17',
-                'Mon 4/20','Tue 4/21','Wed 4/22','Thu 4/23','Fri 4/24',
-                'Mon 4/27','Tue 4/28','Wed 4/29','Thu 4/30','Fri 5/1'];
+  const viewWeeks = [];
+  for (let i = 0; i < SCHED_WINDOW_SIZE; i++) viewWeeks.push(_schedWindowStart + i);
+  const days = viewWeeks.flatMap(wi => [0,1,2,3,4].map(di => schedDayLabel(wi, di)));
   const rows = [['Last','First','Role', ...days].join(',')];
   filtered.forEach(([key, weeks]) => {
     const [last, first, role] = key.split(',');
-    const flat = weeks.slice(0, 3).flat();
+    const flat = viewWeeks.flatMap(wi => weeks[wi] || ['','','','','']);
     rows.push([last, first, role, ...flat.map(d => `"${d || ''}"`)].join(','));
   });
   const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
@@ -3228,12 +3634,23 @@ const CERT_DEFS = [
 
 function certStatus(expiryDate) {
   if (!expiryDate) return null;
-  const today = new Date('2026-04-15');
-  const exp   = new Date(expiryDate);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const exp   = new Date(expiryDate + 'T00:00:00');
   const days  = Math.floor((exp - today) / 86400000);
   if (days < 0)   return 'expired';
-  if (days < 60)  return 'expiring';
+  if (days <= 30) return 'expiring';
+  if (days <= 60) return 'soon';
   return 'ok';
+}
+
+// Days-until-expiry helper for tiered HR digests
+function certDaysUntil(expiryDate) {
+  if (!expiryDate) return null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const exp = new Date(expiryDate + 'T00:00:00');
+  return Math.floor((exp - today) / 86400000);
 }
 
 // ── Roster sort state ─────────────────────────────────────────
@@ -3625,6 +4042,10 @@ function openCertPanel(last, first, role) {
 function saveCertExpiry(last, certKey, value) {
   if (!CERT_EXPIRY[last]) CERT_EXPIRY[last] = {};
   CERT_EXPIRY[last][certKey] = value || null;
+
+  // Persist to Supabase (fire-and-forget)
+  persistCertExpiry(last, certKey, value);
+
   // Re-render panel in place to update status colors
   const emp = ROSTER.find(e => e.last === last);
   if (emp) openCertPanel(last, emp.first, emp.role);
@@ -3641,6 +4062,11 @@ function saveCertExpiry(last, certKey, value) {
       if (d.last) openCertPanel(d.last, d.first, d.role);
     });
   });
+
+  // Trigger HR digest check (may flag new tier crossings)
+  if (typeof runHRDigest === 'function') {
+    setTimeout(() => { try { runHRDigest(); } catch {} }, 100);
+  }
 }
 
 function sendHRAlert(last, first) {
@@ -3656,6 +4082,95 @@ function sendHRAlert(last, first) {
   panel.appendChild(confirmMsg);
   setTimeout(() => confirmMsg.remove(), 2500);
 }
+
+// ── HR cert digest: tiered 60 / 30 / 0 day alerts ─────────────
+// Runs on app load, then every hour while app is open.
+// Tier 1 (60 days): blue "heads up" notice
+// Tier 2 (30 days): amber "expiring soon" alert
+// Tier 3 (0 days):  red "EXPIRED" urgent notice
+// Uses localStorage to avoid re-sending the same alert for the same cert/tier.
+const HR_DIGEST_KEY = 'fieldflow-hr-digest-sent-v1';
+
+function loadHRDigestSent() {
+  try { return JSON.parse(localStorage.getItem(HR_DIGEST_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveHRDigestSent(state) {
+  try { localStorage.setItem(HR_DIGEST_KEY, JSON.stringify(state)); }
+  catch {}
+}
+
+function runHRDigest() {
+  const hrEmail = localStorage.getItem('fieldflow-hr-email') || '';
+  const hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
+  const sent = loadHRDigestSent();
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  const tier1 = []; // 60 days — heads up
+  const tier2 = []; // 30 days — expiring soon
+  const tier3 = []; // expired
+
+  // Iterate the live roster (CERT_EXPIRY is keyed by last name)
+  if (typeof ROSTER === 'undefined') return;
+  ROSTER.forEach(emp => {
+    const expiry = CERT_EXPIRY[emp.last] || {};
+    CERT_DEFS.forEach(cd => {
+      const d = expiry[cd.key];
+      if (!d) return;
+      const days = certDaysUntil(d);
+      if (days === null) return;
+
+      // Tier threshold keys that should only fire once per (cert, tier crossing)
+      const rowKey = `${emp.last}|${cd.key}|${d}`; // include date so renewal resets alerts
+      const sentForThisExpiry = sent[rowKey] || {};
+
+      const row = { name: `${emp.first} ${emp.last}`, cert: cd.label, daysLeft: days, expiresOn: d };
+
+      if (days < 0 && !sentForThisExpiry.expired) {
+        tier3.push(row);
+        sentForThisExpiry.expired = todayKey;
+      } else if (days <= 30 && days >= 0 && !sentForThisExpiry.t30) {
+        tier2.push(row);
+        sentForThisExpiry.t30 = todayKey;
+      } else if (days <= 60 && days > 30 && !sentForThisExpiry.t60) {
+        tier1.push(row);
+        sentForThisExpiry.t60 = todayKey;
+      }
+
+      if (Object.keys(sentForThisExpiry).length) sent[rowKey] = sentForThisExpiry;
+    });
+  });
+
+  const totalAlerts = tier1.length + tier2.length + tier3.length;
+  if (totalAlerts === 0) return;
+
+  // Compose digest — in production this is a Resend API call
+  const fmt = rows => rows.map(r => `  · ${r.name} — ${r.cert} (expires ${r.expiresOn})`).join('\n');
+  const body = [
+    `FieldFlow cert digest for ${todayKey}:`,
+    '',
+    tier3.length ? `🔴 EXPIRED (${tier3.length}):\n${fmt(tier3)}` : '',
+    tier2.length ? `🟠 Expiring in 30 days (${tier2.length}):\n${fmt(tier2)}` : '',
+    tier1.length ? `🔵 Expiring in 60 days (${tier1.length}):\n${fmt(tier1)}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  console.log(`[HR digest → ${hrName} <${hrEmail || 'no HR email set'}>]\n${body}`);
+
+  // Surface in-app toast so admins see it happened
+  if (typeof showToast === 'function') {
+    const parts = [];
+    if (tier3.length) parts.push(`${tier3.length} expired`);
+    if (tier2.length) parts.push(`${tier2.length} expiring ≤30d`);
+    if (tier1.length) parts.push(`${tier1.length} expiring ≤60d`);
+    showToast(`HR digest queued: ${parts.join(' · ')}`, tier3.length ? 'error' : 'success');
+  }
+
+  saveHRDigestSent(sent);
+}
+
+// Fire on app load (after data has loaded) and again every hour
+setTimeout(() => { try { runHRDigest(); } catch (e) { console.warn('[HR digest]', e); } }, 3000);
+setInterval(() => { try { runHRDigest(); } catch (e) { console.warn('[HR digest]', e); } }, 3600000);
 
 function closeCertPanel() {
   certPanelOpen = null;
@@ -3676,48 +4191,236 @@ document.getElementById('school-grid').innerHTML = SCHOOL_SESSIONS.map(s => `
   </div>`).join('');
 
 // ── Build requests screen ─────────────────────────────────────
-// dotColor comes from a fixed lookup — safe. r.id is an integer — safe.
-// r.title and r.meta come from internal data but escape for defence-in-depth.
-document.getElementById('req-full-list').innerHTML = REQUESTS_DATA.map(r => {
-  const PILL_CLS = { pending: 'pill-a', approved: 'pill-g', denied: 'pill-r' };
-  const safeStatus = PILL_CLS[r.status] ? r.status : 'pending';
-  const pillCls    = PILL_CLS[safeStatus];
-  const safeId     = parseInt(r.id, 10);
-  return `<div class="req-card" id="rcard-${safeId}">
-    <div class="req-status-dot req-dot-${safeStatus}"></div>
-    <div class="req-card-body">
-      <div class="req-card-title">${esc(r.title)}</div>
-      <div class="req-card-meta">${esc(r.meta)}</div>
-    </div>
-    <span class="pill ${pillCls}">${esc(r.status)}</span>
-    ${r.status === 'pending' ? `
-      <div class="req-card-acts">
-        <button class="rbtn rbtn-ok" data-req-approve="${safeId}">Approve</button>
-        <button class="rbtn rbtn-no" data-req-deny="${safeId}">Deny</button>
-      </div>` : ''}
-  </div>`;
-}).join('');
+// Renders the structured request list with director responses,
+// 48-hour countdown, and union-call trigger when all directors decline.
+function renderRequestsList() {
+  // Dashboard preview: top 3 pending requests (short list)
+  const preview = document.getElementById('dash-req-preview');
+  if (preview) {
+    const pending = REQUESTS_DATA.filter(r => r.status === 'pending').slice(0, 3);
+    if (pending.length === 0) {
+      preview.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">No pending requests</div>`;
+    } else {
+      preview.innerHTML = pending.map(r => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0"></div>
+          <div style="flex:1;min-width:0"><div style="font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.title)}</div><div style="font-size:10px;color:var(--muted)">${esc(r.meta)}</div></div>
+        </div>`).join('');
+    }
+  }
 
-// Event delegation for approve/deny — no user data in onclick
+  const list = document.getElementById('req-full-list');
+  if (!list) return;
+
+  const filter = document.getElementById('req-filter')?.value || 'all';
+  const PILL_CLS = { pending: 'pill-a', approved: 'pill-g', denied: 'pill-r', union: 'pill-r' };
+
+  const filtered = REQUESTS_DATA.filter(r => filter === 'all' || r.status === filter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">No requests match this filter.</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const safeStatus = PILL_CLS[r.status] ? r.status : 'pending';
+    const pillCls    = PILL_CLS[safeStatus];
+    const statusLabel = r.status === 'union' ? 'call union' : r.status;
+    const safeId     = parseInt(r.id, 10);
+
+    // Director responses summary
+    const directors = getDirectors();
+    const respondedYes = directors.filter(d => r.responses?.[d] === 'yes');
+    const respondedNo  = directors.filter(d => r.responses?.[d] === 'no');
+    const pending      = directors.filter(d => !r.responses?.[d]);
+    const deadlineMs   = r.requestedAt + REQUEST_DEADLINE_HOURS * 3600000;
+    const hoursLeft    = Math.max(0, (deadlineMs - Date.now()) / 3600000);
+    const overdue      = Date.now() > deadlineMs;
+
+    let statusLine = '';
+    if (r.status === 'pending') {
+      if (overdue) {
+        statusLine = `<div style="font-size:10.5px;color:var(--bad);font-weight:500;margin-top:2px">⏰ 48hr deadline passed — polling closing</div>`;
+      } else {
+        statusLine = `<div style="font-size:10.5px;color:var(--muted);margin-top:2px">${respondedYes.length}/${directors.length} yes · ${respondedNo.length} no · ${pending.length} pending · ${hoursLeft.toFixed(1)}hr left</div>`;
+      }
+    } else if (r.status === 'approved') {
+      statusLine = `<div style="font-size:10.5px;color:var(--good);font-weight:500;margin-top:2px">✓ Approved by ${esc(r.approvedBy || 'director')}</div>`;
+    } else if (r.status === 'union') {
+      statusLine = `<div style="font-size:10.5px;color:var(--bad);font-weight:500;margin-top:2px">⚠ All directors declined · email sent to ${esc(r.requestedBy)} to call the union hall</div>`;
+    } else if (r.status === 'denied') {
+      statusLine = `<div style="font-size:10.5px;color:var(--muted);margin-top:2px">Cancelled</div>`;
+    }
+
+    const currentIsDirector = isCurrentUserDirector();
+    const alreadyResponded  = currentIsDirector && r.responses?.[getCurrentUserName()];
+    const showRespondBtns   = r.status === 'pending' && currentIsDirector && !alreadyResponded;
+
+    return `<div class="req-card" id="rcard-${safeId}">
+      <div class="req-status-dot req-dot-${safeStatus}"></div>
+      <div class="req-card-body">
+        <div class="req-card-title">${esc(r.title)}</div>
+        <div class="req-card-meta">${esc(r.meta)}${r.reason ? ' · ' + esc(r.reason) : ''}</div>
+        ${statusLine}
+      </div>
+      <span class="pill ${pillCls}">${esc(statusLabel)}</span>
+      ${showRespondBtns ? `
+        <div class="req-card-acts">
+          <button class="rbtn rbtn-ok" data-req-yes="${safeId}">Yes, I can spare</button>
+          <button class="rbtn rbtn-no" data-req-no="${safeId}">No, need too</button>
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Event delegation for yes/no responses
 document.getElementById('req-full-list').addEventListener('click', e => {
-  const ab = e.target.closest('[data-req-approve]');
-  const db = e.target.closest('[data-req-deny]');
-  if (ab) approveById(parseInt(ab.dataset.reqApprove, 10));
-  if (db) denyById(parseInt(db.dataset.reqDeny, 10));
+  const yBtn = e.target.closest('[data-req-yes]');
+  const nBtn = e.target.closest('[data-req-no]');
+  if (yBtn) respondToRequest(parseInt(yBtn.dataset.reqYes, 10), 'yes');
+  if (nBtn) respondToRequest(parseInt(nBtn.dataset.reqNo,  10), 'no');
 });
+
+// Initial render
+renderRequestsList();
+
+// ── Director polling logic ────────────────────────────────────
+function getDirectors() {
+  // In production, read from allowed_users table where role='superintendent'.
+  // For now, static list matching the authorized users.
+  return ['Cameron Laws', 'Tristan Lozano', 'Joshua Bohlke', 'Zech Noel'];
+}
+function isCurrentUserDirector() {
+  const me = (typeof _currentUser !== 'undefined' && _currentUser.role) || '';
+  return ['superintendent','admin'].includes(me.toLowerCase());
+}
+
+function respondToRequest(id, answer) {
+  const r = REQUESTS_DATA.find(x => x.id === id);
+  if (!r) return;
+  const me = getCurrentUserName() || 'Director';
+  if (!r.responses) r.responses = {};
+  r.responses[me] = answer;
+
+  // First Yes → approve
+  if (answer === 'yes' && r.status === 'pending') {
+    r.status = 'approved';
+    r.approvedBy = me;
+    reqCount = Math.max(0, reqCount - 1);
+    updateBadge();
+    alert(`Request approved. ${me} will coordinate manpower for ${r.title}.`);
+  } else if (answer === 'no') {
+    // Check if all directors have said no
+    const directors = getDirectors();
+    const allNo = directors.every(d => r.responses[d] === 'no');
+    if (allNo) {
+      r.status = 'union';
+      reqCount = Math.max(0, reqCount - 1);
+      updateBadge();
+      // Simulate email — in production, this triggers a Resend call
+      console.log(`[Email] to ${r.requestedBy}: "All directors have declined your ${r.title} request. Please call the union hall for outside labor."`);
+      alert(`All directors declined. An email will be sent to ${r.requestedBy} to call the union hall.`);
+    }
+  }
+  renderRequestsList();
+  // Persist updated response state
+  persistRequest(r);
+}
+
+// Check for expired pending requests every minute — auto-escalate to union
+setInterval(() => {
+  let changed = false;
+  REQUESTS_DATA.forEach(r => {
+    if (r.status !== 'pending') return;
+    const deadlineMs = r.requestedAt + REQUEST_DEADLINE_HOURS * 3600000;
+    if (Date.now() > deadlineMs) {
+      // If any yes, it should've been approved already. So: no yes + deadline passed = union call
+      const directors = getDirectors();
+      const anyYes = directors.some(d => r.responses?.[d] === 'yes');
+      if (!anyYes) {
+        r.status = 'union';
+        reqCount = Math.max(0, reqCount - 1);
+        updateBadge();
+        console.log(`[Email] to ${r.requestedBy}: "48hr polling deadline hit — call the union hall for ${r.title}."`);
+        changed = true;
+      }
+    }
+  });
+  if (changed) renderRequestsList();
+}, 60000);
+
+// ── New request modal ────────────────────────────────────────
+function openNewRequest() {
+  const jobSel = document.getElementById('req-job');
+  jobSel.innerHTML = JOBS.map(j =>
+    `<option value="${esc(j.number)}">${esc(j.number)} · ${esc(j.name)}</option>`
+  ).join('');
+
+  // Default week = next Monday (tomorrow if today IS Monday → +7 to push to next week)
+  const d = new Date();
+  const dow = d.getDay(); // 0=Sun, 1=Mon, ... 6=Sat
+  const daysUntilNextMonday = dow === 0 ? 1 : (8 - dow);
+  d.setDate(d.getDate() + daysUntilNextMonday);
+  document.getElementById('req-week').value = d.toISOString().slice(0,10);
+  document.getElementById('req-count').value = '1';
+  document.getElementById('req-reason').value = '';
+
+  document.getElementById('req-modal-overlay').classList.add('open');
+}
+function closeNewRequest() {
+  document.getElementById('req-modal-overlay').classList.remove('open');
+}
+
+function submitRequest() {
+  const role   = document.getElementById('req-role').value;
+  const count  = parseInt(document.getElementById('req-count').value, 10) || 1;
+  const jobNum = document.getElementById('req-job').value;
+  const week   = document.getElementById('req-week').value;
+  const reason = document.getElementById('req-reason').value.trim();
+
+  if (!role || !jobNum || !week) { alert('Please fill in role, job, and week.'); return; }
+  if (!reason) { alert('Please provide a reason for the request.'); return; }
+
+  const roleLabel = REQ_ROLE_LABEL[role] || role;
+  const weekNice  = new Date(week + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  const title     = `${count} × ${roleLabel} — ${jobNum}, wk ${weekNice}`;
+  const me        = getCurrentUserName() || 'Requester';
+
+  const newReq = {
+    id: Date.now(),
+    roleNeeded: role, count, jobNumber: jobNum, weekStart: week, reason,
+    requestedBy: me, requestedAt: Date.now(),
+    status: 'pending',
+    responses: {},
+    title,
+    meta: `${me} · just now`,
+  };
+  REQUESTS_DATA.unshift(newReq);
+  reqCount++;
+  updateBadge();
+
+  // Persist to Supabase
+  persistRequest(newReq);
+
+  // Simulate notifications to all directors
+  const directors = getDirectors();
+  console.log(`[Email] to ${directors.length} directors: "New manpower request from ${me} — ${title}. Respond Yes or No within 48 hours."`);
+
+  closeNewRequest();
+  renderRequestsList();
+
+  alert(`Request submitted. ${directors.length} directors have been notified. If all decline within 48 hours, you'll get an email to call the union.`);
+}
 
 // ── Navigation ────────────────────────────────────────────────
 const SCREEN_META = {
   'dashboard':      { title: 'Dashboard',           sub: 'Week of Apr 13, 2026' },
   'schedule':       { title: 'Schedule grid',       sub: 'Showing 3 weeks · Apr 13 – May 1, 2026' },
-  'drag-schedule':  { title: 'Reassign crew',       sub: 'Drag a person into a different job table · confirmation required' },
   'job-view':       { title: 'Job view',            sub: '23 jobs · week of Apr 13, 2026' },
-  'job-manager':    { title: 'Job manager',         sub: 'Manage jobs, schedules, and leads · admin only' },
   'requests':       { title: 'Requests',            sub: '3 pending approvals' },
   'roster':         { title: 'Crew roster',         sub: '44 employees · click any row to manage certs' },
   'school':         { title: 'School schedule',     sub: 'JATC sessions — auto-fills Schedule' },
-  'transfers':      { title: 'Labor transfers',     sub: 'Crew reassignments + payroll corrections · admin only' },
-  'admin':          { title: 'Admin',                    sub: 'Authorized users · notifications · system settings' },
+  'admin':          { title: 'Admin',                    sub: 'Users · jobs · reassign · transfers · system' },
   'settings':       { title: 'Settings',                 sub: 'Personalize your experience · accessibility · appearance' },
 };
 
@@ -3731,9 +4434,6 @@ function goScreen(id) {
   const meta = SCREEN_META[id] || { title: id, sub: '' };
   document.getElementById('screen-title').textContent = meta.title;
   document.getElementById('screen-sub').textContent   = meta.sub;
-  if (id === 'drag-schedule') renderDragSchedule();
-  if (id === 'job-manager')   renderJobManager();
-  if (id === 'transfers')     renderTransfers();
   if (id === 'admin')         renderAdmin();
 }
 
@@ -3754,48 +4454,14 @@ function updateBadge() {
   }
 }
 
-function approveItem(btn) {
-  const item = btn.closest('.req-item');
-  item.style.transition = 'opacity .25s';
-  item.style.opacity = '.4';
-  setTimeout(() => item.remove(), 250);
-  reqCount--;
-  updateBadge();
-}
-
-function denyItem(btn) {
-  const item = btn.closest('.req-item');
-  item.style.transition = 'opacity .25s';
-  item.style.opacity = '.4';
-  setTimeout(() => item.remove(), 250);
-  reqCount--;
-  updateBadge();
-}
-
 function approveById(id) {
-  id = parseInt(id, 10);
-  if (!Number.isFinite(id)) return;
-  const el = document.getElementById('rcard-' + id);
-  if (!el) return;
-  el.querySelector('.pill').className = 'pill pill-g';
-  el.querySelector('.pill').textContent = 'approved';
-  el.querySelector('.req-card-acts')?.remove();
-  el.querySelector('.req-status-dot').style.background = '#10B981';
-  reqCount--;
-  updateBadge();
+  // Legacy alias — map old buttons to the new yes-response flow
+  respondToRequest(parseInt(id, 10), 'yes');
 }
-
 function denyById(id) {
-  id = parseInt(id, 10);
-  if (!Number.isFinite(id)) return;
-  const el = document.getElementById('rcard-' + id);
-  if (!el) return;
-  el.querySelector('.pill').className = 'pill pill-r';
-  el.querySelector('.pill').textContent = 'denied';
-  el.querySelector('.req-card-acts')?.remove();
-  el.querySelector('.req-status-dot').style.background = '#EF4444';
-  reqCount--;
-  updateBadge();
+  // Legacy alias — mark self-cancelled (not a director No)
+  const r = REQUESTS_DATA.find(x => x.id === parseInt(id, 10));
+  if (r) { r.status = 'denied'; reqCount = Math.max(0, reqCount - 1); updateBadge(); renderRequestsList(); }
 }
 
 // ── Dashboard metric panels ───────────────────────────────────
@@ -3904,7 +4570,6 @@ function openPanel(type) {
         </div>
         <div style="margin-top:12px;display:flex;gap:8px">
           <button class="ap-btn ap-pri" onclick="goScreen('roster');closePanel()">Open full roster →</button>
-          <button class="ap-btn ap-sec" onclick="document.querySelector('.modal-overlay').classList.add('open')">+ Assign worker</button>
         </div>
       </div>
     </div>`;
@@ -4077,27 +4742,6 @@ function updateMetric(type, val, sub, cls) {
   const subEl = mc?.querySelector('.metric-sub');
   if (subEl) { subEl.textContent = sub; subEl.className = 'metric-sub ' + cls; }
 }
-
-// ── Finance: rate sheet + cost vs charge ─────────────────────
-
-const DEFAULT_RATES = [
-  { id:'super',  label:'Superintendent Local 112',      rate:124.30, roleKeys:['SUPER'] },
-  { id:'gf',     label:'General Foreman Local 112',     rate:123.18, roleKeys:['GF'] },
-  { id:'fm',     label:'Foreman Local 112',             rate:108.51, roleKeys:['FM'] },
-  { id:'jn',     label:'Journeyman Local 112',          rate:101.17, roleKeys:['JN','JW'] },
-  { id:'app85',  label:'Apprentice Local 112 — 85%',    rate: 87.86, roleKeys:['5A','5B'] },
-  { id:'app80',  label:'Apprentice Local 112 — 80%',    rate: 83.55, roleKeys:['4A','4B','4C'] },
-  { id:'app65',  label:'Apprentice Local 112 — 65%',    rate: 70.33, roleKeys:['3A','3B','3C'] },
-  { id:'app50',  label:'Apprentice Local 112 — 50%',    rate: 57.12, roleKeys:['2A','2B','2C','2D','2E','2LE'] },
-  { id:'app45',  label:'Apprentice Local 112 — 45%',    rate: 52.71, roleKeys:['1C','1D','1E'] },
-  { id:'app40',  label:'Apprentice 112 — 40% (1st yr / unassigned)', rate: 41.70, roleKeys:['0','0A','0B','0C','0D','0E','1A','1B','1','1B(LE)','1A(LE)'] },
-  { id:'welder', label:'Welder Local 112',              rate:114.14, roleKeys:['WLD'] },
-  { id:'mh',     label:'Material Handler Local 112',    rate: 49.11, roleKeys:['MH'] },
-];
-
-let RATES    = DEFAULT_RATES.map(r => ({ ...r }));
-const HOURS_PER_DAY  = 8;
-const HOURS_PER_WEEK = 40;
 
 // ── Union holidays ───────────────────────────────────────────
 // IBEW Local 112 recognized paid holidays. No crew works these days.
@@ -4331,17 +4975,6 @@ if (document.readyState === 'loading') {
   loadWeather();
 }
 
-function rateForRole(roleCode) {
-  if (!roleCode) return RATES.find(r => r.id === 'jn')?.rate || 101.17;
-  for (const r of RATES) {
-    if (r.roleKeys.includes(roleCode.trim())) return r.rate;
-  }
-  // Any digit-starting code (0, 0A, etc.) that wasn't matched = lowest apprentice scale
-  // (new hires not yet assigned to a class default to 1st-year pay)
-  if (/^\d/.test(roleCode)) return RATES.find(r => r.id === 'app40')?.rate || 41.70;
-  return RATES.find(r => r.id === 'jn')?.rate || 101.17;
-}
-
 // ── Job data with schedule, lead, and email ───────────────────
 // ── JOBS — number is the SOURCE OF TRUTH (matches Spectrum) ──
 // id is internal only; number is what users see and what Spectrum uses.
@@ -4406,23 +5039,12 @@ buildDsSchedule();
 
 // ── Drag schedule ────────────────────────────────────────────
 // Model: drag a PERSON ROW into a different job table.
-// Each person has a per-job OT hours input.
-
-// OT hours: { empKey: otHrs } per job display (in-memory)
-const EMP_OT = {}; // empKey → otHrs (number, default 0)
-
-function getOT(empKey) { return parseFloat(EMP_OT[empKey] || 0); }
-function setOT(empKey, val) {
-  const v = Math.max(0, parseFloat(val) || 0);
-  EMP_OT[empKey] = v;
-}
 
 function renderDragSchedule() {
-  const weekIdx = parseInt(document.getElementById('ds-week-sel')?.value || '0', 10);
+  populateDsWeekSel(); // ensure dropdown has all 105 options
+  const weekIdx = parseInt(document.getElementById('ds-week-sel')?.value || String(SCHED_CURRENT_WEEK.index), 10);
   const board   = document.getElementById('ds-board');
   if (!board) return;
-
-  const weekLabels = ['Apr 13–17','Apr 20–24','Apr 27–May 1','May 4–8'];
 
   // Group employees by primary job this week
   const jobGroups = {};
@@ -4449,7 +5071,7 @@ function renderDragSchedule() {
   if (unassigned.length) jobGroups['Unassigned / ???'] = unassigned;
 
   let html = `<div style="font-size:10.5px;color:var(--ff-tx3);margin-bottom:12px">
-    Week of <strong>${esc(weekLabels[weekIdx]||'Apr 13')}</strong> ·
+    Week of <strong>${esc(schedWeekLabel(weekIdx))}</strong> ·
     Drag a crew member name into a different job table to reassign.
     All jobs run 40hr ST + typed OT at 1.5×.
   </div>`;
@@ -4470,32 +5092,25 @@ function renderDragSchedule() {
         <span style="font-size:10.5px;font-weight:500">${members.length} crew</span>
       </div>
       <!-- Column headers -->
-      <div style="display:grid;grid-template-columns:1fr 70px 80px;gap:0;background:var(--ff-bg);padding:5px 12px;border-bottom:1px solid var(--ff-bdr)">
+      <div style="display:grid;grid-template-columns:1fr 70px;gap:0;background:var(--ff-bg);padding:5px 12px;border-bottom:1px solid var(--ff-bdr)">
         <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em">Employee</div>
         <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:center">Role</div>
-        <div style="font-size:9.5px;color:var(--ff-tx3);font-weight:500;text-transform:uppercase;letter-spacing:.04em;text-align:right">OT hrs/wk</div>
       </div>
       <!-- Drop zone for dragged people -->
       <div class="ds-drop-zone" data-job="${esc(jobName)}" style="min-height:${members.length?0:44}px">`;
 
     members.forEach(m => {
-      const otHrs   = getOT(m.key);
       const ini     = esc((m.first[0]||'')+(m.last[0]||''));
       const rid     = reg({ key: m.key, last: m.last, first: m.first, role: m.role, weekIdx, fromJob: jobName });
 
       html += `<div class="ds-person-row" draggable="true" data-rid="${rid}" data-emp-key="${esc(m.key)}" data-from-job="${esc(jobName)}"
-        style="display:grid;grid-template-columns:1fr 70px 80px;gap:0;padding:7px 12px;border-bottom:1px solid var(--ff-bdr);align-items:center;cursor:grab;transition:background .1s"
+        style="display:grid;grid-template-columns:1fr 70px;gap:0;padding:7px 12px;border-bottom:1px solid var(--ff-bdr);align-items:center;cursor:grab;transition:background .1s"
         onmouseenter="this.style.background='#FFFDF5'" onmouseleave="this.style.background=''">
         <div style="display:flex;align-items:center;gap:7px">
           <div style="width:22px;height:22px;border-radius:50%;background:${isUnassigned?'#FEE2E2':esc(color)}33;color:${isUnassigned?'#7F1D1D':esc(color)};display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:500;flex-shrink:0">${ini}</div>
           <span style="font-size:11.5px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(m.last)}, ${esc(m.first)}</span>
         </div>
         <div style="text-align:center;font-size:11px;color:var(--ff-tx3)">${roleBadge(m.role)}</div>
-        <div style="text-align:right">
-          <input class="ds-ot-input" data-emp-key="${esc(m.key)}"
-            type="number" min="0" max="40" step="0.5" value="${otHrs||''}"
-            placeholder="0" title="OT hours this week">
-        </div>
       </div>`;
     });
 
@@ -4508,16 +5123,6 @@ function renderDragSchedule() {
   });
 
   board.innerHTML = html;
-
-  // ── Wire OT inputs ──
-  board.querySelectorAll('.ds-ot-input').forEach(inp => {
-    inp.addEventListener('change', () => {
-      const key = inp.dataset.empKey;
-      setOT(key, inp.value);
-    });
-    // Prevent drag starting from input
-    inp.addEventListener('mousedown', e => e.stopPropagation());
-  });
 
   // ── Wire drag events on person rows ──
   board.querySelectorAll('.ds-person-row').forEach(row => {
@@ -4667,7 +5272,6 @@ function renderJobManager() {
   list.innerHTML = JOBS.map(j => {
     const isActive = selectedJobId === j.id;
     const dotColor = j.status === 'active' ? '#10B981' : '#9CA3AF';
-    const otLabel  = j.otHrs ? `${j.otHrs}hr OT/wk` : '40hr ST only';
     // Check JN:apprentice ratio for this job — flag red if violated
     const crew = getJobCrew(j);
     const ratio = crew.length > 0 ? getRatioStatus(crew) : null;
@@ -4685,7 +5289,6 @@ function renderJobManager() {
         <div class="jm-meta" style="margin-top:4px">${esc(j.location)}</div>
         <div class="jm-tags">
           <span class="jm-tag ${j.status==='active'?'jm-tag-active':'jm-tag-inactive'}">${esc(j.status)}</span>
-          <span class="jm-tag jm-tag-days">${esc(otLabel)}</span>
           ${ratioFlag}
         </div>
       </div>
@@ -4735,6 +5338,93 @@ function getRatioStatus(crew) {
   const ratio = app === 0 ? Infinity : jn / app;
   const ok = ratio >= 1.0;
   return { jn, app, ratio, ok, other: crew.length - jn - app };
+}
+
+function renderJobMetricsPanel(j) {
+  // Pull all assignments for this job across all weeks
+  const weeksScheduled = new Set();  // which week indices have this job
+  const crewSet = new Set();          // unique empKeys
+  const roleCounts = {};
+
+  Object.entries(SCHED).forEach(([empKey, weeks]) => {
+    const [, , role] = empKey.split(',');
+    weeks.forEach((wk, wkIdx) => {
+      if ((wk || []).some(d => d === j.name)) {
+        weeksScheduled.add(wkIdx);
+        crewSet.add(empKey);
+      }
+    });
+  });
+
+  crewSet.forEach(key => {
+    const [, , role] = key.split(',');
+    const r = role || 'unassigned';
+    roleCounts[r] = (roleCounts[r] || 0) + 1;
+  });
+
+  const totalHeadcount = crewSet.size;
+
+  // Ratio computation — shared helpers
+  const JN_OR_HIGHER = new Set(['SUPER','GF','FM','JN','JW','WLD']);
+  let jnPlus = 0, apprentices = 0;
+  crewSet.forEach(key => {
+    const [, , role] = key.split(',');
+    if (!role) return;
+    if (JN_OR_HIGHER.has(role)) jnPlus++;
+    else if (/^[0-9]/.test(role)) apprentices++;
+  });
+  const ratioVal = apprentices === 0 ? '∞' : (jnPlus / apprentices).toFixed(2);
+  const ratioOk  = apprentices === 0 || jnPlus >= apprentices;
+
+  // Role breakdown rows, ordered by tier
+  const ROLE_TIER = { SUPER:1, GF:2, FM:3, WLD:4, JN:5, JW:5, '5':6, '4':7, '3':8, '2':9, '1':10, '0':11, MH:12 };
+  const sortedRoles = Object.keys(roleCounts).sort((a, b) => {
+    const tierA = ROLE_TIER[a] ?? ROLE_TIER[a.charAt(0)] ?? 99;
+    const tierB = ROLE_TIER[b] ?? ROLE_TIER[b.charAt(0)] ?? 99;
+    return tierA - tierB || a.localeCompare(b);
+  });
+
+  return `
+    <div style="background:var(--white);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px">
+      <div style="font-family:var(--serif);font-size:16px;font-weight:500;letter-spacing:-0.02em;margin-bottom:12px">
+        Job <em style="color:var(--accent);font-style:italic">metrics</em>
+      </div>
+
+      <!-- KPI row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+        <div style="text-align:center;padding:10px 8px;background:var(--surface-2);border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">Total headcount</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:var(--ink)">${totalHeadcount}</div>
+        </div>
+        <div style="text-align:center;padding:10px 8px;background:${ratioOk?'var(--good-bg)':'var(--bad-bg)'};border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">Ratio</div>
+          <div style="font-family:var(--mono);font-size:18px;font-weight:500;color:${ratioOk?'var(--good)':'var(--bad)'};margin-top:3px">${ratioVal}</div>
+        </div>
+        <div style="text-align:center;padding:10px 8px;background:var(--surface-2);border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">JN+ / apprentice</div>
+          <div style="font-family:var(--mono);font-size:15px;font-weight:500;color:var(--ink);margin-top:5px">${jnPlus} / ${apprentices}</div>
+        </div>
+        <div style="text-align:center;padding:10px 8px;background:var(--surface-2);border-radius:6px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:4px">Weeks scheduled</div>
+          <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:var(--ink)">${weeksScheduled.size}</div>
+        </div>
+      </div>
+
+      <!-- Role breakdown -->
+      ${sortedRoles.length ? `
+      <div>
+        <div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Role breakdown</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${sortedRoles.map(r => `
+            <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);padding:4px 10px;border-radius:12px;font-size:11.5px">
+              ${roleBadge(r)}
+              <span style="font-family:var(--mono);color:var(--ink);font-weight:500">${roleCounts[r]}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : `<div style="font-size:11.5px;color:var(--muted);text-align:center;padding:8px">No crew currently scheduled for this job.</div>`}
+    </div>`;
 }
 
 function renderJobCompositePanel(j) {
@@ -4856,18 +5546,13 @@ function renderJobDetail(id) {
           <input id="je-email" class="form-input" type="email" value="${esc(j.leadEmail)}">
         </div>
         <div class="form-group" style="grid-column:span 2">
-          <label class="form-label">Weekly OT hours (per person, on top of 40hr ST)</label>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
-            <input id="je-ot" class="form-input" type="number" min="0" max="40" step="0.5"
-              style="width:120px;font-family:'DM Mono',monospace"
-              value="${j.otHrs || 0}" placeholder="0">
-            <span style="font-size:11px;color:var(--ff-tx3)">hrs/wk OT @ 1.5× · all jobs base 40hr ST</span>
-          </div>
-        </div>
-        <div class="form-group" style="grid-column:span 2">
           <label class="form-label">Notes</label>
           <input id="je-notes" class="form-input" value="${esc(j.notes || '')}">
         </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
+        ${renderJobMetricsPanel(j)}
       </div>
 
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
@@ -4899,6 +5584,8 @@ function renderJobDetail(id) {
 function saveJobEdit(id) {
   const j = JOBS.find(x => x.id === id);
   if (!j) return;
+
+  const oldName = j.name;
   j.name      = document.getElementById('je-name')?.value     || j.name;
   j.number    = document.getElementById('je-number')?.value   || j.number;
   j.location  = document.getElementById('je-location')?.value || j.location;
@@ -4906,12 +5593,33 @@ function saveJobEdit(id) {
   j.lead      = document.getElementById('je-lead')?.value     || j.lead;
   j.leadEmail = document.getElementById('je-email')?.value    || j.leadEmail;
   j.notes     = document.getElementById('je-notes')?.value    || '';
-  j.otHrs     = parseFloat(document.getElementById('je-ot')?.value) || 0;
+
+  // If the name changed, rewrite every SCHED cell that referenced it
+  if (oldName !== j.name && typeof SCHED !== 'undefined') {
+    Object.values(SCHED).forEach(weeks => {
+      weeks.forEach(wk => {
+        wk.forEach((d, i) => { if (d === oldName) wk[i] = j.name; });
+      });
+    });
+    if (typeof DS_SCHEDULE !== 'undefined') {
+      Object.values(DS_SCHEDULE).forEach(weeks => {
+        weeks.forEach(wk => {
+          wk.forEach((d, i) => { if (d === oldName) wk[i] = j.name; });
+        });
+      });
+    }
+  }
 
   // Show saved flash
   const btn = document.querySelector('[onclick="saveJobEdit(\'' + CSS.escape(id) + '\')"]');
   if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = 'Save changes'; }, 1800); }
+
+  // Refresh dependent views
   renderJobManager();
+  try { if (typeof buildSchedTbody === 'function')    buildSchedTbody(); } catch {}
+  try { if (typeof renderJobView === 'function')       renderJobView(); } catch {}
+  try { if (typeof renderDragSchedule === 'function') renderDragSchedule(); } catch {}
+  if (typeof showToast === 'function') showToast(`Job "${j.name}" saved · schedule updated`, 'success');
 }
 
 function closeJobEdit() {
@@ -5046,14 +5754,22 @@ function applyDayChange(crid, newValue) {
   const d = get(crid);
   if (!d.empKey) return;
 
-  // Validate newValue is a known job or special status — defence in depth
+  // Derive safe values dynamically from JOBS + known special statuses
   const SAFE_VALUES = new Set([
     ...JOBS.map(j => j.name),
+    // Known special/historical statuses kept for compatibility
     'School','VACATION','OFF','',
-    'LW','SERVICE','PREFAB','WAREHOUSE','PDX247 BMS','PDX246 SEC',
-    'PDX247 SEC','CAMPUS WIDE','WTB','TK','VA',
+    'LW','SERVICE','PREFAB','WAREHOUSE','TK','VA','Williams',
   ]);
-  if (!SAFE_VALUES.has(newValue)) return;
+  if (!SAFE_VALUES.has(newValue)) {
+    console.warn('Rejected day change: unknown value', newValue);
+    showToast(`Can't set to "${newValue}" — value not recognized`, 'error');
+    return;
+  }
+
+  // Compute the before/after so the notification is descriptive
+  const oldValue  = d.value || '';
+  if (oldValue === newValue) { closeDayPopover(); return; }
 
   // Apply to SCHED in memory
   if (SCHED[d.empKey] && SCHED[d.empKey][d.weekIdx]) {
@@ -5071,7 +5787,187 @@ function applyDayChange(crid, newValue) {
   const stored = _reg[crid];
   if (stored) stored.value = newValue;
 
+  // Persist to Supabase (fire-and-forget; on failure, keep in-memory state)
+  persistScheduleOverride(d.empKey, d.weekIdx, d.dayIdx, newValue);
+
+  // Send notifications to employee + old FM + new FM
+  notifyDayChange(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
+
+  // Keep the drag-board copy in sync
+  if (typeof DS_SCHEDULE !== 'undefined' && DS_SCHEDULE[d.empKey] && DS_SCHEDULE[d.empKey][d.weekIdx]) {
+    DS_SCHEDULE[d.empKey][d.weekIdx][d.dayIdx] = newValue;
+  }
+
+  // Refresh dependent views — job view ratio check, job manager metrics,
+  // dashboard crew counts, drag board if currently visible
+  try { if (typeof renderJobView === 'function')      renderJobView(); } catch {}
+  try { if (typeof renderJobManager === 'function')   renderJobManager(); } catch {}
+  try { if (typeof renderDragSchedule === 'function' && document.getElementById('admin-pane-reassign')?.style.display !== 'none') renderDragSchedule(); } catch {}
+
+  // Toast confirmation for the user making the change
+  const [last, first] = d.empKey.split(',');
+  const wkLabel = (typeof schedWeekLabel === 'function') ? schedWeekLabel(d.weekIdx, true) : `wk ${d.weekIdx}`;
+  const dayName = ['Mon','Tue','Wed','Thu','Fri'][d.dayIdx] || '';
+  showToast(`${last}, ${first}: ${oldValue || '—'} → ${newValue || '—'} (${dayName} ${wkLabel}) · notifications sent`, 'success');
+
   closeDayPopover();
+}
+
+// ── Schedule override persistence ───────────────────────────
+// Saves a single cell override to Supabase so it survives reloads.
+// Table: schedule_day_overrides (emp_key, week_idx, day_idx, job_value, changed_by, changed_at)
+
+// Quiet write wrapper: runs a supabase write, swallows iframe structured-clone errors.
+async function _safeWrite(label, run) {
+  if (typeof _sb === 'undefined' || !_sb) return;
+  try {
+    const result = await run();
+    if (result && result.error) {
+      const msg = _errMsg(result.error);
+      if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+        console.warn(`[persist ${label}]`, msg);
+      }
+    }
+  } catch (e) {
+    const msg = _errMsg(e);
+    if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+      console.warn(`[persist ${label}] threw`, msg);
+    }
+  }
+}
+
+async function persistScheduleOverride(empKey, weekIdx, dayIdx, value) {
+  await _safeWrite('schedule_day_overrides', () =>
+    _sb.from('schedule_day_overrides').upsert({
+      emp_key:     empKey,
+      week_idx:    weekIdx,
+      day_idx:     dayIdx,
+      job_value:   value,
+      changed_by:  (typeof _currentUser !== 'undefined' && _currentUser.email) || 'unknown',
+      changed_at:  new Date().toISOString(),
+    }, { onConflict: 'emp_key,week_idx,day_idx' })
+  );
+}
+
+// ── Transfer persistence ────────────────────────────────────
+async function persistTransfer(tx) {
+  await _safeWrite('labor_transfers', () =>
+    _sb.from('labor_transfers').upsert({
+      id:              tx.id,
+      type:            tx.type,
+      status:          tx.status,
+      effective_date:  tx.effectiveDate || null,
+      employee:        tx.employee,
+      from_job:        tx.fromJob,
+      to_job:          tx.toJob,
+      hours:           tx.hours,
+      reason:          tx.reason,
+      requested_by:    tx.requestedBy,
+      approved_by:     tx.approvedBy,
+      decided_at:      tx.decidedAt,
+      created_at:      tx.createdAt,
+    }, { onConflict: 'id' })
+  );
+}
+
+// ── Request persistence ─────────────────────────────────────
+async function persistRequest(r) {
+  await _safeWrite('manpower_requests', () =>
+    _sb.from('manpower_requests').upsert({
+      id:            r.id,
+      role_needed:   r.roleNeeded,
+      count:         r.count,
+      job_number:    r.jobNumber,
+      week_start:    r.weekStart,
+      reason:        r.reason,
+      requested_by:  r.requestedBy,
+      requested_at:  new Date(r.requestedAt).toISOString(),
+      status:        r.status,
+      responses:     r.responses || {},
+      approved_by:   r.approvedBy || null,
+      title:         r.title,
+      meta:          r.meta,
+    }, { onConflict: 'id' })
+  );
+}
+
+// ── Cert expiry persistence ─────────────────────────────────
+async function persistCertExpiry(last, certKey, value) {
+  if (!value) {
+    // Clear → delete
+    await _safeWrite('cert_expiries (delete)', () =>
+      _sb.from('cert_expiries').delete().eq('emp_last', last).eq('cert_key', certKey)
+    );
+  } else {
+    await _safeWrite('cert_expiries', () =>
+      _sb.from('cert_expiries').upsert({
+        emp_last:    last,
+        cert_key:    certKey,
+        expires_on:  value,
+        updated_at:  new Date().toISOString(),
+      }, { onConflict: 'emp_last,cert_key' })
+    );
+  }
+}
+
+// ── Day-level reassignment notifications ────────────────────
+// When a cell changes, notify: the employee + old-job FM + new-job FM.
+// In production these go via Resend. For now we log + surface in the app.
+function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
+  const [last, first] = empKey.split(',');
+  const employeeName  = `${first} ${last}`;
+
+  // Find the FM for a job name (look up JOB by name, then walk SCHED to find who has role=FM on it)
+  const findFM = (jobName) => {
+    if (!jobName) return null;
+    for (const [key, weeks] of Object.entries(SCHED)) {
+      const [l, f, r] = key.split(',');
+      if (r !== 'FM') continue;
+      if (weeks?.[weekIdx]?.includes(jobName)) return `${f} ${l}`;
+    }
+    return null;
+  };
+
+  const oldFM = findFM(oldValue);
+  const newFM = findFM(newValue);
+  const changer = (typeof _currentUser !== 'undefined' && _currentUser.name) || 'A dispatcher';
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri'];
+  const wkLabels = ['Apr 13','Apr 20','Apr 27'];
+  const when = `${dayNames[dayIdx] || ''} of the week of ${wkLabels[weekIdx] || ''}`;
+
+  const recipients = [];
+  if (employeeName.trim())    recipients.push({ to: employeeName, role: 'employee' });
+  if (oldFM && oldFM !== employeeName) recipients.push({ to: oldFM, role: 'previous FM' });
+  if (newFM && newFM !== employeeName && newFM !== oldFM) recipients.push({ to: newFM, role: 'new FM' });
+
+  recipients.forEach(r => {
+    console.log(`[Notify · ${r.role}] ${r.to}: ${changer} moved ${employeeName} from ${oldValue || 'unassigned'} to ${newValue || 'unassigned'} (${when})`);
+  });
+}
+
+// ── Toast — non-blocking confirmation ───────────────────────
+function showToast(msg, kind) {
+  let host = document.getElementById('ff-toast-host');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'ff-toast-host';
+    host.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none';
+    document.body.appendChild(host);
+  }
+  const bg = kind === 'error' ? '#991B1B' : kind === 'success' ? '#065F46' : '#1F2937';
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    background:${bg};color:#fff;padding:10px 16px;border-radius:10px;
+    font-size:12.5px;font-family:var(--sans);font-weight:500;
+    max-width:380px;box-shadow:0 8px 24px rgba(0,0,0,.24);
+    animation:ffToastIn .18s ease;pointer-events:auto`;
+  toast.textContent = msg;
+  host.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'opacity .2s';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 200);
+  }, 3200);
 }
 
 function closeDayPopover() {
@@ -5084,13 +5980,11 @@ const ROLE_LABELS = {
   superintendent: 'Superintendent',
   foreman:        'GF / Foreman',
   hr:             'HR',
-  finance:        'Finance (read-only)',
 };
 const ROLE_COLORS = {
   superintendent: '#FEF3C7;color:#78350F',
   foreman:        '#FEF3C7;color:#A16207',
   hr:             '#F0FDF4;color:#14532D',
-  finance:        '#F5F3FF;color:#4C1D95',
 };
 
 const NOTIF_DEFS = [
@@ -5103,8 +5997,36 @@ const NOTIF_DEFS = [
 ];
 
 function renderAdmin() {
+  // Render all four panes once when admin screen is opened
   renderAdminUserList();
   renderAdminNotifs();
+  loadHRContact();
+  if (typeof renderJobManager === 'function') renderJobManager();
+  if (typeof renderTransfers === 'function')  renderTransfers();
+  // Update transfer badge
+  const pending = (typeof TRANSFERS !== 'undefined')
+    ? TRANSFERS.filter(t => t.status === 'pending').length
+    : 0;
+  const badge = document.getElementById('admin-tx-badge');
+  if (badge) {
+    badge.textContent = pending;
+    badge.style.background = pending > 0 ? 'var(--accent-faint)' : 'var(--surface-2)';
+    badge.style.color      = pending > 0 ? 'var(--accent-dark)'  : 'var(--muted)';
+  }
+}
+
+// Switch between the 5 admin tabs
+function adminTab(which) {
+  ['users','jobs','reassign','transfers','system'].forEach(name => {
+    const pane = document.getElementById('admin-pane-' + name);
+    const btn  = document.querySelector(`.admin-tab[data-admin-tab="${name}"]`);
+    if (pane) pane.style.display = name === which ? '' : 'none';
+    if (btn)  btn.classList.toggle('active', name === which);
+  });
+  // Refresh data when switching
+  if (which === 'transfers' && typeof renderTransfers === 'function')    renderTransfers();
+  if (which === 'jobs'      && typeof renderJobManager === 'function')   renderJobManager();
+  if (which === 'reassign'  && typeof renderDragSchedule === 'function') renderDragSchedule();
 }
 
 function renderAdminNotifs() {
@@ -5222,9 +6144,24 @@ async function adminSaveUser() {
 function adminSaveHR() {
   const name  = document.getElementById('admin-hr-name')?.value.trim() || '';
   const email = document.getElementById('admin-hr-email')?.value.trim() || '';
-  // In production: PATCH /api/settings with { hr_name, hr_email }
+  try {
+    localStorage.setItem('fieldflow-hr-name', name);
+    localStorage.setItem('fieldflow-hr-email', email);
+  } catch {}
   const saved = document.getElementById('admin-hr-saved');
   if (saved) { saved.style.display = 'block'; setTimeout(() => saved.style.display = 'none', 2000); }
+}
+
+// Restore HR contact fields from localStorage when admin screen opens
+function loadHRContact() {
+  try {
+    const n = localStorage.getItem('fieldflow-hr-name')  || '';
+    const e = localStorage.getItem('fieldflow-hr-email') || '';
+    const nEl = document.getElementById('admin-hr-name');
+    const eEl = document.getElementById('admin-hr-email');
+    if (nEl) nEl.value = n;
+    if (eEl) eEl.value = e;
+  } catch {}
 }
 
 function adminSaveNotifs() {
@@ -5236,49 +6173,6 @@ function adminSaveNotifs() {
   const saved = document.getElementById('admin-notif-saved');
   if (saved) { saved.style.display = 'block'; setTimeout(() => saved.style.display = 'none', 2000); }
 }
-// Seeded historical data: past 4 weeks of April + March
-const ACTUALS_WEEKLY = [
-  { week:'Mar 2',  crew:38, stHrs:1520, otHrs:0,   actualCost:149822, forecast:149280, billed:187278 },
-  { week:'Mar 9',  crew:39, stHrs:1560, otHrs:20,  actualCost:156480, forecast:151320, billed:195600 },
-  { week:'Mar 16', crew:41, stHrs:1640, otHrs:35,  actualCost:168240, forecast:158280, billed:210300 },
-  { week:'Mar 23', crew:41, stHrs:1640, otHrs:28,  actualCost:165320, forecast:158280, billed:206650 },
-  { week:'Mar 30', crew:42, stHrs:1680, otHrs:42,  actualCost:174600, forecast:162120, billed:218250 },
-  { week:'Apr 6',  crew:43, stHrs:1720, otHrs:18,  actualCost:171840, forecast:165960, billed:214800 },
-  { week:'Apr 13', crew:44, stHrs:1760, otHrs:32,  actualCost:180340, forecast:169800, billed:225425 },
-];
-
-const ACTUALS_BY_JOB = [
-  { job:'PDX247 BMS',  crew:6,  stHrs:720, otHrs:24, actualCost:76800, forecast:74400, billed:96000  },
-  { job:'PDX246 SEC',  crew:5,  stHrs:600, otHrs:18, actualCost:63200, forecast:60800, billed:79000  },
-  { job:'PDX247 SEC',  crew:4,  stHrs:480, otHrs:10, actualCost:50100, forecast:48400, billed:62625  },
-  { job:'CAMPUS WIDE', crew:3,  stHrs:360, otHrs:0,  actualCost:31200, forecast:31200, billed:39000  },
-  { job:'Live Work',   crew:5,  stHrs:600, otHrs:22, actualCost:61800, forecast:55200, billed:77250  },
-  { job:'WTB',         crew:2,  stHrs:240, otHrs:0,  actualCost:20240, forecast:20400, billed:25300  },
-];
-
-// Seeded per-person actuals for April (subset of roster)
-const ACTUALS_BY_PERSON = [
-  { last:'Munson',    first:'Mike',      role:'GF',  job:'Live Work',   stHrs:160, otHrs:8,  rate:123.18 },
-  { last:'Sorbel',    first:'Chayce',    role:'GF',  job:'Live Work',   stHrs:160, otHrs:12, rate:123.18 },
-  { last:'Porter',    first:'Billy',     role:'FM',  job:'PDX247 BMS',  stHrs:160, otHrs:6,  rate:108.51 },
-  { last:'Boles',     first:'James',     role:'FM',  job:'PDX247 BMS',  stHrs:160, otHrs:4,  rate:108.51 },
-  { last:'Frison',    first:'Brad',      role:'FM',  job:'PDX247 SEC',  stHrs:160, otHrs:8,  rate:108.51 },
-  { last:'Olveda',    first:'Tanner',    role:'FM',  job:'PDX246 SEC',  stHrs:160, otHrs:6,  rate:108.51 },
-  { last:'Grossruck', first:'Michael',   role:'JN',  job:'PDX247 BMS',  stHrs:160, otHrs:4,  rate:101.17 },
-  { last:'Budan',     first:'Ryan',      role:'JN',  job:'PDX246 SEC',  stHrs:160, otHrs:2,  rate:101.17 },
-  { last:'Brundridge',first:'Guinevere', role:'JN',  job:'PDX246 SEC',  stHrs:160, otHrs:4,  rate:101.17 },
-  { last:'Walker',    first:'Rodger',    role:'5A',  job:'PDX246 SEC',  stHrs:160, otHrs:6,  rate:87.86  },
-  { last:'Reynolds',  first:'Brendan',   role:'5A',  job:'PDX247 BMS',  stHrs:160, otHrs:8,  rate:87.86  },
-  { last:'Pierce',    first:'Ernest',    role:'2A',  job:'PDX247 BMS',  stHrs:160, otHrs:2,  rate:57.12  },
-  { last:'Sholotyuk', first:'Alexsei',   role:'2E',  job:'PDX247 SEC',  stHrs:120, otHrs:0,  rate:57.12  }, // school wk
-  { last:'Davis',     first:'Jayden',    role:'1A',  job:'PDX247 SEC',  stHrs:120, otHrs:0,  rate:41.70  },
-  { last:'Clark',     first:'Collin',    role:'MH',  job:'Live Work',   stHrs:160, otHrs:0,  rate:49.11  },
-  { last:'Marsolek',  first:'Tyler',     role:'GF',  job:'CAMPUS WIDE', stHrs:160, otHrs:0,  rate:123.18 },
-  { last:'Fielding',  first:'Joshua',    role:'MH',  job:'CAMPUS WIDE', stHrs:160, otHrs:0,  rate:49.11  },
-  { last:'Montelongo',first:'Miguel',    role:'MH',  job:'CAMPUS WIDE', stHrs:160, otHrs:0,  rate:49.11  },
-  { last:'Isley',     first:'Mike',      role:'FM',  job:'WTB',         stHrs:160, otHrs:0,  rate:108.51 },
-  { last:'Dik',       first:'Stefhan',   role:'JN',  job:'Live Work',   stHrs:160, otHrs:10, rate:101.17 },
-];
 
 // ═══════════════════════════════════════════════════════════════
 //  LABOR TRANSFERS — unified system for crew reassignments +
@@ -5387,7 +6281,7 @@ function getFilteredTransfers() {
 function renderTransfers() {
   const tbody = document.getElementById('tx-tbody');
   const empty = document.getElementById('tx-empty');
-  const countBadge = document.getElementById('rpt-transfer-count');
+  const countBadge = document.getElementById('admin-tx-badge');
   if (!tbody) return;
 
   const list = getFilteredTransfers();
@@ -5455,13 +6349,66 @@ function decideTransfer(id, decision) {
   if (!confirm(`${verb === 'approve' ? 'Approve' : 'Deny'} this transfer?\n\n${t.employee}\n${t.fromJob} → ${t.toJob}\n${t.hours ? t.hours + ' hrs' : 'Full week'} · effective ${t.effectiveDate}`)) return;
 
   t.status = decision;
-  t.approvedBy = 'Cameron Laws';
+  t.approvedBy = (typeof _currentUser !== 'undefined' && _currentUser.name) || 'Admin';
   t.decidedAt  = new Date().toISOString().slice(0,16).replace('T',' ');
+
+  // If approved + it's a crew reassignment, actually move the schedule
+  if (decision === 'approved' && t.type === 'reassign' && t.effectiveDate) {
+    applyTransferToSchedule(t);
+  }
 
   // Log notifications
   notifyTransfer(t, decision);
 
+  // Persist decision
+  if (typeof persistTransfer === 'function') persistTransfer(t);
+
   renderTransfers();
+
+  // If SCHED was touched, refresh all schedule-dependent views
+  if (decision === 'approved' && t.type === 'reassign') {
+    try { if (typeof buildSchedTbody === 'function')    buildSchedTbody(); } catch {}
+    try { if (typeof renderJobView === 'function')       renderJobView(); } catch {}
+    try { if (typeof renderJobManager === 'function')    renderJobManager(); } catch {}
+    try { if (typeof renderDragSchedule === 'function') renderDragSchedule(); } catch {}
+  }
+  if (typeof showToast === 'function') {
+    showToast(`Transfer ${decision}: ${t.employee} · ${t.fromJob} → ${t.toJob}`, decision === 'approved' ? 'success' : 'error');
+  }
+}
+
+// Apply an approved reassign transfer to the SCHED grid.
+// Finds the effective week index from effectiveDate and updates all days
+// that currently show fromJob to toJob for that employee.
+function applyTransferToSchedule(t) {
+  if (!t.employee || !t.fromJob || !t.toJob || !t.effectiveDate) return;
+  // t.employee is "Last, First" — find the matching SCHED key
+  const empKey = Object.keys(SCHED).find(k => {
+    const [l, f] = k.split(',');
+    return `${l}, ${f}` === t.employee;
+  });
+  if (!empKey) return;
+
+  // Find the week index for the effective date
+  const eff = new Date(t.effectiveDate + 'T12:00:00');
+  if (isNaN(eff)) return;
+  const diffMs = eff - SCHED_CURRENT_WEEK.date;
+  const weekIdx = SCHED_CURRENT_WEEK.index + Math.floor(diffMs / (7 * 86400000));
+  if (weekIdx < 0 || weekIdx >= SCHED_WEEKS_TOTAL) return;
+
+  const wk = SCHED[empKey][weekIdx];
+  if (!wk) return;
+  for (let i = 0; i < wk.length; i++) {
+    if (wk[i] === t.fromJob) wk[i] = t.toJob;
+  }
+  if (typeof DS_SCHEDULE !== 'undefined' && DS_SCHEDULE[empKey] && DS_SCHEDULE[empKey][weekIdx]) {
+    DS_SCHEDULE[empKey][weekIdx] = [...wk];
+  }
+
+  // Persist each changed day
+  if (typeof persistScheduleOverride === 'function') {
+    wk.forEach((v, di) => { if (v === t.toJob) persistScheduleOverride(empKey, weekIdx, di, v); });
+  }
 }
 
 function notifyTransfer(t, event) {
@@ -5569,6 +6516,9 @@ function submitTransfer() {
   TRANSFERS.unshift(tx);
   notifyTransfer(tx, 'created');
 
+  // Persist to Supabase
+  persistTransfer(tx);
+
   closeNewTransfer();
   // Re-render the transfers screen to show the new row
   renderTransfers();
@@ -5634,8 +6584,7 @@ function ffShowLogin() {
   ffShowSignin();
 }
 
-// ── Current user tracking ────────────────────────────────────
-let _currentUser = { email: '', name: '', role: '' };
+// ── Current user tracking (helpers below) ────────────────────
 function getCurrentUserEmail() { return _currentUser.email || 'you@crem-inc.com'; }
 function getCurrentUserName()  { return _currentUser.name  || ''; }
 function getCurrentUserRole()  { return _currentUser.role  || ''; }
@@ -5762,15 +6711,109 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
+  // ── Real auth wall ──
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
-    if (allowed) ffShowApp(session.user.email, allowed.name, allowed.role);
-    else { await _sb.auth.signOut(); ffShowLogin(); }
+    if (allowed) {
+      ffShowApp(session.user.email, allowed.name, allowed.role);
+      loadPersistedData().catch(err => console.warn('[load] failed', err));
+    } else {
+      await _sb.auth.signOut();
+      ffShowLogin();
+    }
   } else {
     ffShowLogin();
   }
 })();
+
+// ── Load persisted data from Supabase ──────────────────────
+// Pulls schedule overrides, transfers, requests so state survives reloads.
+// Fails soft: if Supabase isn't reachable, the app stays on its seed data.
+
+// Extract a safe plain-string error message (some error objects contain
+// non-cloneable things like Headers that choke postMessage in iframes).
+function _errMsg(err) {
+  if (!err) return '';
+  try {
+    return String(err.message || err.hint || err.code || err);
+  } catch {
+    return '(unreadable error)';
+  }
+}
+
+// Try a query, catch iframe structured-clone errors silently.
+async function _safeLoad(tableName, buildQuery) {
+  if (typeof _sb === 'undefined' || !_sb) return null;
+  try {
+    const { data, error } = await buildQuery();
+    if (error) {
+      const msg = _errMsg(error);
+      // Common iframe-only error; silent so the console isn't spammed
+      if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+        console.warn(`[load] ${tableName}:`, msg);
+      }
+      return null;
+    }
+    return data;
+  } catch (e) {
+    const msg = _errMsg(e);
+    if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+      console.warn(`[load] ${tableName} threw:`, msg);
+    }
+    return null;
+  }
+}
+
+async function loadPersistedData() {
+  if (typeof _sb === 'undefined' || !_sb) return;
+
+  // 1. Schedule overrides — apply to SCHED in memory
+  const overrides = await _safeLoad('schedule_day_overrides', () =>
+    _sb.from('schedule_day_overrides').select('emp_key, week_idx, day_idx, job_value')
+  );
+  if (overrides && overrides.length) {
+    overrides.forEach(o => {
+      if (SCHED[o.emp_key] && SCHED[o.emp_key][o.week_idx]) {
+        SCHED[o.emp_key][o.week_idx][o.day_idx] = o.job_value;
+      }
+    });
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  }
+
+  // 2. Transfers — merge with in-memory TRANSFERS (de-duplicate by id)
+  const txRows = await _safeLoad('labor_transfers', () =>
+    _sb.from('labor_transfers').select('*').order('created_at', { ascending: false })
+  );
+  if (txRows && txRows.length && typeof TRANSFERS !== 'undefined') {
+    txRows.forEach(row => {
+      if (!TRANSFERS.find(t => t.id === row.id)) TRANSFERS.unshift(row);
+    });
+    if (typeof renderTransfers === 'function') renderTransfers();
+  }
+
+  // 3. Manpower requests — merge by id
+  const reqRows = await _safeLoad('manpower_requests', () =>
+    _sb.from('manpower_requests').select('*').order('requested_at', { ascending: false })
+  );
+  if (reqRows && reqRows.length && typeof REQUESTS_DATA !== 'undefined') {
+    reqRows.forEach(row => {
+      if (!REQUESTS_DATA.find(r => r.id === row.id)) REQUESTS_DATA.unshift(row);
+    });
+    if (typeof renderRequestsList === 'function') renderRequestsList();
+  }
+
+  // 4. Cert expiries — merge into CERT_EXPIRY
+  const certRows = await _safeLoad('cert_expiries', () =>
+    _sb.from('cert_expiries').select('emp_last, cert_key, expires_on')
+  );
+  if (certRows && certRows.length && typeof CERT_EXPIRY !== 'undefined') {
+    certRows.forEach(r => {
+      if (!CERT_EXPIRY[r.emp_last]) CERT_EXPIRY[r.emp_last] = {};
+      CERT_EXPIRY[r.emp_last][r.cert_key] = r.expires_on;
+    });
+  }
+}
 
 // ── Settings (persisted to localStorage) ──────────────────────
 const SETTINGS_DEFAULTS = {
@@ -5807,14 +6850,9 @@ function syncSettingsUI(s) {
     const el = document.getElementById(id);
     if (el) el.checked = !!v;
   };
-  setChecked('set-dark',    s.dark);
-  setChecked('set-hc',      s.hc);
-  setChecked('set-rm',      s.reduceMotion);
-  setChecked('set-compact', s.compact);
-  const ts = document.getElementById('set-textsize-label');
-  if (ts) ts.textContent = (s.textSize || 100) + '%';
-  const home = document.getElementById('set-home');
-  if (home) home.value = s.homeScreen || 'dashboard';
+  setChecked('set-dark', s.dark);
+  // Other settings fields were removed from the UI; functions below
+  // remain as no-ops for backward compatibility with saved preferences.
 }
 function flashSaved() {
   const el = document.getElementById('settings-saved');
@@ -5841,8 +6879,6 @@ function setTextSize(delta) {
   s.textSize = Math.max(85, Math.min(130, (s.textSize || 100) + (delta * 5)));
   saveSettings(s);
   applySettings(s);
-  const el = document.getElementById('set-textsize-label');
-  if (el) el.textContent = s.textSize + '%';
   flashSaved();
 }
 function setHomeScreen(val) { updateSetting('homeScreen', val); }
@@ -5902,7 +6938,10 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // further down the file than where these functions are first called, so we
 // kick the first render here at the bottom of the script to avoid TDZ errors.
 try { if (typeof renderJobView === 'function') renderJobView(); } catch (e) { console.error('renderJobView init failed', e); }
+try { if (typeof buildSchedJumpOptions === 'function') buildSchedJumpOptions(); } catch (e) { console.error('buildSchedJumpOptions init failed', e); }
+try { if (typeof buildSchedThead === 'function') buildSchedThead(); } catch (e) { console.error('buildSchedThead init failed', e); }
 try { if (typeof buildSchedTbody === 'function') buildSchedTbody(); } catch (e) { console.error('buildSchedTbody init failed', e); }
+try { if (typeof populateDsWeekSel === 'function') populateDsWeekSel(); } catch (e) { console.error('populateDsWeekSel init failed', e); }
 </script>
 </body>
 </html>
