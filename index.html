@@ -1225,6 +1225,199 @@ html.dark .theme-toggle.on {
    Keeps existing layout but retints every surface, font, and detail
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Login screen decorative theme (FieldFlow — workforce/manpower) ── */
+@keyframes ffLoginGlow {
+  0%   { opacity: 0.85; transform: translate(0, 0); }
+  100% { opacity: 1; transform: translate(-10px, 6px); }
+}
+@keyframes ffLoginBreath {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.04); }
+}
+@keyframes ffLoginCardIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ffLoginMarquee {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.ff-login-deco {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Large dashed circle — top right */
+.ff-deco-circle {
+  top: 8%; right: 10%;
+  width: 180px; height: 180px;
+  border: 1.5px solid rgba(161, 98, 7, 0.22);
+  border-radius: 50%;
+}
+.ff-deco-circle::before {
+  content: '';
+  position: absolute;
+  inset: 20px;
+  border: 1px dashed rgba(161, 98, 7, 0.28);
+  border-radius: 50%;
+}
+.ff-deco-circle::after {
+  content: '';
+  position: absolute;
+  inset: 40px;
+  border: 1px solid rgba(161, 98, 7, 0.15);
+  border-radius: 50%;
+}
+
+/* Rotated square — bottom left (like a job-site marker) */
+.ff-deco-square {
+  bottom: 10%; left: 7%;
+  width: 120px; height: 120px;
+  border: 1.5px solid rgba(161, 98, 7, 0.18);
+  transform: rotate(15deg);
+  border-radius: 6px;
+}
+.ff-deco-square::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgba(161, 98, 7, 0.22);
+  border-radius: 3px;
+}
+
+/* Vertical text on the right */
+.ff-deco-vtext {
+  top: 55%; right: 14%;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(69, 26, 3, 0.45);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  font-weight: 500;
+}
+
+/* Top-left italic tagline with rule */
+.ff-deco-tagline {
+  top: 12%; left: 8%;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: rgba(69, 26, 3, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 400;
+}
+.ff-deco-tagline::before {
+  content: '';
+  width: 32px; height: 1px;
+  background: rgba(161, 98, 7, 0.45);
+}
+
+/* Bottom-right crew-ticker (vertical stack of role codes) */
+.ff-deco-ticker {
+  bottom: 14%; right: 8%;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(69, 26, 3, 0.4);
+  letter-spacing: 0.08em;
+  line-height: 1.9;
+  text-align: right;
+  overflow: hidden;
+  height: 120px;
+}
+.ff-deco-ticker-inner {
+  animation: ffLoginMarquee 18s linear infinite;
+}
+
+/* Bottom-left hard-hat counter */
+.ff-deco-counter {
+  bottom: 8%; left: 10%;
+  font-family: var(--serif);
+  font-style: italic;
+  color: rgba(69, 26, 3, 0.5);
+  font-size: 13px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.ff-deco-counter .big {
+  font-size: 34px;
+  font-weight: 500;
+  color: rgba(69, 26, 3, 0.7);
+  font-style: italic;
+  line-height: 1;
+}
+.ff-deco-counter .small {
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(69, 26, 3, 0.55);
+}
+
+/* Grid texture — drafting paper feel */
+.ff-login-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(69, 26, 3, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(69, 26, 3, 0.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* Breathing glow orbs */
+.ff-login-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ffLoginBreath 8s ease-in-out infinite;
+}
+
+/* Login card enters with a soft lift */
+.ff-login-card {
+  animation: ffLoginCardIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Dark mode variant for login screen */
+html.dark #ff-login {
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(250, 204, 21, 0.22), transparent 60%),
+    radial-gradient(ellipse 70% 55% at 85% 85%, rgba(234, 179, 8, 0.32), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 70% 15%, rgba(161, 98, 7, 0.3), transparent 60%),
+    linear-gradient(135deg, #1A1200 0%, #2A1E0A 50%, #3F2E15 100%) !important;
+}
+html.dark .ff-deco-circle,
+html.dark .ff-deco-square { border-color: rgba(253, 224, 71, 0.22); }
+html.dark .ff-deco-circle::before,
+html.dark .ff-deco-square::before { border-color: rgba(253, 224, 71, 0.28); }
+html.dark .ff-deco-circle::after { border-color: rgba(253, 224, 71, 0.15); }
+html.dark .ff-deco-tagline,
+html.dark .ff-deco-counter { color: rgba(253, 224, 71, 0.5); }
+html.dark .ff-deco-tagline::before { background: rgba(253, 224, 71, 0.4); }
+html.dark .ff-deco-vtext,
+html.dark .ff-deco-ticker { color: rgba(253, 224, 71, 0.4); }
+html.dark .ff-deco-counter .big { color: rgba(253, 224, 71, 0.7); }
+html.dark .ff-deco-counter .small { color: rgba(253, 224, 71, 0.55); }
+html.dark .ff-login-grid {
+  background-image:
+    linear-gradient(rgba(253, 224, 71, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(253, 224, 71, 0.05) 1px, transparent 1px);
+}
+html.dark .ff-login-card {
+  background: var(--white) !important;
+  border-color: rgba(250, 204, 21, 0.25) !important;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.5),
+    0 10px 30px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(250, 204, 21, 0.15) inset !important;
+}
+
 /* ── Typography layer ──────────────────────────────────────── */
 body, .nav-item, .btn, .topbar-sub, .topbar-title, .metric-label,
 .metric-sub, .panel-title, .panel-link, .user-name, .user-role,
@@ -1471,10 +1664,55 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 <body>
 
 <!-- ── LOGIN SCREEN ─────────────────────────────────── -->
-<div id="ff-login" style="display:none;position:fixed;inset:0;background:#F3F5FA;align-items:center;justify-content:center;z-index:9999;font-family:inherit">
-  <div style="background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:400px;border:1px solid #E4E7EF;box-shadow:0 4px 24px rgba(0,0,0,.08)">
-    <div style="width:44px;height:44px;border-radius:12px;background:#EAB308;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;margin-bottom:20px">FF</div>
-    <div style="font-size:22px;font-weight:600;color:#0E1828;margin-bottom:6px">FieldFlow</div>
+<div id="ff-login" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9999;font-family:inherit;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 15% 20%, rgba(234,179,8,.28), transparent 60%),radial-gradient(ellipse 70% 55% at 85% 85%, rgba(161,98,7,.3), transparent 55%),radial-gradient(ellipse 60% 50% at 70% 15%, rgba(253,224,71,.28), transparent 60%),linear-gradient(135deg, #FEF9C3 0%, #FDE68A 50%, #FACC15 100%)">
+
+  <!-- Grid texture (drafting paper feel) -->
+  <div class="ff-login-grid"></div>
+
+  <!-- Breathing glow orbs -->
+  <div class="ff-login-orb" style="top:-80px;right:-80px;width:380px;height:380px;background:radial-gradient(circle,#FFFBEA 0%,rgba(255,251,234,0) 70%);opacity:.7"></div>
+  <div class="ff-login-orb" style="bottom:-120px;left:-60px;width:420px;height:420px;background:radial-gradient(circle,#FEF3C7 0%,rgba(254,243,199,0) 70%);opacity:.55;animation-delay:-4s"></div>
+  <div class="ff-login-orb" style="top:38%;left:55%;width:260px;height:260px;background:radial-gradient(circle,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 70%);animation-delay:-2s"></div>
+
+  <!-- Decorative accents -->
+  <div class="ff-login-deco ff-deco-circle"></div>
+  <div class="ff-login-deco ff-deco-square"></div>
+  <div class="ff-login-deco ff-deco-tagline">Workforce · Crew Dispatch · Field Ops</div>
+  <div class="ff-login-deco ff-deco-vtext">Manpower Command</div>
+  <div class="ff-login-deco ff-deco-ticker">
+    <div class="ff-deco-ticker-inner">
+      GF · Mike Munson<br>
+      JN · Chayce Sorbel<br>
+      AP · Zech Noel<br>
+      FM · Marsolek<br>
+      GF · Siharath<br>
+      JN · Braught<br>
+      FM · Frison<br>
+      AP · Chirhart<br>
+      GF · Mike Munson<br>
+      JN · Chayce Sorbel<br>
+      AP · Zech Noel<br>
+      FM · Marsolek<br>
+      GF · Siharath<br>
+      JN · Braught<br>
+      FM · Frison<br>
+      AP · Chirhart
+    </div>
+  </div>
+  <div class="ff-login-deco ff-deco-counter">
+    <span class="big">44</span>
+    <span class="small">crew · 7 jobs</span>
+  </div>
+  <div class="ff-login-card" style="position:relative;z-index:1;background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;border:1px solid rgba(234,179,8,.15);box-shadow:0 30px 80px rgba(161,98,7,.25),0 10px 30px rgba(161,98,7,.12),0 0 0 1px rgba(255,255,255,.5) inset">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#1A1625;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;font-size:21px;position:relative;flex-shrink:0">F
+        <span style="position:absolute;width:8px;height:8px;border-radius:50%;background:#EAB308;right:-3px;bottom:-3px;box-shadow:0 0 0 2px #fff"></span>
+      </div>
+      <div>
+        <div style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:500;letter-spacing:-0.025em;color:#1A1625;line-height:1">Field<em style="color:#A16207;font-weight:600">flow</em></div>
+        <div style="font-size:11px;color:#7C7491;margin-top:3px;letter-spacing:0.02em">Workforce · CremFlow</div>
+      </div>
+    </div>
     <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Sign in to your account</div>
     <!-- Sign in -->
     <div id="ff-form-signin">
@@ -1492,11 +1730,11 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </div>
         <div id="ff-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-signin-btn" onclick="ffSignIn()"
-          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
           Sign in
         </button>
         <button onclick="ffShowForgot()"
-          style="font-size:12px;color:#EAB308;background:none;border:none;cursor:pointer;font-family:inherit">
+          style="font-size:12px;color:#A16207;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500">
           Forgot password?
         </button>
       </div>
@@ -1509,7 +1747,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
         <div id="ff-reset-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-reset-btn" onclick="ffSendReset()"
-          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
           Send reset link
         </button>
         <button onclick="ffShowSignin()" style="font-size:12px;color:#6B7280;background:none;border:none;cursor:pointer;font-family:inherit">← Back</button>
@@ -1533,7 +1771,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
         <div id="ff-setpw-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
         <button id="ff-setpw-btn" onclick="ffSetPassword()"
-          style="padding:11px;border-radius:8px;background:#EAB308;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer">
+          style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
           Set password &amp; sign in
         </button>
       </div>
