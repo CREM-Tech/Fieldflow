@@ -661,6 +661,18 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  min-height: 0;        /* allow children to overflow-scroll */
+}
+
+.sidebar nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;        /* flex item must be able to shrink */
+  padding-bottom: 4px;
+}
+
+.sb-footer {
+  flex-shrink: 0;       /* never collapse — always visible at bottom */
 }
 
 .sb-header {
@@ -1473,6 +1485,353 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 .cert-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 11px; color: var(--ff-tx2); }
 .cert-yes { color: var(--ff-green); font-weight: 500; }
 .cert-no  { color: var(--ff-tx4); }
+
+/* ── Interactive org tree (top-down) ─────────────────── */
+.org-tree-controls {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; gap: 8px; flex-wrap: wrap;
+}
+.org-tree-controls .btn-sm { padding: 3px 9px; font-size: 10.5px; }
+
+/* Layout: unassigned sidebar + canvas */
+.org-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 12px;
+  height: calc(100vh - 260px);
+  min-height: 480px;
+}
+.org-layout.with-panel { grid-template-columns: 220px 1fr 340px; }
+
+.org-unassigned-pane {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background .15s ease, border-color .15s ease;
+}
+.org-unassigned-pane.drop-zone-hover {
+  background: var(--bad-bg);
+  border-color: var(--bad);
+  border-style: dashed;
+}
+.org-unassigned-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.org-unassigned-count {
+  font-size: 10.5px; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--accent-ghost); color: var(--accent-dark);
+}
+.org-unassigned-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.unassigned-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+  transition: all .1s ease;
+}
+.unassigned-card:hover { border-color: var(--accent); transform: translateX(2px); }
+.unassigned-card[data-role="SUPER"],
+.unassigned-card[data-role="superintendent"] { border-left-color: #8B5CF6; }
+.unassigned-card[data-role="GF"]  { border-left-color: #DC2626; }
+.unassigned-card[data-role="FM"]  { border-left-color: #EA580C; }
+.unassigned-card[data-role="JN"], .unassigned-card[data-role="JW"],
+.unassigned-card[data-role="WLD"] { border-left-color: #0284C7; }
+.unassigned-card[data-role="MH"]  { border-left-color: #64748B; }
+.unassigned-card.dragging { opacity: .4; cursor: grabbing; }
+.org-avatar-sm {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 8px; font-weight: 600;
+  flex-shrink: 0; object-fit: cover;
+}
+.unassigned-name { font-size: 10.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.unassigned-meta { font-size: 9px; color: var(--muted); line-height: 1; }
+
+/* Canvas — big white square where the tree lives */
+.org-canvas {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: auto;
+  position: relative;
+  cursor: grab;
+  min-height: 0;
+}
+.org-canvas:active { cursor: grabbing; }
+.org-empty-state {
+  height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px 20px;
+}
+.org-tree-pan {
+  padding: 40px 32px;
+  display: inline-block;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.org-tree {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 100%;
+  gap: 22px;
+  align-items: flex-start;
+}
+
+.org-node { position: relative; display: flex; flex-direction: column; align-items: center; }
+
+.org-card {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 7px 8px;
+  min-width: 96px; max-width: 112px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: 7px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  transition: transform .1s ease, box-shadow .1s ease, border-color .1s ease;
+  position: relative;
+}
+.org-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
+.org-card[data-role="SUPER"],
+.org-card[data-role="superintendent"] { border-top-color: #8B5CF6; }
+.org-card[data-role="GF"]  { border-top-color: #DC2626; }
+.org-card[data-role="FM"]  { border-top-color: #EA580C; }
+.org-card[data-role="JN"], .org-card[data-role="JW"],
+.org-card[data-role="WLD"] { border-top-color: #0284C7; }
+.org-card[data-role="MH"]  { border-top-color: #64748B; }
+
+.org-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 10px; font-weight: 600;
+  object-fit: cover; flex-shrink: 0;
+}
+.org-name {
+  font-size: 10px; font-weight: 600;
+  color: var(--ink); line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+.org-meta {
+  font-size: 8.5px; color: var(--muted); line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+.org-count-badge {
+  position: absolute;
+  top: -7px; right: -7px;
+  background: var(--accent); color: var(--white);
+  font-size: 9px; font-weight: 600;
+  min-width: 16px; height: 16px;
+  border-radius: 8px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; z-index: 2;
+}
+.org-toggle {
+  position: absolute;
+  bottom: -10px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--white); border: 1px solid var(--line);
+  cursor: pointer; font-size: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); z-index: 3; padding: 0;
+  transition: all .1s ease;
+}
+.org-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-ghost); }
+.org-toggle.empty { display: none; }
+
+.org-children {
+  display: flex; gap: 14px;
+  padding-top: 20px; position: relative;
+}
+.org-children::before {
+  content: ''; position: absolute;
+  top: 0; left: 50%;
+  width: 2px; height: 10px;
+  background: var(--line-strong, #c9cdd4);
+  transform: translateX(-1px);
+}
+.org-children > .org-node { position: relative; padding-top: 10px; }
+.org-children > .org-node::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px; background: var(--line-strong, #c9cdd4);
+}
+.org-children > .org-node:only-child::before { left: 50%; right: 50%; }
+.org-children > .org-node:first-child::before { left: 50%; }
+.org-children > .org-node:last-child::before { right: 50%; }
+.org-children > .org-node::after {
+  content: ''; position: absolute;
+  top: 0; left: 50%;
+  width: 2px; height: 10px;
+  background: var(--line-strong, #c9cdd4);
+  transform: translateX(-1px);
+}
+
+.org-drag-hint {
+  font-size: 10.5px; color: var(--muted); padding: 7px 12px; background: var(--accent-ghost);
+  border-radius: 7px; margin-bottom: 10px; border-left: 3px solid var(--accent);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Assign mode banner — sticky at top while selecting */
+.org-assign-banner {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  font-size: 12px;
+  padding: 10px 14px; margin-bottom: 12px;
+  background: linear-gradient(90deg, var(--accent-ghost), rgba(255,255,255,.8));
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  color: var(--ink);
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+/* Card states during assign mode */
+.org-card.assign-target {
+  border-color: var(--accent) !important;
+  border-width: 2px !important;
+  background: var(--accent-ghost) !important;
+  box-shadow: 0 0 0 3px var(--accent-faint), 0 6px 20px rgba(0,0,0,.1);
+  transform: translateY(-2px);
+}
+.org-card.assign-target::after {
+  content: '📌 Selected';
+  position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: var(--white);
+  font-size: 9px; padding: 1px 6px; border-radius: 8px;
+  white-space: nowrap; font-weight: 600;
+  z-index: 5;
+}
+.org-card.assign-candidate { cursor: crosshair; }
+.org-card.assign-candidate:hover {
+  border-color: var(--good) !important;
+  background: var(--good-bg) !important;
+  transform: translateY(-2px);
+}
+.org-card.assign-candidate:hover::after {
+  content: '✓ Click to assign';
+  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+  background: var(--good); color: var(--white);
+  font-size: 9px; padding: 2px 6px; border-radius: 8px;
+  white-space: nowrap; font-weight: 600;
+  z-index: 5;
+}
+
+/* Drag-drop states */
+.org-card.dragging, .unassigned-card.dragging { opacity: .35; cursor: grabbing; }
+.org-card.drop-target {
+  border-color: var(--good) !important; border-width: 2px !important;
+  background: var(--good-bg) !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.2), 0 6px 18px rgba(0,0,0,.1);
+  transform: scale(1.08);
+  z-index: 2;
+}
+.org-card.drop-target::after {
+  content: 'Drop = report here';
+  position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  background: var(--good); color: var(--white);
+  font-size: 9px; padding: 1px 6px; border-radius: 8px;
+  white-space: nowrap; font-weight: 600;
+}
+.org-card.drop-invalid {
+  border-color: var(--bad) !important; border-width: 2px !important;
+  background: var(--bad-bg) !important;
+  box-shadow: 0 0 0 3px rgba(248,113,113,.2);
+  cursor: not-allowed;
+}
+
+/* Context menu on right-click */
+.org-ctx-menu {
+  position: fixed; z-index: 500;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  min-width: 180px;
+  padding: 4px;
+  animation: fadeInPane .12s ease;
+  font-family: var(--sans);
+  user-select: none;
+}
+.org-ctx-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 10px;
+  font-size: 12px; color: var(--ink);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.org-ctx-item:hover { background: var(--accent-ghost); }
+.org-ctx-item.danger { color: var(--bad); }
+.org-ctx-item.danger:hover { background: var(--bad-bg); }
+.org-ctx-sep { height: 1px; background: var(--line); margin: 3px 2px; }
+.org-ctx-icon {
+  width: 18px; font-size: 13px; text-align: center;
+  color: var(--muted); flex-shrink: 0;
+}
+
+/* Manage button on each card */
+.org-manage-btn {
+  width: 22px; height: 22px; border-radius: 5px;
+  border: 1px solid var(--line); background: var(--white);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 11px; flex-shrink: 0;
+  transition: all .12s ease;
+}
+.org-manage-btn:hover { color: var(--accent-dark); background: var(--accent-ghost); border-color: var(--accent); }
+
+/* Management side panel */
+.manage-panel-inner {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  position: sticky;
+  top: 8px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+.manage-panel-header { padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.manage-panel-section { margin-top: 14px; }
+.manage-panel-section:first-of-type { margin-top: 0; }
+.manage-panel-label {
+  font-size: 10.5px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+.manage-reports-list {
+  border: 1px solid var(--line); border-radius: 7px;
+  max-height: 220px; overflow-y: auto; background: var(--surface-2);
+}
+.manage-report-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: var(--white);
+  border-bottom: 1px solid var(--line-soft);
+}
+.manage-report-row:last-child { border-bottom: none; }
 
 /* ── Cert expiry panel ───────────────────────────────────── */
 .cert-panel-inner {
@@ -2645,6 +3004,20 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <div style="font-size:11px;color:var(--muted);padding:4px 0">Click ↻ to load job site forecasts.</div>
         </div>
       </div>
+
+      <!-- Schedule health score -->
+      <div class="panel" style="margin-top:13px;margin-bottom:0">
+        <div class="panel-header">
+          <div class="panel-title">Schedule <em>health</em></div>
+          <button onclick="renderHealthScorePanel('dash-health')" data-tip="Refresh health score"
+            style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;font-size:13px;line-height:1"
+            onmouseover="this.style.background='var(--surface-2)';this.style.color='var(--accent-dark)'"
+            onmouseout="this.style.background='none';this.style.color='var(--muted)'">↻</button>
+        </div>
+        <div id="dash-health">
+          <div style="font-size:11px;color:var(--muted);padding:4px 0">Loading…</div>
+        </div>
+      </div>
     </div>
 
     <!-- SCHEDULE GRID ──────────────────────────────────── -->
@@ -2854,7 +3227,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 
       <!-- Org chart view -->
       <div id="roster-view-org" style="display:none">
-        <div style="max-width:560px" id="org-chart-container">
+        <div id="org-chart-container">
           <div style="font-size:11.5px;color:var(--muted);padding:12px;text-align:center">Loading org chart…</div>
         </div>
       </div>
@@ -3137,7 +3510,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </select>
           <input id="absent-filter-emp" class="ctrl-sel" placeholder="Filter by name…"
             oninput="renderAbsentsAdmin()" style="width:160px;padding:5px 9px;font-size:11.5px">
-          <button class="btn btn-sm" onclick="exportAbsentsCSV()" style="margin-left:auto">Export CSV</button>
+          <button class="btn btn-sm" onclick="generateMonthlyReport(0)" style="margin-left:auto" data-tip="Generate a printable monthly labor report — per-job hours breakdown, absence rate, crew deployed. Defaults to current month.">📄 Monthly report</button>
+          <button class="btn btn-sm" onclick="exportAbsentsCSV()" data-tip="Download filtered absence records as CSV">Export CSV</button>
         </div>
 
         <!-- Log table -->
@@ -3198,7 +3572,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
                 <option value="month" selected>Next 30 days</option>
                 <option value="quarter">Next 90 days</option>
               </select>
-              <button class="btn btn-sm" onclick="exportCertsCSV()" data-tip="Download a CSV of all cert expiries matching the current filter">Export CSV</button>
+              <button class="btn btn-sm" onclick="generateCertCompliance()" data-tip="Printable workforce-wide cert coverage report — shows % of employees with each cert and breakdown by role">📊 Compliance report</button>
+              <button class="btn btn-sm" onclick="exportCertsCSV()" data-tip="Download all cert expiries as a CSV file">Export CSV</button>
             </div>
           </div>
           <div class="tbl-wrap">
@@ -3921,12 +4296,18 @@ function buildSchedTbody() {
     const avatarHtml = photo
       ? `<img src="${esc(photo)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0">`
       : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
-    return `<tr data-emp-key="${esc(key)}">
+    // #14 Expired cert flag
+    const expired = (typeof expiredCertsFor === 'function') ? expiredCertsFor(last) : [];
+    const expiredBadge = expired.length
+      ? `<span data-tip="Expired cert${expired.length>1?'s':''}: ${expired.map(k=>k.toUpperCase()).join(', ')} — renewal required before this employee can be scheduled" style="display:inline-block;background:var(--bad);color:#fff;font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;cursor:help">⚠ EXP</span>`
+      : '';
+    const rowStyle = expired.length ? 'box-shadow:inset 3px 0 0 var(--bad)' : '';
+    return `<tr data-emp-key="${esc(key)}" style="${rowStyle}">
       <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
         <div style="display:flex;align-items:center;gap:7px">
           ${avatarHtml}
           <div>
-            <div class="emp-name">${esc(last)}, ${esc(first)}</div>
+            <div class="emp-name">${esc(last)}, ${esc(first)}${expiredBadge}</div>
             <div class="emp-role">${roleBadge(role)}</div>
           </div>
         </div>
@@ -4605,55 +4986,80 @@ async function saveNewEmployee() {
   }
 
   document.getElementById('emp-modal')?.remove();
-  renderRosterTable();
-  buildSchedTbody();
-  showToast(`${last}, ${first} added to roster`, 'success');
+  _refreshAllEmpViews();
+  showToast(`${last}, ${first} added to roster — now in Unassigned on org chart`, 'success');
 }
 
 async function deleteEmployee(last, first, role) {
-  if (!confirm(`Remove ${last}, ${first} from the roster?\n\nThis will:\n• Delete their record from the database\n• Remove their schedule data\n• Cannot be undone\n\nAny past schedule history will remain in transfers and absence logs.`)) return;
+  if (!confirm(`Remove ${last}, ${first} from the roster?\n\nThis will:\n• Delete their record from the database\n• Remove their schedule data\n• Clear them from the org chart (and anyone reporting TO them)\n• Cannot be undone\n\nAny past schedule history will remain in transfers and absence logs.`)) return;
 
   const empKey = `${last},${first},${role}`;
 
-  // 1. Remove from ROSTER
+  // 1. Capture the deleted emp's db_id so we can clean references
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  const deletedId = emp?.db_id;
+
+  // 2. Remove from ROSTER
   const idx = ROSTER.findIndex(e => e.last === last && e.first === first);
   if (idx >= 0) ROSTER.splice(idx, 1);
 
-  // 2. Remove from SCHED
+  // 3. Remove from SCHED
   delete SCHED[empKey];
 
-  // 3. Remove from Supabase
+  // 4. Clean up dangling manager_id references on reports
+  let orphanedCount = 0;
+  if (deletedId) {
+    ROSTER.forEach(e => {
+      if (e.manager_id === deletedId) {
+        e.manager_id = null;
+        orphanedCount++;
+      }
+    });
+  }
+
+  // 5. Remove from solo-rooted set
+  if (deletedId && typeof _rootedSolo !== 'undefined' && _rootedSolo.has(deletedId)) {
+    _rootedSolo.delete(deletedId);
+    try { localStorage.setItem('fieldflow-rooted-solo', JSON.stringify([..._rootedSolo])); } catch {}
+  }
+
+  // 6. Supabase — soft delete, clear schedule overrides, null any manager_id references to this id
   if (typeof _sb !== 'undefined' && _sb) {
-    // Soft delete — mark inactive instead of hard delete to preserve audit trail
     await _safeWrite('employees delete', () =>
       _sb.from('employees').update({ active: false })
         .eq('last', last).eq('first', first)
     );
-    // Remove schedule overrides for this employee
     await _safeWrite('schedule_day_overrides delete', () =>
       _sb.from('schedule_day_overrides').delete().eq('emp_key', empKey)
     );
-    // Remove photo from storage if one exists
+    // Clear any other employees who had this person as their manager
+    if (deletedId) {
+      await _safeWrite('clear manager refs', () =>
+        _sb.from('employees').update({ manager_id: null }).eq('manager_id', deletedId)
+      );
+    }
     const photoPath = CONTACT_INFO[last]?.photo_path;
     if (photoPath) {
       await _sb.storage.from('employee-photos').remove([photoPath]).catch(() => {});
     }
   }
 
-  // 4. Clear contact info
+  // 7. Clear contact info
   delete CONTACT_INFO[last];
   saveContactInfo();
 
-  // 5. Close cert panel if this employee's profile was open
+  // 8. Close cert panel if this employee's profile was open
   if (certPanelOpen === last) {
     const panel = document.getElementById('cert-panel');
     if (panel) panel.style.display = 'none';
     certPanelOpen = null;
   }
 
-  renderRosterTable();
-  buildSchedTbody();
-  showToast(`${last}, ${first} removed from roster`, 'success');
+  _refreshAllEmpViews();
+  const msg = orphanedCount > 0
+    ? `${last}, ${first} removed · ${orphanedCount} direct report${orphanedCount===1?'':'s'} moved back to Unassigned`
+    : `${last}, ${first} removed from roster`;
+  showToast(msg, 'success');
 }
 
 function rosterTab(tab) {
@@ -4929,7 +5335,10 @@ function openCertPanel(last, first, role) {
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${typeof _currentUser !== 'undefined' && ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase())
-            ? `<button onclick="openEditEmployeeModal('${esc(last)}','${esc(first)}')"
+            ? `<button onclick="generateEmployeeScorecard('${esc(last)}','${esc(first)}')" data-tip="Print a 12-month scorecard: days worked, absences, cert status, top jobs — good for annual reviews"
+                style="padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:10.5px;color:var(--ink);font-family:inherit"
+                title="Generate scorecard">📊 Scorecard</button>
+               <button onclick="openEditEmployeeModal('${esc(last)}','${esc(first)}')"
                 style="padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:10.5px;color:var(--ink);font-family:inherit"
                 title="Edit employee">Edit</button>
                <button onclick="deleteEmployee('${esc(last)}','${esc(first)}','${esc(role)}')"
@@ -6120,6 +6529,18 @@ function openEditEmployeeModal(last, first) {
         </label>
       </div>
 
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Notification preference</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        ${['both','email','sms','none'].map(v => {
+          const current = emp.notify_pref || 'email';
+          const labels = { both:'📧 + 📱 Both', email:'📧 Email only', sms:'📱 SMS only', none:'🔕 None' };
+          const checked = current === v ? 'checked' : '';
+          return `<label style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:7px;cursor:pointer;${current===v?'background:var(--accent-ghost);border-color:var(--accent)':''}">
+            <input type="radio" name="emp-edit-notify" value="${v}" ${checked} style="accent-color:var(--accent);margin:0"> ${labels[v]}
+          </label>`;
+        }).join('')}
+      </div>
+
       <div id="emp-edit-err" style="display:none;font-size:12px;color:var(--bad);margin-bottom:10px;padding:8px 12px;background:var(--bad-bg);border-radius:6px"></div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -6141,6 +6562,7 @@ async function saveEditEmployee(origLast, origFirst) {
   const ec_phone = document.getElementById('emp-edit-ec-phone')?.value.trim() || '';
   const ec_rel   = document.getElementById('emp-edit-ec-rel')?.value.trim() || '';
   const active   = document.getElementById('emp-edit-active')?.checked !== false;
+  const notify_pref = document.querySelector('input[name="emp-edit-notify"]:checked')?.value || 'email';
   const errEl    = document.getElementById('emp-edit-err');
   const showErr  = msg => { if (errEl) { errEl.textContent = msg; errEl.style.display = ''; } };
 
@@ -6164,7 +6586,7 @@ async function saveEditEmployee(origLast, origFirst) {
   }
 
   // Update in-memory ROSTER
-  Object.assign(emp, { last: newLast, first: newFirst, role: newRole, ba: newBa, active });
+  Object.assign(emp, { last: newLast, first: newFirst, role: newRole, ba: newBa, active, notify_pref });
 
   // Update CONTACT_INFO
   if (!CONTACT_INFO[newLast]) CONTACT_INFO[newLast] = {};
@@ -6181,7 +6603,7 @@ async function saveEditEmployee(origLast, origFirst) {
     const { error } = await _sb.from('employees')
       .update({
         last: newLast, first: newFirst, role: newRole, ba: newBa,
-        phone, ec_name, ec_phone, ec_rel, active,
+        phone, ec_name, ec_phone, ec_rel, active, notify_pref,
       })
       .eq('last', origLast).eq('first', origFirst);
 
@@ -6196,8 +6618,7 @@ async function saveEditEmployee(origLast, origFirst) {
   }
 
   document.getElementById('emp-edit-modal')?.remove();
-  renderRosterTable();
-  buildSchedTbody();
+  _refreshAllEmpViews();
 
   // Re-open cert panel with new name/role
   if (certPanelOpen === origLast) openCertPanel(newLast, newFirst, newRole);
@@ -6569,6 +6990,7 @@ function goScreen(id) {
     try { renderDiffView('dash-diff', parseInt(document.getElementById('diff-range')?.value || '168')); } catch {}
     try { renderWeatherPanel('dash-weather'); } catch {}
     try { renderFatigueAlerts(); } catch {}
+    try { renderHealthScorePanel('dash-health'); } catch {}
   }
   if (id === 'schedule') {
     // Populate compare week selects with all 105 weeks
@@ -6813,91 +7235,969 @@ function initiateTransferFromSched(empKey, fromJob, toJob) {
 // #12 ORG CHART — Roster tab
 // ══════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════
+// INTERACTIVE ORG TREE — drag-to-reassign hierarchy
+// ══════════════════════════════════════════════════════════════
+// Data model: each employee has an optional manager_id (UUID pointing to
+// another employee). Null = root node. Admins can drag any card onto
+// another to set that as the new manager. Persists to Supabase.
+
+// Lookup helpers
+function _empByDbId(id) { return ROSTER.find(e => e.db_id === id); }
+function _empByName(last, first) { return ROSTER.find(e => e.last === last && e.first === first); }
+
+// Auto-compute fallback manager for employees with no explicit manager_id.
+// Default: FMs under a GF (first GF found), apprentices/journeymen under the
+// FM leading their current job, MH likewise. Returns an emp or null.
+function _autoManagerFor(emp) {
+  if (!emp) return null;
+  if (emp.role === 'SUPER' || emp.role === 'superintendent' || emp.role === 'GF') return null;
+
+  const empJob = thisWeekJob(emp.last);
+  if (emp.role === 'FM') {
+    // FMs default under any GF (prefer one leading their job if possible)
+    const jobObj = JOBS.find(j => j.name === empJob);
+    if (jobObj) {
+      const [lLast, lFirst] = (jobObj.lead || '').split(', ');
+      const lead = _empByName(lLast, lFirst);
+      if (lead && lead.role === 'GF' && lead !== emp) return lead;
+    }
+    return ROSTER.find(e => e.role === 'GF') || null;
+  }
+  // Everyone else → FM of their current job
+  const jobObj = JOBS.find(j => j.name === empJob);
+  if (jobObj) {
+    const [lLast, lFirst] = (jobObj.lead || '').split(', ');
+    const lead = _empByName(lLast, lFirst);
+    if (lead && lead !== emp) return lead;
+  }
+  return null;
+}
+
+// Resolve effective manager: ONLY explicit manager_id (no auto-fallback).
+// Null manager_id = not yet placed in the tree.
+function _managerOf(emp) {
+  if (!emp || !emp.manager_id) return null;
+  const m = _empByDbId(emp.manager_id);
+  if (m && m !== emp) return m;
+  return null;
+}
+
+// Returns set of db_ids of employees that are in the tree.
+// "In tree" means: has a manager_id OR has at least one direct report.
+function _inTreeIds() {
+  const inTree = new Set();
+  ROSTER.forEach(emp => {
+    if (emp.manager_id) {
+      inTree.add(emp.db_id);
+      // Walk up the chain so managers are also marked in-tree
+      let cursor = _empByDbId(emp.manager_id);
+      const seen = new Set();
+      while (cursor && !seen.has(cursor.db_id)) {
+        seen.add(cursor.db_id);
+        inTree.add(cursor.db_id);
+        cursor = cursor.manager_id ? _empByDbId(cursor.manager_id) : null;
+      }
+    }
+  });
+  // Anyone with reports is also in-tree (covers roots with no manager_id)
+  ROSTER.forEach(emp => {
+    if (ROSTER.some(e => e.manager_id === emp.db_id)) {
+      inTree.add(emp.db_id);
+    }
+  });
+  // Solo-rooted (user explicitly made them root but they have no reports yet)
+  if (typeof _rootedSolo !== 'undefined') {
+    _rootedSolo.forEach(id => {
+      if (ROSTER.some(e => e.db_id === id)) inTree.add(id);
+    });
+  }
+  return inTree;
+}
+
+// Build adjacency map for ONLY the in-tree employees.
+// Cycle-safe: any employee whose chain loops is forced to root.
+function _buildOrgAdjacency() {
+  const children = new Map();
+  const inTree = _inTreeIds();
+  const empsInCycle = new Set();
+
+  ROSTER.forEach(emp => {
+    if (!inTree.has(emp.db_id)) return;
+    const seen = new Set();
+    let cursor = emp;
+    while (cursor) {
+      const key = cursor.db_id || `${cursor.last},${cursor.first}`;
+      if (seen.has(key)) { empsInCycle.add(emp.db_id); break; }
+      seen.add(key);
+      if (!cursor.manager_id) break;
+      const nextMgr = _empByDbId(cursor.manager_id);
+      if (!nextMgr || nextMgr === cursor) break;
+      cursor = nextMgr;
+    }
+  });
+
+  ROSTER.forEach(emp => {
+    if (!inTree.has(emp.db_id)) return;
+    const m = empsInCycle.has(emp.db_id) ? null : _managerOf(emp);
+    const parentKey = m ? (m.db_id || `${m.last},${m.first}`) : '__ROOT__';
+    if (!children.has(parentKey)) children.set(parentKey, []);
+    children.get(parentKey).push(emp);
+  });
+
+  const rolePriority = { SUPER:0, superintendent:0, GF:1, FM:2, WLD:3, JN:4, JW:4, MH:9 };
+  children.forEach(list => list.sort((a,b) => {
+    const pa = rolePriority[a.role] ?? 5;
+    const pb = rolePriority[b.role] ?? 5;
+    return pa - pb || a.last.localeCompare(b.last);
+  }));
+  return children;
+}
+
+// Persist new manager_id to Supabase
+async function saveOrgManager(empDbId, newManagerId) {
+  if (typeof _sb === 'undefined' || !_sb) return;
+  await _safeWrite('employees manager_id', () =>
+    _sb.from('employees').update({ manager_id: newManagerId || null }).eq('id', empDbId)
+  );
+}
+
+// Cycle detection — make sure proposedManager isn't a descendant of emp
+function _wouldCreateCycle(emp, proposedManager) {
+  if (!proposedManager) return false;
+  if (emp === proposedManager) return true;
+  let cursor = proposedManager;
+  const seen = new Set();
+  while (cursor && !seen.has(cursor.db_id || cursor.last)) {
+    seen.add(cursor.db_id || cursor.last);
+    if (cursor === emp) return true;
+    cursor = _managerOf(cursor);
+  }
+  return false;
+}
+
+// Tracks which nodes are collapsed (by db_id or last,first key)
+const _orgCollapsed = new Set();
+let _orgPanelFor = null; // db_id of emp whose side panel is open
+let _orgAssignMode = null; // { dbId, last, first } of the manager being assigned to
+
+function enterAssignMode(dbId, last, first) {
+  _orgAssignMode = { dbId, last, first };
+  _orgPanelFor = null; // close panel if open
+  renderOrgChart('org-chart-container');
+  showToast(`Selecting reports for ${last}, ${first} — click any card to assign them`, 'info');
+}
+
+function exitAssignMode() {
+  _orgAssignMode = null;
+  renderOrgChart('org-chart-container');
+}
+
+async function assignToSelectedManager(empDbId, last, first) {
+  if (!_orgAssignMode) return;
+  const emp = _empByDbId(empDbId);
+  const mgr = _empByDbId(_orgAssignMode.dbId);
+  if (!emp || !mgr) return;
+  if (emp === mgr) { showToast("Can't make someone their own manager", 'error'); return; }
+  if (_wouldCreateCycle(emp, mgr)) {
+    showToast(`Can't assign ${emp.last} — would create a cycle`, 'error');
+    return;
+  }
+  // If emp is already reporting to this manager, toggle off
+  if (emp.manager_id === mgr.db_id) {
+    emp.manager_id = null;
+    await saveOrgManager(empDbId, null);
+    showToast(`Removed ${emp.last}, ${emp.first} from ${mgr.last}'s reports`, 'success');
+  } else {
+    emp.manager_id = mgr.db_id;
+    await saveOrgManager(empDbId, mgr.db_id);
+    showToast(`${emp.last}, ${emp.first} → reports to ${mgr.last}`, 'success');
+  }
+  renderOrgChart('org-chart-container');
+}
+
 function renderOrgChart(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
 
-  // Build hierarchy: GF → FM → everyone else
-  const gfs = ROSTER.filter(e => e.role === 'GF');
-  const fms = ROSTER.filter(e => e.role === 'FM');
-  const supers = ROSTER.filter(e => e.role === 'SUPER' || e.role === 'superintendent');
+  const adj = _buildOrgAdjacency();
+  const roots = adj.get('__ROOT__') || [];
+  const isAdmin = typeof _currentUser !== 'undefined' &&
+    ['superintendent','admin'].includes((_currentUser.role || '').toLowerCase());
 
-  function empCard(emp, indent = 0) {
+  if (roots.length === 0) {
+    el.innerHTML = `<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No employees on the org chart yet.</div>`;
+    return;
+  }
+
+  function nodeKey(emp) { return emp.db_id || `${emp.last},${emp.first}`; }
+
+  function renderNode(emp, depth = 0, visitedInRender = new Set()) {
+    // Defense in depth: cap recursion and detect any cycles that slipped past
+    if (depth > 20) return '';
+    const key = nodeKey(emp);
+    if (visitedInRender.has(key)) return '';
+    visitedInRender = new Set(visitedInRender);
+    visitedInRender.add(key);
+
+    const childList = adj.get(key) || [];
+    const isCollapsed = _orgCollapsed.has(key);
+    const hasChildren = childList.length > 0;
     const initials = (emp.first?.[0]||'') + (emp.last?.[0]||'');
     const photo = CONTACT_INFO[emp.last]?.photo;
-    const photoHtml = photo
-      ? `<img src="${esc(photo)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
-    const job = thisWeekJob(emp.last) || '—';
-    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:background .1s;margin-left:${indent*24}px"
-      onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''"
-      onclick="openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}')">
-      ${photoHtml}
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12.5px;font-weight:500;color:var(--ink)">${esc(emp.last)}, ${esc(emp.first)}</div>
-        <div style="font-size:10.5px;color:var(--muted)">${roleBadge(emp.role)} · ${esc(job)}</div>
+    const avatar = photo
+      ? `<img src="${esc(photo)}" class="org-avatar" alt="">`
+      : `<div class="org-avatar">${esc(initials)}</div>`;
+
+    const toggleIcon = isCollapsed ? '▸' : '▾';
+    const toggleBtn = hasChildren
+      ? `<button class="org-toggle" onclick="event.stopPropagation(); toggleOrgNode('${esc(key)}')"
+          data-tip="${isCollapsed ? 'Click to expand and show this person\\u2019s direct reports' : 'Click to collapse and hide this branch'}">${toggleIcon}</button>`
+      : '';
+
+    const countBadge = hasChildren
+      ? `<span class="org-count-badge" data-tip="${childList.length} direct report${childList.length===1?'':'s'} under this person">${childList.length}</span>`
+      : '';
+
+    // Compact name — "Last, F." to save space
+    const compactName = `${emp.last}, ${(emp.first||'').charAt(0)}.`;
+
+    // If we're in "set as manager" assignment mode, show different UI
+    const inAssignMode = !!_orgAssignMode;
+    const isAssignTarget = inAssignMode && _orgAssignMode.dbId === emp.db_id;
+    const cardClass = isAssignTarget ? 'org-card assign-target' : (inAssignMode ? 'org-card assign-candidate' : 'org-card');
+    const clickAction = inAssignMode
+      ? (isAssignTarget ? `exitAssignMode()` : `assignToSelectedManager('${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')`)
+      : `openManagePanel('${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')`;
+
+    // Drag enabled for admins in normal (non-assign) mode
+    const dragAttrs = (isAdmin && !inAssignMode) ? 'draggable="true"' : '';
+
+    const card = `
+      <div class="${cardClass}" ${dragAttrs}
+        data-role="${esc(emp.role)}"
+        data-emp-db-id="${esc(emp.db_id||'')}"
+        data-emp-hover="${esc(emp.last)},${esc(emp.first)}"
+        data-emp-key="${esc(emp.last)},${esc(emp.first)}"
+        onclick="${clickAction}"
+        oncontextmenu="showOrgContextMenu(event,'${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')"
+        data-tip="${inAssignMode ? (isAssignTarget ? 'Click to exit selection mode' : 'Click to make this person report to ' + esc(_orgAssignMode.last) + ', ' + esc(_orgAssignMode.first)) : esc(emp.last) + ', ' + esc(emp.first) + ' — ' + esc(emp.role) + '. Left-click to open manage panel · right-click for actions · drag onto another card to reassign'}">
+        ${avatar}
+        <div class="org-name">${esc(compactName)}</div>
+        <div class="org-meta">${esc(emp.role)}</div>
+        ${countBadge}
+        ${toggleBtn}
+      </div>`;
+
+    const childrenHtml = (hasChildren && !isCollapsed)
+      ? `<div class="org-children">${childList.map(c => renderNode(c, depth+1, visitedInRender)).join('')}</div>`
+      : '';
+
+    return `<div class="org-node" data-node-key="${esc(key)}">${card}${childrenHtml}</div>`;
+  }
+
+  const hint = isAdmin
+    ? (_orgAssignMode
+        ? `<div class="org-assign-banner">
+             <span>📌 Selecting reports for <strong>${esc(_orgAssignMode.last)}, ${esc(_orgAssignMode.first)}</strong> · Click any card to add/remove as report</span>
+             <button class="btn btn-sm btn-primary" onclick="exitAssignMode()">Done</button>
+           </div>`
+        : `<div class="org-drag-hint" data-tip="The org chart is independent of job assignments — an employee on Job X can report to anyone, not necessarily the GF leading that job. This matters for rare cases like apprentices whose actual mentor differs from their job's FM.">💡 Right-click in Unassigned → Make root node · drag others from Unassigned onto tree cards · drag on empty canvas to pan · reporting is independent of job assignments</div>`)
+    : '';
+
+  const controls = `
+    <div class="org-tree-controls">
+      <div style="font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#8B5CF6;border-radius:2px"></span>Super</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#DC2626;border-radius:2px"></span>GF</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#EA580C;border-radius:2px"></span>FM</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#0284C7;border-radius:2px"></span>JN/Apr</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#64748B;border-radius:2px"></span>MH</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${isAdmin ? `<button class="btn btn-sm" onclick="resetOrgHierarchy()" data-tip="Clear the whole tree — everyone back to Unassigned">Clear tree</button>` : ''}
+        <button class="btn btn-sm" onclick="expandAllOrg('${esc(containerId)}')" data-tip="Show every node">Expand all</button>
+        <button class="btn btn-sm" onclick="collapseAllOrg('${esc(containerId)}')" data-tip="Show only top level">Collapse all</button>
       </div>
     </div>`;
-  }
 
-  // Group FMs under their GF (by current job match) + apprentices under FMs
-  const jobGF = {};
-  gfs.forEach(gf => {
-    const gfJob = thisWeekJob(gf.last);
-    if (!jobGF[gfJob]) jobGF[gfJob] = { gf, fms: [] };
-    else jobGF[gfJob].gf = gf;
-  });
-  fms.forEach(fm => {
-    const fmJob = thisWeekJob(fm.last);
-    if (jobGF[fmJob]) jobGF[fmJob].fms.push(fm);
-  });
-
-  const others = ROSTER.filter(e => !['GF','FM','SUPER','superintendent'].includes(e.role));
-
-  let html = '';
-
-  // Supers at top if any
-  if (supers.length) {
-    html += `<div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:8px 0 4px">Superintendent</div>`;
-    supers.forEach(s => { html += empCard(s, 0); });
-  }
-
-  // GF groups
-  Object.values(jobGF).forEach(({ gf, fms: groupFms }) => {
-    if (!gf) return;
-    const gfJob = thisWeekJob(gf.last);
-    html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line)">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;padding-left:4px">
-        ${gfJob ? esc(gfJob) : 'General Foreman'}
-      </div>`;
-    html += empCard(gf, 0);
-    groupFms.forEach(fm => {
-      html += empCard(fm, 1);
-      // Apprentices under this FM by same job
-      const fmJob = thisWeekJob(fm.last);
-      others.filter(e => thisWeekJob(e.last) === fmJob).forEach(app => {
-        html += empCard(app, 2);
-      });
+  // Compute unassigned pool (for sidebar)
+  const inTree = _inTreeIds();
+  const unassigned = ROSTER
+    .filter(e => !inTree.has(e.db_id) && e.active !== false)
+    .sort((a,b) => {
+      const rp = { SUPER:0, superintendent:0, GF:1, FM:2, WLD:3, JN:4, JW:4, MH:9 };
+      return (rp[a.role] ?? 5) - (rp[b.role] ?? 5) || a.last.localeCompare(b.last);
     });
-    html += '</div>';
+
+  const unassignedCards = unassigned.map(e => {
+    const initials = (e.first?.[0]||'') + (e.last?.[0]||'');
+    const photo = CONTACT_INFO[e.last]?.photo;
+    const avatar = photo
+      ? `<img src="${esc(photo)}" class="org-avatar-sm" alt="">`
+      : `<div class="org-avatar-sm">${esc(initials)}</div>`;
+    return `<div class="unassigned-card" data-role="${esc(e.role)}"
+      ${isAdmin ? 'draggable="true"' : ''}
+      data-emp-db-id="${esc(e.db_id||'')}"
+      data-emp-key="${esc(e.last)},${esc(e.first)}"
+      data-emp-hover="${esc(e.last)},${esc(e.first)}"
+      oncontextmenu="showOrgContextMenu(event,'${esc(e.db_id||'')}','${esc(e.last)}','${esc(e.first)}')"
+      data-tip="${esc(e.last)}, ${esc(e.first)} — ${esc(e.role)}. Not in org tree yet. Right-click → Make root node to place them, or drag onto a tree card to assign as report"
+      onclick="openCertPanel('${esc(e.last)}','${esc(e.first)}','${esc(e.role)}')">
+      ${avatar}
+      <div style="flex:1;min-width:0">
+        <div class="unassigned-name">${esc(e.last)}, ${esc((e.first||'').charAt(0))}.</div>
+        <div class="unassigned-meta">${esc(e.role)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const treeEmpty = roots.length === 0;
+  const treeInner = treeEmpty
+    ? `<div class="org-empty-state">
+         <div style="font-size:48px;opacity:.35;margin-bottom:8px">🌲</div>
+         <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">No one assigned yet</div>
+         <div style="font-size:12px;color:var(--muted);max-width:300px;margin:0 auto;line-height:1.5">
+           Right-click someone in the <strong>Unassigned</strong> list on the left and choose <strong>“Make root node”</strong> to start your tree. Then drag others onto them.
+         </div>
+       </div>`
+    : `<div class="org-tree-pan" id="org-tree-pan">
+         <div class="org-tree">
+           ${roots.map(r => renderNode(r)).join('')}
+         </div>
+       </div>`;
+
+  el.innerHTML = `
+    ${hint}
+    ${controls}
+    <div class="org-layout ${_orgPanelFor ? 'with-panel' : ''}">
+      <aside class="org-unassigned-pane" data-tip="People who haven't been placed in the tree yet. Drag them onto tree cards to assign as reports, or right-click to make them a root node.">
+        <div class="org-unassigned-header">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Unassigned</div>
+          <span class="org-unassigned-count" data-tip="Count of employees not yet in the org tree">${unassigned.length}</span>
+        </div>
+        <input type="text" id="org-unassigned-search" placeholder="Search…" oninput="filterUnassigned(this.value)"
+          class="form-input" style="width:100%;font-size:11.5px;padding:5px 9px;margin-bottom:8px" autocomplete="off"
+          data-tip="Filter the unassigned list by name or role">
+        <div class="org-unassigned-list" id="org-unassigned-list">
+          ${unassigned.length ? unassignedCards : `<div style="padding:20px 10px;text-align:center;color:var(--muted);font-size:11px;font-style:italic">Everyone is on the tree 🎉</div>`}
+        </div>
+      </aside>
+
+      <div class="org-canvas" id="org-canvas" data-tip="The org tree canvas. Drop unassigned people onto tree cards to assign them. Left-click drag on empty space to pan around.">
+        ${treeInner}
+      </div>
+
+      ${_orgPanelFor ? `<div id="org-manage-panel"></div>` : ''}
+    </div>`;
+
+  if (_orgPanelFor) _renderManagePanel();
+  if (isAdmin && !_orgAssignMode) attachOrgDragHandlers(el);
+  if (!treeEmpty) attachPanHandlers(el);
+}
+
+// Filter unassigned list by search query
+function filterUnassigned(q) {
+  const list = document.getElementById('org-unassigned-list');
+  if (!list) return;
+  const query = (q || '').toLowerCase().trim();
+  list.querySelectorAll('.unassigned-card').forEach(card => {
+    const name = card.dataset.empKey.toLowerCase();
+    const role = (card.dataset.role || '').toLowerCase();
+    const match = !query || name.includes(query) || role.includes(query);
+    card.style.display = match ? '' : 'none';
+  });
+}
+
+// Single abort controller shared across renders so listeners cleanup properly
+let _orgPanAbort = null;
+
+function attachPanHandlers(root) {
+  const canvas = root.querySelector('#org-canvas');
+  if (!canvas) return;
+  // Abort any previous render's listeners
+  if (_orgPanAbort) _orgPanAbort.abort();
+  _orgPanAbort = new AbortController();
+  const signal = _orgPanAbort.signal;
+
+  let panning = false;
+  let startX = 0, startY = 0;
+  let scrollStartX = 0, scrollStartY = 0;
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.target.closest('.org-card') || e.target.closest('.org-node') || e.target.closest('.org-toggle')) return;
+    if (e.button !== 0) return;
+    panning = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    scrollStartX = canvas.scrollLeft;
+    scrollStartY = canvas.scrollTop;
+    canvas.style.cursor = 'grabbing';
+    canvas.style.userSelect = 'none';
+    e.preventDefault();
+  }, { signal });
+
+  window.addEventListener('mousemove', e => {
+    if (!panning) return;
+    canvas.scrollLeft = scrollStartX - (e.clientX - startX);
+    canvas.scrollTop  = scrollStartY - (e.clientY - startY);
+  }, { signal });
+
+  window.addEventListener('mouseup', () => {
+    if (!panning) return;
+    panning = false;
+    canvas.style.cursor = '';
+    canvas.style.userSelect = '';
+  }, { signal });
+}
+
+function toggleOrgNode(key) {
+  if (_orgCollapsed.has(key)) _orgCollapsed.delete(key);
+  else _orgCollapsed.add(key);
+  renderOrgChart('org-chart-container');
+}
+
+function expandAllOrg(containerId) {
+  _orgCollapsed.clear();
+  renderOrgChart(containerId);
+}
+
+function collapseAllOrg(containerId) {
+  const adj = _buildOrgAdjacency();
+  _orgCollapsed.clear();
+  adj.forEach((children, key) => {
+    if (key !== '__ROOT__' && children.length > 0) _orgCollapsed.add(key);
+  });
+  renderOrgChart(containerId);
+}
+
+// ══════════════════════════════════════════════════════════════
+// ORG MANAGE PANEL — click-based manager + direct reports
+// ══════════════════════════════════════════════════════════════
+
+function openManagePanel(dbId, last, first) {
+  _orgPanelFor = dbId || `${last},${first}`;
+  renderOrgChart('org-chart-container');
+  // Scroll panel into view on mobile
+  setTimeout(() => {
+    const p = document.getElementById('org-manage-panel');
+    if (p && window.innerWidth < 900) p.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, 50);
+}
+
+function closeManagePanel() {
+  _orgPanelFor = null;
+  renderOrgChart('org-chart-container');
+}
+
+function _renderManagePanel() {
+  const panel = document.getElementById('org-manage-panel');
+  if (!panel) return;
+
+  // Resolve the emp
+  const emp = ROSTER.find(e =>
+    (e.db_id && e.db_id === _orgPanelFor) ||
+    `${e.last},${e.first}` === _orgPanelFor
+  );
+  if (!emp) { panel.style.display = 'none'; return; }
+
+  const currentManager = emp.manager_id ? _empByDbId(emp.manager_id) : null;
+  const reports = ROSTER.filter(e => e.manager_id === emp.db_id);
+
+  // Candidate managers = everyone except self + descendants
+  const descendants = new Set();
+  (function walk(id) {
+    ROSTER.filter(e => e.manager_id === id).forEach(c => {
+      descendants.add(c.db_id);
+      walk(c.db_id);
+    });
+  })(emp.db_id);
+  const candidates = ROSTER.filter(e =>
+    e.db_id !== emp.db_id && !descendants.has(e.db_id)
+  ).sort((a,b) => a.last.localeCompare(b.last));
+
+  const rolePriority = { SUPER:0, superintendent:0, GF:1, FM:2 };
+  const managerOptions = candidates
+    .sort((a,b) => (rolePriority[a.role] ?? 5) - (rolePriority[b.role] ?? 5) || a.last.localeCompare(b.last))
+    .map(e => `<option value="${esc(e.db_id)}" ${emp.manager_id === e.db_id ? 'selected' : ''}>${esc(e.last)}, ${esc(e.first)} — ${esc(e.role)}</option>`).join('');
+
+  // Candidates that could become direct reports (not self, not current manager, not already reporting here)
+  const reportCandidates = ROSTER.filter(e =>
+    e.db_id !== emp.db_id &&
+    e.db_id !== emp.manager_id &&
+    e.manager_id !== emp.db_id &&
+    !descendants.has(e.db_id) // can't be a descendant already
+  ).sort((a,b) => a.last.localeCompare(b.last));
+
+  const reportsList = reports.length
+    ? reports.map(r => `
+        <div class="manage-report-row">
+          <span style="flex:1;font-size:12px">${esc(r.last)}, ${esc(r.first)} <span style="color:var(--muted);font-size:10.5px">— ${esc(r.role)}</span></span>
+          <button onclick="removeReport('${esc(r.db_id)}')" class="btn btn-sm" style="padding:2px 8px;font-size:10.5px;color:var(--bad);border-color:var(--bad)" data-tip="Remove from ${esc(emp.first)}'s direct reports (keeps employee, just unassigns manager)">Remove</button>
+        </div>`).join('')
+    : `<div style="padding:10px;text-align:center;color:var(--muted);font-size:11px;font-style:italic">No direct reports yet</div>`;
+
+  const initials = (emp.first?.[0]||'') + (emp.last?.[0]||'');
+  const photo = CONTACT_INFO[emp.last]?.photo;
+  const avatar = photo
+    ? `<img src="${esc(photo)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`
+    : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:var(--white);font-size:15px;font-weight:600">${esc(initials)}</div>`;
+
+  panel.innerHTML = `
+    <div class="manage-panel-inner">
+      <div class="manage-panel-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${avatar}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;color:var(--ink)">${esc(emp.last)}, ${esc(emp.first)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${roleBadge(emp.role)}</div>
+          </div>
+          <button onclick="closeManagePanel()" style="width:26px;height:26px;border-radius:5px;border:none;background:transparent;cursor:pointer;font-size:16px;color:var(--muted)" title="Close">×</button>
+        </div>
+      </div>
+
+      <div class="manage-panel-section">
+        <div class="manage-panel-label">Reports to</div>
+        <select class="ctrl-sel" style="width:100%" onchange="setManager('${esc(emp.db_id)}', this.value)">
+          <option value="">— No manager (root node) —</option>
+          ${managerOptions}
+        </select>
+        ${currentManager ? `<div style="font-size:10.5px;color:var(--muted);margin-top:6px">Currently reports to <strong>${esc(currentManager.last)}, ${esc(currentManager.first)}</strong></div>` : '<div style="font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic">This employee is a root node (no manager)</div>'}
+      </div>
+
+      <div class="manage-panel-section">
+        <div class="manage-panel-label">Direct reports <span style="color:var(--muted);font-weight:400">· ${reports.length}</span></div>
+        <div class="manage-reports-list">
+          ${reportsList}
+        </div>
+        <div style="margin-top:8px">
+          <div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Add a direct report:</div>
+          <input type="text" id="manage-add-search" placeholder="Type name to search…" oninput="renderAddReportResults('${esc(emp.db_id)}', this.value)"
+            class="form-input" style="width:100%;font-size:12px;padding:6px 9px" autocomplete="off">
+          <div id="manage-add-results" style="margin-top:4px;max-height:160px;overflow-y:auto;border-radius:6px"></div>
+        </div>
+      </div>
+
+      <div class="manage-panel-section" style="border-top:1px solid var(--line);padding-top:12px">
+        <button class="btn btn-sm" style="width:100%" onclick="openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}');closeManagePanel()" data-tip="Open this employee's full profile (certs, contact, schedule)">Open full profile →</button>
+      </div>
+    </div>`;
+}
+
+async function setManager(empDbId, newManagerId) {
+  const emp = _empByDbId(empDbId);
+  if (!emp) return;
+  // Cycle check
+  const newMgr = newManagerId ? _empByDbId(newManagerId) : null;
+  if (newMgr && _wouldCreateCycle(emp, newMgr)) {
+    showToast(`Can't set ${newMgr.last} as manager — would create a cycle`, 'error');
+    renderOrgChart('org-chart-container');
+    return;
+  }
+  emp.manager_id = newManagerId || null;
+  await saveOrgManager(empDbId, newManagerId || null);
+  const label = newMgr ? `now reports to ${newMgr.last}, ${newMgr.first}` : 'is now a root node';
+  showToast(`${emp.last}, ${emp.first} ${label}`, 'success');
+  renderOrgChart('org-chart-container');
+}
+
+async function removeReport(reportDbId) {
+  const r = _empByDbId(reportDbId);
+  if (!r) return;
+  r.manager_id = null;
+  await saveOrgManager(reportDbId, null);
+  showToast(`${r.last}, ${r.first} removed from direct reports`, 'success');
+  renderOrgChart('org-chart-container');
+}
+
+function renderAddReportResults(mgrDbId, query) {
+  const box = document.getElementById('manage-add-results');
+  if (!box) return;
+  const q = (query || '').toLowerCase().trim();
+  if (!q) { box.innerHTML = ''; return; }
+  const mgr = _empByDbId(mgrDbId);
+  if (!mgr) return;
+
+  // Exclude self + current manager + already reporting here + descendants
+  const descendants = new Set();
+  (function walk(id) {
+    ROSTER.filter(e => e.manager_id === id).forEach(c => {
+      descendants.add(c.db_id); walk(c.db_id);
+    });
+  })(mgrDbId);
+
+  const matches = ROSTER.filter(e =>
+    e.db_id !== mgrDbId &&
+    e.manager_id !== mgrDbId &&
+    !descendants.has(e.db_id) &&
+    (e.last.toLowerCase().includes(q) || e.first.toLowerCase().includes(q))
+  ).slice(0, 10);
+
+  if (matches.length === 0) {
+    box.innerHTML = `<div style="padding:8px 10px;font-size:11px;color:var(--muted);font-style:italic">No matches</div>`;
+    return;
+  }
+  box.innerHTML = matches.map(e => {
+    const currentMgr = e.manager_id ? _empByDbId(e.manager_id) : null;
+    const fromNote = currentMgr
+      ? ` <span style="color:var(--muted);font-size:10px">(from ${esc(currentMgr.last)})</span>`
+      : ` <span style="color:var(--muted);font-size:10px">(root)</span>`;
+    return `<div onclick="addAsReport('${esc(mgrDbId)}','${esc(e.db_id)}')"
+      style="padding:6px 10px;cursor:pointer;border-radius:5px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px"
+      onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''">
+      <span>${esc(e.last)}, ${esc(e.first)} <span style="color:var(--muted)">— ${esc(e.role)}</span>${fromNote}</span>
+      <span style="color:var(--accent);font-weight:600">+</span>
+    </div>`;
+  }).join('');
+}
+
+async function addAsReport(mgrDbId, empDbId) {
+  const emp = _empByDbId(empDbId);
+  const mgr = _empByDbId(mgrDbId);
+  if (!emp || !mgr) return;
+  if (_wouldCreateCycle(emp, mgr)) {
+    showToast(`Can't add — would create a cycle`, 'error');
+    return;
+  }
+  emp.manager_id = mgrDbId;
+  await saveOrgManager(empDbId, mgrDbId);
+  showToast(`${emp.last}, ${emp.first} now reports to ${mgr.last}, ${mgr.first}`, 'success');
+  const searchInput = document.getElementById('manage-add-search');
+  if (searchInput) searchInput.value = '';
+  renderOrgChart('org-chart-container');
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTO-ASSIGN — populate hierarchy from current job assignments
+// ══════════════════════════════════════════════════════════════
+async function autoAssignOrgHierarchy() {
+  if (!confirm('Auto-assign overwrites all current manager relationships based on role + current job assignments. Continue?')) return;
+
+  const updates = [];
+  ROSTER.forEach(emp => {
+    const auto = _autoManagerFor(emp);
+    const newMgrId = auto ? auto.db_id : null;
+    if (emp.manager_id !== newMgrId) {
+      emp.manager_id = newMgrId;
+      updates.push({ id: emp.db_id, manager_id: newMgrId });
+    }
   });
 
-  // Unassigned / remaining
-  const placed = new Set([
-    ...gfs.map(e => e.last),
-    ...fms.map(e => e.last),
-    ...supers.map(e => e.last),
-    ...Object.values(jobGF).flatMap(g => g.fms.map(e => e.last)),
-  ]);
-  const unplaced = ROSTER.filter(e => !placed.has(e.last));
-  if (unplaced.length) {
-    html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line)">
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;padding-left:4px">Other crew</div>`;
-    unplaced.forEach(e => { html += empCard(e, 0); });
-    html += '</div>';
+  // Persist
+  if (typeof _sb !== 'undefined' && _sb) {
+    for (const u of updates) {
+      await _safeWrite('employees manager_id', () =>
+        _sb.from('employees').update({ manager_id: u.manager_id }).eq('id', u.id)
+      );
+    }
+  }
+  showToast(`Auto-assigned ${updates.length} employee${updates.length===1?'':'s'} to the org tree`, 'success');
+  renderOrgChart('org-chart-container');
+}
+
+async function resetOrgHierarchy() {
+  console.log('[clear tree] resetOrgHierarchy() called');
+  const assigned = ROSTER.filter(e => e.manager_id);
+  const count = assigned.length;
+  const soloCount = (typeof _rootedSolo !== 'undefined') ? _rootedSolo.size : 0;
+  console.log(`[clear tree] ${count} assigned, ${soloCount} solo-rooted`);
+
+  if (count === 0 && soloCount === 0) {
+    showToast('Tree is already empty — nobody is assigned', 'info');
+    return;
+  }
+  if (!confirm(`Clear the whole tree?\n\n${count} manager assignment${count===1?'':'s'} and ${soloCount} root placement${soloCount===1?'':'s'} will be removed from the database.\n\nEveryone goes back to Unassigned.`)) {
+    console.log('[clear tree] cancelled by user');
+    return;
   }
 
-  el.innerHTML = html || `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No org data available.</div>`;
+  // Clear in-memory state first so UI updates immediately
+  ROSTER.forEach(emp => { emp.manager_id = null; });
+  if (typeof _rootedSolo !== 'undefined') {
+    _rootedSolo.clear();
+    try { localStorage.setItem('fieldflow-rooted-solo', '[]'); } catch {}
+  }
+  renderOrgChart('org-chart-container');
+  console.log('[clear tree] in-memory cleared, UI re-rendered');
+
+  // Now update Supabase — iterate per-row for maximum reliability
+  let succeeded = 0;
+  let failed = 0;
+  const failureMessages = [];
+  if (typeof _sb === 'undefined' || !_sb) {
+    console.error('[clear tree] Supabase client not available');
+    showToast('Tree cleared locally. Database client unavailable — changes revert on refresh.', 'error');
+    return;
+  }
+  console.log(`[clear tree] starting ${assigned.length} DB updates...`);
+  for (const emp of assigned) {
+    try {
+      const { data, error } = await _sb.from('employees')
+        .update({ manager_id: null })
+        .eq('id', emp.db_id)
+        .select('id');
+      if (error) {
+        failed++;
+        failureMessages.push(`${emp.last}: ${error.message}`);
+        console.warn(`[clear tree] ✗ ${emp.last}, ${emp.first}`, error);
+      } else {
+        succeeded++;
+        console.log(`[clear tree] ✓ ${emp.last}, ${emp.first} cleared`);
+      }
+    } catch (err) {
+      failed++;
+      failureMessages.push(`${emp.last}: ${err.message || err}`);
+      console.warn(`[clear tree] ✗ ${emp.last}, ${emp.first}`, err);
+    }
+  }
+
+  console.log(`[clear tree] done — ${succeeded} succeeded, ${failed} failed`);
+  if (failed === 0) {
+    showToast(`✓ Tree cleared — ${succeeded} employee${succeeded===1?'':'s'} moved back to Unassigned. Changes are saved.`, 'success');
+  } else if (succeeded > 0) {
+    console.error('[clear tree] partial failures:', failureMessages);
+    showToast(`Partial success: ${succeeded} cleared, ${failed} failed. Check console (F12) for details.`, 'warn');
+  } else {
+    console.error('[clear tree] all failures:', failureMessages);
+    showToast(`Database sync failed for all ${failed} rows. Check RLS policy on employees table. See console (F12).`, 'error');
+    // Offer manual SQL as fallback
+    setTimeout(() => {
+      if (confirm('All DB updates failed (RLS may be blocking).\n\nAs a one-time fix, you can run this SQL in Supabase SQL Editor:\n\nUPDATE public.employees SET manager_id = NULL;\n\nOpen Supabase?')) {
+        window.open('https://supabase.com/dashboard/project/rnskwlgnnphjlzwasgcr/sql/new', '_blank');
+      }
+    }, 500);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// RIGHT-CLICK CONTEXT MENU — quick actions per card
+// ══════════════════════════════════════════════════════════════
+
+function showOrgContextMenu(e, dbId, last, first) {
+  e.preventDefault();
+  e.stopPropagation();
+  hideOrgContextMenu();
+
+  const isAdmin = typeof _currentUser !== 'undefined' &&
+    ['superintendent','admin'].includes((_currentUser.role || '').toLowerCase());
+
+  const emp = _empByDbId(dbId) || _empByName(last, first);
+  if (!emp) return;
+
+  const hasReports = ROSTER.some(e => e.manager_id === emp.db_id);
+  const hasManager = !!emp.manager_id;
+  const key = emp.db_id || `${emp.last},${emp.first}`;
+  const isCollapsed = _orgCollapsed.has(key);
+
+  const items = [
+    { icon:'👤', label:'Open profile',            action:`openCertPanel('${esc(last)}','${esc(first)}','${esc(emp.role)}')` },
+    { icon:'🌲', label:'Make root node',          action:`makeRootNode('${esc(dbId||'')}')` },
+    { icon:'📌', label:'Set as manager — select reports…', action:`enterAssignMode('${esc(dbId||'')}','${esc(last)}','${esc(first)}')` },
+    { icon:'⚙',  label:'Manage reporting…',       action:`openManagePanel('${esc(dbId||'')}','${esc(last)}','${esc(first)}')` },
+    { sep: true },
+  ];
+
+  if (isAdmin) {
+    items.push({ icon:'➕', label:'Add direct report…', action:`openManagePanel('${esc(dbId||'')}','${esc(last)}','${esc(first)}');setTimeout(()=>document.getElementById('manage-add-search')?.focus(),100)` });
+    if (hasManager) {
+      items.push({ icon:'⬆', label:'Promote to root',    action:`setManager('${esc(dbId||'')}','')` });
+    }
+    items.push({ icon:'✏',  label:'Edit employee…',     action:`openEditEmployeeModal('${esc(last)}','${esc(first)}')` });
+    items.push({ sep: true });
+  }
+
+  if (hasReports) {
+    items.push({ icon: isCollapsed?'▸':'▾', label: isCollapsed?'Expand children':'Collapse children', action:`toggleOrgNode('${esc(key)}')` });
+  }
+
+  items.push({ icon:'📊', label:'View scorecard',        action:`generateEmployeeScorecard('${esc(last)}','${esc(first)}')` });
+
+  if (isAdmin && hasReports) {
+    items.push({ sep: true });
+    items.push({ icon:'🗑', label:`Remove all ${ROSTER.filter(e=>e.manager_id===emp.db_id).length} reports`, action:`removeAllReportsFrom('${esc(dbId||'')}')`, danger: true });
+  }
+
+  const menuHtml = items.map(it =>
+    it.sep
+      ? `<div class="org-ctx-sep"></div>`
+      : `<div class="org-ctx-item ${it.danger?'danger':''}" onclick="hideOrgContextMenu(); ${it.action}">
+           <span class="org-ctx-icon">${it.icon}</span>
+           <span>${esc(it.label)}</span>
+         </div>`
+  ).join('');
+
+  const menu = document.createElement('div');
+  menu.id = '_org-ctx-menu';
+  menu.className = 'org-ctx-menu';
+  menu.innerHTML = menuHtml;
+
+  // Position at mouse, clamping to viewport
+  document.body.appendChild(menu);
+  const rect = menu.getBoundingClientRect();
+  let top  = e.clientY;
+  let left = e.clientX;
+  if (top + rect.height > window.innerHeight - 8) top  = Math.max(8, window.innerHeight - rect.height - 8);
+  if (left + rect.width  > window.innerWidth  - 8) left = Math.max(8, window.innerWidth  - rect.width  - 8);
+  menu.style.top  = top  + 'px';
+  menu.style.left = left + 'px';
+}
+
+function hideOrgContextMenu() {
+  const existing = document.getElementById('_org-ctx-menu');
+  if (existing) existing.remove();
+}
+
+// Auto-dismiss on click/scroll/escape
+document.addEventListener('click', e => {
+  const m = document.getElementById('_org-ctx-menu');
+  if (m && !m.contains(e.target)) hideOrgContextMenu();
+});
+document.addEventListener('scroll', hideOrgContextMenu, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideOrgContextMenu(); });
+
+async function removeAllReportsFrom(dbId) {
+  const mgr = _empByDbId(dbId);
+  if (!mgr) return;
+  const reports = ROSTER.filter(e => e.manager_id === dbId);
+  if (!reports.length) return;
+  if (!confirm(`Remove all ${reports.length} direct reports from ${mgr.last}, ${mgr.first}? They'll become root nodes.`)) return;
+  for (const r of reports) {
+    r.manager_id = null;
+    await saveOrgManager(r.db_id, null);
+  }
+  showToast(`Cleared ${reports.length} direct report${reports.length===1?'':'s'}`, 'success');
+  renderOrgChart('org-chart-container');
+}
+
+// Make an employee a root node in the tree (null manager_id)
+async function makeRootNode(dbId) {
+  const emp = _empByDbId(dbId);
+  if (!emp) return;
+  emp.manager_id = null;
+  // To count as "in tree", they need at least one report. Just set manager_id = null.
+  // If they have no reports yet, they'll still appear as a root once someone's dropped on them.
+  // Trick: we need them visible in the tree even with no reports. We'll handle this by
+  // marking them with a synthetic "rooted" flag in localStorage.
+  _rootedSolo.add(dbId);
+  try { localStorage.setItem('fieldflow-rooted-solo', JSON.stringify([..._rootedSolo])); } catch {}
+  await saveOrgManager(dbId, null);
+  showToast(`${emp.last}, ${emp.first} is now a root node — drag people onto them`, 'success');
+  renderOrgChart('org-chart-container');
+}
+
+// Solo-rooted employees (in tree as root but no reports yet)
+const _rootedSolo = new Set(
+  (() => { try { return JSON.parse(localStorage.getItem('fieldflow-rooted-solo') || '[]'); } catch { return []; } })()
+);
+
+let _orgDragAbort = null;
+
+function attachOrgDragHandlers(root) {
+  if (_orgDragAbort) _orgDragAbort.abort();
+  _orgDragAbort = new AbortController();
+  const signal = _orgDragAbort.signal;
+
+  let dragSource = null;
+  let suppressNextClick = false;
+
+  // Enable drag for cards in tree AND in unassigned sidebar
+  root.querySelectorAll('[draggable="true"]').forEach(card => {
+    card.addEventListener('click', e => {
+      if (suppressNextClick) { e.stopImmediatePropagation(); suppressNextClick = false; }
+    }, { capture: true, signal });
+    card.addEventListener('dragstart', e => {
+      dragSource = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', card.dataset.empDbId || ''); } catch {}
+    }, { signal });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      root.querySelectorAll('.org-card,.unassigned-card').forEach(c => c.classList.remove('drop-target','drop-invalid'));
+      dragSource = null;
+    }, { signal });
+  });
+
+  // Only .org-card (tree) accepts drops — canvas empty space does NOT
+  root.querySelectorAll('.org-card').forEach(card => {
+    card.addEventListener('dragover', e => {
+      if (!dragSource || dragSource === card) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      const srcEmp = _empByDbId(dragSource.dataset.empDbId);
+      const tgtEmp = _empByDbId(card.dataset.empDbId);
+      if (!srcEmp || !tgtEmp) return;
+      if (_wouldCreateCycle(srcEmp, tgtEmp)) {
+        card.classList.add('drop-invalid');
+        card.classList.remove('drop-target');
+      } else {
+        card.classList.add('drop-target');
+        card.classList.remove('drop-invalid');
+      }
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) {
+        card.classList.remove('drop-target','drop-invalid');
+      }
+    });
+    card.addEventListener('drop', async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragSource || dragSource === card) return;
+      const srcEmp = _empByDbId(dragSource.dataset.empDbId);
+      const tgtEmp = _empByDbId(card.dataset.empDbId);
+      card.classList.remove('drop-target','drop-invalid');
+      if (!srcEmp || !tgtEmp) return;
+      if (_wouldCreateCycle(srcEmp, tgtEmp)) {
+        showToast(`Can't make ${srcEmp.last} report to ${tgtEmp.last} — would create a cycle`, 'error');
+        return;
+      }
+      suppressNextClick = true;
+      srcEmp.manager_id = tgtEmp.db_id || null;
+      await saveOrgManager(srcEmp.db_id, tgtEmp.db_id);
+      showToast(`${srcEmp.last}, ${srcEmp.first} → reports to ${tgtEmp.last}, ${tgtEmp.first}`, 'success');
+      renderOrgChart(root.id || 'org-chart-container');
+    });
+  });
+
+  // Unassigned pane: drop a tree card here to remove from tree
+  const pane = root.querySelector('.org-unassigned-pane');
+  if (pane) {
+    pane.addEventListener('dragover', e => {
+      if (!dragSource) return;
+      // Only react if source is a tree card (has .org-card class)
+      if (!dragSource.classList.contains('org-card')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      pane.classList.add('drop-zone-hover');
+    });
+    pane.addEventListener('dragleave', e => {
+      if (!pane.contains(e.relatedTarget)) pane.classList.remove('drop-zone-hover');
+    });
+    pane.addEventListener('drop', async e => {
+      if (!dragSource) return;
+      if (!dragSource.classList.contains('org-card')) return;
+      e.preventDefault();
+      pane.classList.remove('drop-zone-hover');
+      const srcEmp = _empByDbId(dragSource.dataset.empDbId);
+      if (!srcEmp) return;
+      suppressNextClick = true;
+      srcEmp.manager_id = null;
+      // Also unassign anyone who reported to them (they'd become orphans otherwise)
+      const reports = ROSTER.filter(e => e.manager_id === srcEmp.db_id);
+      for (const r of reports) {
+        r.manager_id = null;
+        await saveOrgManager(r.db_id, null);
+      }
+      await saveOrgManager(srcEmp.db_id, null);
+      const msg = reports.length
+        ? `Moved ${srcEmp.last}, ${srcEmp.first} + ${reports.length} report${reports.length===1?'':'s'} back to unassigned`
+        : `Moved ${srcEmp.last}, ${srcEmp.first} back to unassigned`;
+      showToast(msg, 'success');
+      renderOrgChart(root.id || 'org-chart-container');
+    });
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -7198,6 +8498,317 @@ function generateCrewPacket(fmName) {
   setTimeout(() => { try { w.print(); } catch {} }, 250);
 }
 
+// Shared report window helper
+function _openReportWindow(html) {
+  const w = window.open('', '_blank');
+  if (!w) { showToast('Popup blocked — please allow popups', 'error'); return; }
+  w.document.open();
+  w.document.documentElement.innerHTML = html.replace(/^<!DOCTYPE html><html>/, '').replace(/<\/html>$/, '');
+  w.document.close();
+  setTimeout(() => { try { w.print(); } catch {} }, 300);
+}
+
+const _REPORT_STYLES = `
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 24px; color: #111; max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+    h2 { font-size: 14px; color: #555; font-weight: 500; margin: 0 0 22px; }
+    h3 { font-size: 13px; color: #111; font-weight: 600; margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #ddd; }
+    table { border-collapse: collapse; width: 100%; font-size: 11px; margin-bottom: 14px; }
+    th { background: #2d3748; color: #fff; padding: 7px 9px; text-align: left; font-weight: 600; }
+    td { padding: 6px 9px; border-bottom: 1px solid #e5e7eb; }
+    tbody tr:nth-child(even) { background: #f9fafb; }
+    .meta { margin: 12px 0 20px; font-size: 11.5px; color: #444; line-height: 1.7; }
+    .meta strong { color: #111; }
+    .tile-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0 20px; }
+    .tile { background: #f3f4f6; border-radius: 8px; padding: 12px; border-left: 3px solid #2d3748; }
+    .tile-label { font-size: 10px; text-transform: uppercase; color: #666; letter-spacing: .05em; font-weight: 600; }
+    .tile-value { font-size: 22px; font-weight: 600; color: #111; margin-top: 3px; }
+    .tile-sub { font-size: 10px; color: #666; margin-top: 2px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin: 4px 0; font-size: 11px; }
+    .bar-name { width: 110px; flex-shrink: 0; color: #444; }
+    .bar-track { flex: 1; height: 14px; background: #e5e7eb; border-radius: 3px; position: relative; overflow: hidden; }
+    .bar-fill { height: 100%; background: #2d3748; border-radius: 3px; }
+    .bar-val { width: 70px; text-align: right; color: #111; font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 600; }
+    .footer { margin-top: 24px; font-size: 9.5px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; text-align: center; }
+    @media print { body { padding: 12px; } @page { margin: 1cm; } }
+  </style>
+`;
+
+// ══════════════════════════════════════════════════════════════
+// #16 MONTHLY LABOR REPORT
+// ══════════════════════════════════════════════════════════════
+
+function generateMonthlyReport(monthOffset = 0) {
+  // monthOffset: 0 = current month, -1 = last month, etc.
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const monthStart = new Date(target.getFullYear(), target.getMonth(), 1);
+  const monthEnd   = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+  const monthLabel = target.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+  // Gather SCHED weeks that fall inside this month
+  const relevantWeeks = [];
+  for (let w = 0; w < SCHED_WEEKS_TOTAL; w++) {
+    const wkDate = new Date(SCHED_CURRENT_WEEK.monday);
+    wkDate.setDate(wkDate.getDate() + (w - SCHED_CURRENT_WEEK.index) * 7);
+    if (wkDate >= monthStart && wkDate <= monthEnd) relevantWeeks.push(w);
+  }
+
+  // Per-job totals
+  const jobTotals = {}; // { jobName: { days, crewDays, uniqueEmps:Set } }
+  const empTotals = {}; // { last: daysWorked }
+
+  relevantWeeks.forEach(wi => {
+    Object.entries(SCHED).forEach(([key, weeks]) => {
+      const [last] = key.split(',');
+      const wk = weeks[wi];
+      if (!wk) return;
+      wk.slice(0, 5).forEach(cell => {
+        if (!cell || ['OFF','VACATION','HOLIDAY','School'].includes(cell)) return;
+        if (!jobTotals[cell]) jobTotals[cell] = { days: 0, uniqueEmps: new Set() };
+        jobTotals[cell].days++;
+        jobTotals[cell].uniqueEmps.add(last);
+        empTotals[last] = (empTotals[last] || 0) + 1;
+      });
+    });
+  });
+
+  const HOURS_PER_DAY = 10; // typical electrical work day
+  const totalCrewDays = Object.values(empTotals).reduce((a,b) => a+b, 0);
+  const totalHours = totalCrewDays * HOURS_PER_DAY;
+  const totalEmps = Object.keys(empTotals).length;
+
+  // Absences in this month
+  const monthAbs = ABSENT_LOG.filter(e => {
+    const d = new Date(e.date + 'T12:00:00');
+    return d >= monthStart && d <= monthEnd;
+  });
+  const absentCount = monthAbs.filter(e => e.type === 'absent').length;
+  const lateCount = monthAbs.filter(e => e.type === 'late').length;
+  const absenceRate = totalCrewDays > 0 ? ((absentCount / totalCrewDays) * 100).toFixed(1) : '0.0';
+
+  // Per-job rows, sorted by hours desc
+  const jobRows = Object.entries(jobTotals)
+    .map(([name, d]) => ({ name, days: d.days, hours: d.days * HOURS_PER_DAY, crew: d.uniqueEmps.size }))
+    .sort((a, b) => b.hours - a.hours);
+
+  const jobRowsHtml = jobRows.map(r => `
+    <tr><td>${esc(r.name)}</td>
+    <td style="text-align:right;font-family:ui-monospace,monospace">${r.crew}</td>
+    <td style="text-align:right;font-family:ui-monospace,monospace">${r.days}</td>
+    <td style="text-align:right;font-family:ui-monospace,monospace;font-weight:600">${r.hours.toLocaleString()}</td>
+    <td style="text-align:right;font-family:ui-monospace,monospace">${((r.hours/totalHours)*100).toFixed(1)}%</td></tr>
+  `).join('');
+
+  const html = `<!DOCTYPE html><html><head><title>Labor Report — ${esc(monthLabel)}</title>${_REPORT_STYLES}</head><body>
+    <h1>CREM Inc. — Monthly Labor Report</h1>
+    <h2>${esc(monthLabel)}</h2>
+    <div class="tile-row">
+      <div class="tile"><div class="tile-label">Total hours</div><div class="tile-value">${totalHours.toLocaleString()}</div><div class="tile-sub">Est. @ 10hr/day</div></div>
+      <div class="tile"><div class="tile-label">Crew deployed</div><div class="tile-value">${totalEmps}</div><div class="tile-sub">Unique employees</div></div>
+      <div class="tile"><div class="tile-label">Absences</div><div class="tile-value">${absentCount}</div><div class="tile-sub">${lateCount} late · ${absenceRate}% rate</div></div>
+      <div class="tile"><div class="tile-label">Active jobs</div><div class="tile-value">${jobRows.length}</div><div class="tile-sub">Jobs with crew</div></div>
+    </div>
+    <h3>Labor by job</h3>
+    <table>
+      <thead><tr>
+        <th>Job</th>
+        <th style="text-align:right">Unique crew</th>
+        <th style="text-align:right">Crew-days</th>
+        <th style="text-align:right">Hours</th>
+        <th style="text-align:right">% of total</th>
+      </tr></thead>
+      <tbody>${jobRowsHtml}</tbody>
+    </table>
+    <div class="footer">FieldFlow · Generated ${new Date().toLocaleDateString()} · Hours are estimates based on scheduled days × 10hr</div>
+  </body></html>`;
+  _openReportWindow(html);
+}
+
+// ══════════════════════════════════════════════════════════════
+// #17 CERT COMPLIANCE DASHBOARD
+// ══════════════════════════════════════════════════════════════
+
+function generateCertCompliance() {
+  const totalEmps = ROSTER.length;
+  if (totalEmps === 0) { showToast('No roster data', 'error'); return; }
+
+  // Count holders per cert
+  const certCounts = {};
+  CERT_DEFS.forEach(d => { certCounts[d.key] = { label: d.label, held: 0, expired: 0, expiring: 0 }; });
+  ROSTER.forEach(emp => {
+    CERT_DEFS.forEach(d => {
+      if (!!emp[d.key]) {
+        certCounts[d.key].held++;
+        const st = certStatus((CERT_EXPIRY[emp.last]||{})[d.key]);
+        if (st === 'expired')       certCounts[d.key].expired++;
+        else if (st === 'expiring') certCounts[d.key].expiring++;
+      }
+    });
+  });
+
+  const barsHtml = Object.values(certCounts).map(c => {
+    const pct = totalEmps > 0 ? (c.held / totalEmps) * 100 : 0;
+    const color = pct >= 75 ? '#16A34A' : pct >= 40 ? '#D97706' : '#DC2626';
+    const issueText = c.expired > 0 ? ` · <span style="color:#DC2626;font-weight:600">${c.expired} expired</span>`
+                    : c.expiring > 0 ? ` · <span style="color:#D97706">${c.expiring} expiring</span>`
+                    : '';
+    return `<div class="bar-row">
+      <div class="bar-name">${esc(c.label)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="bar-val">${c.held}/${totalEmps} (${pct.toFixed(0)}%)${issueText}</div>
+    </div>`;
+  }).join('');
+
+  // Role matrix — which roles have which certs
+  const roleMap = {};
+  ROSTER.forEach(emp => {
+    const r = emp.role || '0';
+    if (!roleMap[r]) roleMap[r] = { total: 0, certs: {} };
+    roleMap[r].total++;
+    CERT_DEFS.forEach(d => {
+      if (!!emp[d.key]) roleMap[r].certs[d.key] = (roleMap[r].certs[d.key] || 0) + 1;
+    });
+  });
+
+  const roleRowsHtml = Object.entries(roleMap)
+    .sort((a, b) => b[1].total - a[1].total)
+    .map(([role, m]) => `<tr>
+      <td><strong>${esc(role)}</strong></td>
+      <td style="text-align:right">${m.total}</td>
+      ${CERT_DEFS.map(d => {
+        const n = m.certs[d.key] || 0;
+        const pct = (n / m.total) * 100;
+        const color = pct >= 75 ? '#16A34A' : pct >= 40 ? '#D97706' : '#DC2626';
+        return `<td style="text-align:center;font-family:ui-monospace,monospace;color:${n>0?color:'#aaa'}">${n}/${m.total}</td>`;
+      }).join('')}
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html><head><title>Cert Compliance — CREM Inc.</title>${_REPORT_STYLES}</head><body>
+    <h1>CREM Inc. — Certification Compliance</h1>
+    <h2>Current workforce · ${totalEmps} employees</h2>
+    <div class="meta">
+      <strong>Generated:</strong> ${new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}<br>
+      <strong>Coverage color:</strong> <span style="color:#16A34A">green ≥75%</span> · <span style="color:#D97706">amber 40–75%</span> · <span style="color:#DC2626">red &lt;40%</span>
+    </div>
+    <h3>Workforce coverage by certification</h3>
+    <div style="margin:10px 0 20px">${barsHtml}</div>
+    <h3>Coverage by role</h3>
+    <table>
+      <thead><tr>
+        <th>Role</th><th style="text-align:right">Count</th>
+        ${CERT_DEFS.map(d => `<th style="text-align:center;font-size:10px">${esc(d.label.split(' ')[0])}</th>`).join('')}
+      </tr></thead>
+      <tbody>${roleRowsHtml}</tbody>
+    </table>
+    <div class="footer">FieldFlow · This report reflects current roster only. Historical trends require backup snapshots.</div>
+  </body></html>`;
+  _openReportWindow(html);
+}
+
+// ══════════════════════════════════════════════════════════════
+// #18 EMPLOYEE SCORECARD
+// ══════════════════════════════════════════════════════════════
+
+function generateEmployeeScorecard(last, first) {
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (!emp) { showToast('Employee not found', 'error'); return; }
+  const ci = CONTACT_INFO[last] || {};
+  const empKey = Object.keys(SCHED).find(k => k.startsWith(`${last},${first},`));
+
+  // 12-month lookback
+  const now = new Date();
+  const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+  // Count scheduled days in the last 365 days
+  let daysWorked = 0, schoolDays = 0, vacationDays = 0, holidayDays = 0;
+  const jobCounts = {};
+  if (empKey && SCHED[empKey]) {
+    SCHED[empKey].forEach((wk, wi) => {
+      if (!wk) return;
+      const wkDate = new Date(SCHED_CURRENT_WEEK.monday);
+      wkDate.setDate(wkDate.getDate() + (wi - SCHED_CURRENT_WEEK.index) * 7);
+      if (wkDate < yearAgo || wkDate > now) return;
+      wk.slice(0, 5).forEach(cell => {
+        if (!cell) return;
+        if (cell === 'School')       schoolDays++;
+        else if (cell === 'VACATION') vacationDays++;
+        else if (cell === 'HOLIDAY')  holidayDays++;
+        else if (cell === 'OFF')      {}
+        else {
+          daysWorked++;
+          jobCounts[cell] = (jobCounts[cell] || 0) + 1;
+        }
+      });
+    });
+  }
+  const estHours = daysWorked * 10;
+
+  // Absences in last 12 months
+  const absences = ABSENT_LOG.filter(e => {
+    if (!empKey || e.empKey !== empKey) return false;
+    const d = new Date(e.date);
+    return d >= yearAgo && d <= now;
+  });
+  const absentCount = absences.filter(e => e.type === 'absent').length;
+  const lateCount   = absences.filter(e => e.type === 'late').length;
+  const absRate = daysWorked > 0 ? ((absentCount / daysWorked) * 100).toFixed(1) : '0.0';
+
+  // Certs held
+  const certsHeld = CERT_DEFS.filter(d => !!emp[d.key]).map(d => {
+    const exp = (CERT_EXPIRY[last]||{})[d.key];
+    const status = certStatus(exp);
+    const statusTxt = exp
+      ? (status === 'expired' ? `EXPIRED ${exp}` : status === 'expiring' ? `expires ${exp}` : `valid to ${exp}`)
+      : 'no expiry on file';
+    const statusColor = status === 'expired' ? '#DC2626' : status === 'expiring' ? '#D97706' : '#16A34A';
+    return `<tr><td>${esc(d.label)}</td><td style="color:${statusColor};font-size:10.5px">${esc(statusTxt)}</td></tr>`;
+  }).join('');
+
+  const topJobs = Object.entries(jobCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+  const jobsHtml = topJobs.length
+    ? topJobs.map(([j, d]) => `<tr><td>${esc(j)}</td><td style="text-align:right;font-family:ui-monospace,monospace">${d} days</td><td style="text-align:right;font-family:ui-monospace,monospace">${((d/daysWorked)*100).toFixed(0)}%</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#888;font-style:italic">No job assignments in this period.</td></tr>';
+
+  const html = `<!DOCTYPE html><html><head><title>Scorecard — ${esc(last)}, ${esc(first)}</title>${_REPORT_STYLES}</head><body>
+    <h1>${esc(last)}, ${esc(first)}</h1>
+    <h2>Employee Scorecard · ${yearAgo.toLocaleDateString()} → ${now.toLocaleDateString()}</h2>
+    <div class="meta">
+      <strong>Role:</strong> ${esc(emp.role)} &nbsp; <strong>Badge:</strong> ${esc(emp.ba||'—')}<br>
+      <strong>Phone:</strong> ${esc(ci.phone||'—')} &nbsp; <strong>Emergency contact:</strong> ${esc(ci.ec_name||'—')}${ci.ec_phone?' · '+esc(ci.ec_phone):''}
+    </div>
+    <div class="tile-row">
+      <div class="tile"><div class="tile-label">Days worked</div><div class="tile-value">${daysWorked}</div><div class="tile-sub">Last 12 months</div></div>
+      <div class="tile"><div class="tile-label">Est. hours</div><div class="tile-value">${estHours.toLocaleString()}</div><div class="tile-sub">@ 10hr/day</div></div>
+      <div class="tile"><div class="tile-label">Absences</div><div class="tile-value">${absentCount}</div><div class="tile-sub">${lateCount} late · ${absRate}% rate</div></div>
+      <div class="tile"><div class="tile-label">Certs held</div><div class="tile-value">${CERT_DEFS.filter(d => !!emp[d.key]).length}</div><div class="tile-sub">of ${CERT_DEFS.length} tracked</div></div>
+    </div>
+    <h3>Time breakdown</h3>
+    <table>
+      <thead><tr><th>Category</th><th style="text-align:right">Days</th></tr></thead>
+      <tbody>
+        <tr><td>Worked</td><td style="text-align:right;font-family:ui-monospace,monospace">${daysWorked}</td></tr>
+        <tr><td>School</td><td style="text-align:right;font-family:ui-monospace,monospace">${schoolDays}</td></tr>
+        <tr><td>Vacation</td><td style="text-align:right;font-family:ui-monospace,monospace">${vacationDays}</td></tr>
+        <tr><td>Holiday</td><td style="text-align:right;font-family:ui-monospace,monospace">${holidayDays}</td></tr>
+      </tbody>
+    </table>
+    <h3>Top jobs</h3>
+    <table>
+      <thead><tr><th>Job</th><th style="text-align:right">Days</th><th style="text-align:right">% of worked</th></tr></thead>
+      <tbody>${jobsHtml}</tbody>
+    </table>
+    <h3>Certifications</h3>
+    <table>
+      <thead><tr><th>Certification</th><th>Status</th></tr></thead>
+      <tbody>${certsHeld || '<tr><td colspan="2" style="text-align:center;color:#888;font-style:italic">No certs on file.</td></tr>'}</tbody>
+    </table>
+    <div class="footer">FieldFlow · Confidential personnel document · For internal use only</div>
+  </body></html>`;
+  _openReportWindow(html);
+}
+
 function printSchedule() {
   const schedEl = document.getElementById('screen-schedule');
   if (schedEl) {
@@ -7421,6 +9032,152 @@ function renderJobProgressBar(j, opts = {}) {
       <div style="height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden">
         <div style="height:100%;width:${p.progress}%;background:${s.bar};transition:width .3s ease"></div>
       </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// #24 JOB KICKOFF CHECKLIST
+// ══════════════════════════════════════════════════════════════
+// Computes which kickoff items are complete for a given job — live from
+// the job's own data, no separate storage needed.
+
+function kickoffStatus(j) {
+  const hasAddress = !!(j.address && j.address.length > 3);
+  const hasDoc     = !!j.doc_path;
+  const hasLead    = !!(j.lead && j.lead.length > 1);
+  const crew = (typeof getJobCrew === 'function') ? getJobCrew(j) : [];
+  const hasCrew    = crew.length > 0;
+  const hasTimeline = !!(j.startDate && j.endDate);
+  const hasEmail   = !!(j.leadEmail && j.leadEmail.includes('@'));
+
+  return [
+    { key:'address',  label:'Site address entered',       done: hasAddress,  hint: hasAddress ? '' : 'Enter a full address so weather forecasts work' },
+    { key:'lead',     label:'Foreman assigned',           done: hasLead,     hint: hasLead ? '' : 'Set the lead GF or FM' },
+    { key:'email',    label:'Foreman email on file',      done: hasEmail,    hint: hasEmail ? '' : 'Needed for crew hand-off briefings' },
+    { key:'timeline', label:'Start + end dates set',      done: hasTimeline, hint: hasTimeline ? '' : 'Enables progress tracking and days-remaining' },
+    { key:'doc',      label:'Site briefing doc uploaded', done: hasDoc,      hint: hasDoc ? '' : 'Upload the kickoff package PDF' },
+    { key:'crew',     label:'Crew assigned this week',    done: hasCrew,     hint: hasCrew ? '' : 'Assign at least one employee on the schedule' },
+  ];
+}
+
+function renderKickoffChecklist(j) {
+  const items = kickoffStatus(j);
+  const done = items.filter(i => i.done).length;
+  const total = items.length;
+  const pct = Math.round((done / total) * 100);
+  const statusColor = pct === 100 ? 'var(--good)' : pct >= 50 ? 'var(--warn)' : 'var(--bad)';
+  const statusLabel = pct === 100 ? '✓ Ready' : pct >= 50 ? 'In progress' : 'Incomplete';
+
+  const rows = items.map(i => `
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:12px">
+      <span style="width:18px;flex-shrink:0;color:${i.done?'var(--good)':'var(--muted)'};font-size:14px;line-height:1">${i.done?'✓':'○'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="color:${i.done?'var(--muted)':'var(--ink)'};text-decoration:${i.done?'line-through':'none'}">${esc(i.label)}</div>
+        ${!i.done && i.hint ? `<div style="font-size:10.5px;color:var(--muted);margin-top:1px">${esc(i.hint)}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  return `
+    <div style="margin:10px 0 14px;padding:11px 14px;background:var(--surface-2);border-radius:9px;border-left:3px solid ${statusColor}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--ink)">Kickoff checklist</div>
+        <div style="font-size:11px;color:${statusColor};font-weight:600">${done}/${total} · ${statusLabel}</div>
+      </div>
+      <div style="height:4px;background:var(--line);border-radius:2px;margin-bottom:10px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${statusColor};transition:width .3s ease"></div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// #25 SCHEDULE HEALTH SCORE
+// ══════════════════════════════════════════════════════════════
+// Composite 0-100 score combining: conflicts, ratio violations,
+// expired certs, fatigue flags. Higher = healthier.
+
+function computeScheduleHealth() {
+  const issues = { conflicts: 0, ratio: 0, expiredCerts: 0, fatigue: 0 };
+  const breakdown = [];
+
+  // 1. Conflicts — cells flagged as t-conf
+  Object.values(SCHED).forEach(weeks => {
+    const wk = weeks[SCHED_CURRENT_WEEK.index] || [];
+    wk.forEach(d => {
+      if (d && typeof primaryJob === 'function') {
+        const { cls } = primaryJob([d]);
+        if (cls === 't-conf') issues.conflicts++;
+      }
+    });
+  });
+
+  // 2. Ratio violations — count jobs failing JW ratio
+  if (typeof getJobCrew === 'function' && typeof getRatioStatus === 'function') {
+    JOBS.filter(j => j.status === 'active').forEach(j => {
+      const crew = getJobCrew(j);
+      if (crew.length && !getRatioStatus(crew).ok) issues.ratio++;
+    });
+  }
+
+  // 3. Expired certs
+  ROSTER.forEach(emp => {
+    if (typeof expiredCertsFor === 'function' && expiredCertsFor(emp.last).length > 0) {
+      issues.expiredCerts++;
+    }
+  });
+
+  // 4. Fatigue flags
+  if (typeof detectFatigueAlerts === 'function') {
+    issues.fatigue = detectFatigueAlerts().length;
+  }
+
+  // Compute score — start at 100, deduct per issue
+  // Weights chosen so typical incidents land in the 70-90 range
+  const deductions = issues.conflicts * 5 + issues.ratio * 8 +
+                     issues.expiredCerts * 6 + issues.fatigue * 4;
+  const score = Math.max(0, 100 - deductions);
+
+  breakdown.push({ label: 'Schedule conflicts',   count: issues.conflicts,    weight: 5 });
+  breakdown.push({ label: 'Ratio violations',     count: issues.ratio,        weight: 8 });
+  breakdown.push({ label: 'Expired certs',        count: issues.expiredCerts, weight: 6 });
+  breakdown.push({ label: 'Fatigue (7+ days)',    count: issues.fatigue,      weight: 4 });
+
+  const grade = score >= 90 ? { letter:'A', color:'var(--good)',  label:'Excellent' }
+              : score >= 75 ? { letter:'B', color:'var(--good)',  label:'Healthy'   }
+              : score >= 60 ? { letter:'C', color:'var(--warn)',  label:'Needs attention' }
+              : score >= 40 ? { letter:'D', color:'#D97706',      label:'At risk'   }
+                            : { letter:'F', color:'var(--bad)',   label:'Critical'  };
+
+  return { score, grade, breakdown, issues };
+}
+
+function renderHealthScorePanel(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const h = computeScheduleHealth();
+
+  const breakdownHtml = h.breakdown.map(b => {
+    const deduction = b.count * b.weight;
+    const dotColor = b.count === 0 ? 'var(--good)' : b.count <= 2 ? 'var(--warn)' : 'var(--bad)';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11.5px">
+      <span style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
+      <span style="flex:1;color:var(--ink)">${esc(b.label)}</span>
+      <span style="color:var(--muted);font-family:var(--mono);font-size:10.5px">${b.count} × ${b.weight}pt</span>
+      <span style="color:${b.count===0?'var(--muted)':'var(--bad)'};font-family:var(--mono);font-size:11px;font-weight:600;min-width:36px;text-align:right">${deduction>0?'−'+deduction:'—'}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+      <div style="width:64px;height:64px;border-radius:50%;background:${h.grade.color};display:flex;align-items:center;justify-content:center;color:var(--white);font-family:var(--serif);font-size:30px;font-weight:600;flex-shrink:0;line-height:1">${h.grade.letter}</div>
+      <div style="flex:1">
+        <div style="font-family:var(--serif);font-size:28px;font-weight:500;color:var(--ink);line-height:1">${h.score}<span style="font-size:14px;color:var(--muted);font-weight:400">/100</span></div>
+        <div style="font-size:12px;color:${h.grade.color};font-weight:600;margin-top:2px">${h.grade.label}</div>
+      </div>
+    </div>
+    <div style="padding-top:8px;border-top:1px solid var(--line)">
+      <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Deductions</div>
+      ${breakdownHtml}
     </div>`;
 }
 
@@ -8377,6 +10134,8 @@ function renderJobDetail(id) {
         </div>
       </div>
 
+      ${renderKickoffChecklist(j)}
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:4px">
         <div class="form-group">
           <label class="form-label">Job name</label>
@@ -8995,6 +10754,7 @@ function applyDayChange(crid, newValue) {
 
   // Persist to Supabase (fire-and-forget; on failure, keep in-memory state)
   persistScheduleOverride(d.empKey, d.weekIdx, d.dayIdx, newValue);
+  if (typeof markDirty === 'function') markDirty();
 
   // Send notifications to employee + old FM + new FM
   notifyDayChange(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
@@ -9162,6 +10922,149 @@ function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
 }
 
 // ── Toast — non-blocking confirmation ───────────────────────
+// ══════════════════════════════════════════════════════════════
+// #7 PHONE FORMATTER — auto-format to (xxx) xxx-xxxx
+// ══════════════════════════════════════════════════════════════
+function formatPhone(raw) {
+  if (!raw) return '';
+  const digits = String(raw).replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length <= 3)  return `(${digits}`;
+  if (digits.length <= 6)  return `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+}
+
+// Event delegation — any input with type="tel" or data-phone auto-formats on blur
+document.addEventListener('blur', e => {
+  const t = e.target;
+  if (!t || !t.tagName) return;
+  if (t.tagName !== 'INPUT') return;
+  if (t.type === 'tel' || t.dataset.phone !== undefined) {
+    const formatted = formatPhone(t.value);
+    if (formatted !== t.value) t.value = formatted;
+  }
+}, true);
+
+// ══════════════════════════════════════════════════════════════
+// #8 ADDRESS AUTOCOMPLETE — Nominatim typeahead
+// ══════════════════════════════════════════════════════════════
+let _addrTimer = null;
+let _addrCache = {};
+
+async function queryAddressSuggestions(q) {
+  if (!q || q.length < 5) return [];
+  const cached = _addrCache[q];
+  if (cached) return cached;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=4&addressdetails=1`;
+    const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    _addrCache[q] = data;
+    return data;
+  } catch { return []; }
+}
+
+function attachAddressAutocomplete(input) {
+  if (!input || input.dataset.addrAttached) return;
+  input.dataset.addrAttached = '1';
+  input.setAttribute('autocomplete', 'off');
+
+  const wrap = input.closest('.form-group') || input.parentElement;
+  if (!wrap) return;
+  wrap.style.position = 'relative';
+
+  const dropdown = document.createElement('div');
+  dropdown.style.cssText = `
+    position:absolute;top:100%;left:0;right:0;background:var(--white);
+    border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);
+    z-index:50;margin-top:2px;max-height:260px;overflow-y:auto;display:none;
+  `;
+  wrap.appendChild(dropdown);
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    if (_addrTimer) clearTimeout(_addrTimer);
+    if (q.length < 5) { dropdown.style.display = 'none'; return; }
+    _addrTimer = setTimeout(async () => {
+      const results = await queryAddressSuggestions(q);
+      if (!results.length) { dropdown.style.display = 'none'; return; }
+      dropdown.innerHTML = results.map((r, i) => `
+        <div class="addr-suggestion" data-idx="${i}"
+          style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--line-soft);font-size:12px"
+          onmouseover="this.style.background='var(--accent-ghost)'"
+          onmouseout="this.style.background=''">
+          <div style="color:var(--ink);font-weight:500">${esc(r.display_name.split(',').slice(0,2).join(','))}</div>
+          <div style="color:var(--muted);font-size:10.5px;margin-top:1px">${esc(r.display_name.split(',').slice(2).join(',').trim())}</div>
+        </div>
+      `).join('');
+      dropdown.style.display = 'block';
+      dropdown.querySelectorAll('.addr-suggestion').forEach((el, idx) => {
+        el.addEventListener('mousedown', e => {
+          e.preventDefault();
+          input.value = results[idx].display_name;
+          dropdown.style.display = 'none';
+        });
+      });
+    }, 400);
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => { dropdown.style.display = 'none'; }, 200);
+  });
+}
+
+// Auto-attach to any address input when rendered
+setInterval(() => {
+  document.querySelectorAll('input[id$="-address"]:not([data-addr-attached])').forEach(attachAddressAutocomplete);
+}, 500);
+
+// ══════════════════════════════════════════════════════════════
+// #14 CERT-EXPIRED CELL FLAGGING — red border when employee has expired critical cert
+// ══════════════════════════════════════════════════════════════
+// Returns array of expired cert keys for an employee. Empty if all current.
+function expiredCertsFor(last) {
+  const expiry = CERT_EXPIRY[last] || {};
+  return Object.entries(expiry).filter(([key, date]) =>
+    date && certStatus(date) === 'expired'
+  ).map(([key]) => key);
+}
+
+// Returns true if employee has at least one expired cert (used for grid border)
+function hasExpiredCerts(last) {
+  return expiredCertsFor(last).length > 0;
+}
+
+// ══════════════════════════════════════════════════════════════
+// #19 UNSAVED-CHANGES GUARD — warn before leaving if recent edits
+// ══════════════════════════════════════════════════════════════
+let _lastChangeAt = 0;
+function markDirty() { _lastChangeAt = Date.now(); }
+
+window.addEventListener('beforeunload', e => {
+  // Warn if changes were made in the last 10 seconds (writes may be in flight)
+  if (_lastChangeAt && (Date.now() - _lastChangeAt) < 10000) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved changes. Leave anyway?';
+    return e.returnValue;
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// EMPLOYEE PROPAGATION — single source of refresh for CRUD
+// ══════════════════════════════════════════════════════════════
+// Every employee add/edit/delete must call this so all views update.
+// This is the single place to add future view hooks.
+function _refreshAllEmpViews() {
+  try { if (typeof renderRosterTable === 'function') renderRosterTable(); } catch (e) { console.warn('[refresh] roster', e); }
+  try { if (typeof buildSchedTbody === 'function') buildSchedTbody(); } catch (e) { console.warn('[refresh] sched', e); }
+  try { if (typeof renderOrgChart === 'function') renderOrgChart('org-chart-container'); } catch (e) { console.warn('[refresh] org', e); }
+  try { if (typeof renderDashMiniGrid === 'function') renderDashMiniGrid(); } catch (e) { console.warn('[refresh] dash', e); }
+  try { if (typeof renderHealthScorePanel === 'function') renderHealthScorePanel('dash-health'); } catch (e) { console.warn('[refresh] health', e); }
+  try { if (typeof updateCertsBadge === 'function') updateCertsBadge(); } catch (e) { console.warn('[refresh] certs', e); }
+  try { if (typeof renderCertsAdmin === 'function' && document.getElementById('admin-pane-certs')?.style.display !== 'none') renderCertsAdmin(); } catch (e) { console.warn('[refresh] certs-admin', e); }
+}
+
 function showToast(msg, kind) {
   let host = document.getElementById('ff-toast-host');
   if (!host) {
@@ -10173,7 +12076,7 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
-  // Full auth wall — session restore or login screen.
+  // Production auth: session restore or login screen.
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
@@ -10299,7 +12202,7 @@ async function loadPersistedData() {
   // 6. Employees — sync roster from DB, override in-memory ROSTER
   const empRows = await _safeLoad('employees', () =>
     _sb.from('employees')
-      .select('id,last,first,role,ba,wa,or,ae,fk,hz,o10,o30,phone,ec_name,ec_phone,ec_rel,photo_path,notes,active')
+      .select('id,last,first,role,ba,wa,or,ae,fk,hz,o10,o30,phone,ec_name,ec_phone,ec_rel,photo_path,notes,active,notify_pref,manager_id')
       .eq('active', true)
       .order('last')
   );
@@ -10311,6 +12214,9 @@ async function loadPersistedData() {
         wa:!!r.wa, or:!!r.or, ae:!!r.ae, fk:!!r.fk, hz:!!r.hz, o10:!!r.o10, o30:!!r.o30,
         phone:r.phone||'', ec_name:r.ec_name||'', ec_phone:r.ec_phone||'', ec_rel:r.ec_rel||'',
         photo_path:r.photo_path||null,
+        notify_pref:r.notify_pref || 'email',
+        db_id: r.id,
+        manager_id: r.manager_id || null,
       };
       if (idx >= 0) Object.assign(ROSTER[idx], entry);
       else ROSTER.push({ ...entry, db_id: r.id });
