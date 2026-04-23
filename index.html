@@ -7425,10 +7425,9 @@ function renderOrgChart(containerId) {
   const isAdmin = typeof _currentUser !== 'undefined' &&
     ['superintendent','admin'].includes((_currentUser.role || '').toLowerCase());
 
-  if (roots.length === 0) {
-    el.innerHTML = `<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No employees on the org chart yet.</div>`;
-    return;
-  }
+  // NOTE: We don't early-return when roots.length === 0.
+  // The layout (Unassigned sidebar + empty canvas) must always render so the
+  // user can see all employees and build the tree from scratch.
 
   function nodeKey(emp) { return emp.db_id || `${emp.last},${emp.first}`; }
 
