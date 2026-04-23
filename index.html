@@ -1581,6 +1581,28 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 40px 20px;
 }
+
+/* Canvas highlighted when dragging a person over empty space */
+.org-canvas.canvas-drop-hover {
+  background: var(--accent-ghost);
+  outline: 3px dashed var(--accent);
+  outline-offset: -10px;
+}
+.org-canvas.canvas-drop-hover::before {
+  content: '⬇ Drop here to add as a new root node';
+  position: sticky;
+  top: 10px; left: 0; right: 0;
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px; font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-faint);
+  border-radius: 8px;
+  margin: 10px 20px;
+  z-index: 20;
+  pointer-events: none;
+}
 .org-tree-pan {
   padding: 40px 32px;
   display: inline-block;
@@ -7501,7 +7523,7 @@ function renderOrgChart(containerId) {
              <span>📌 Selecting reports for <strong>${esc(_orgAssignMode.last)}, ${esc(_orgAssignMode.first)}</strong> · Click any card to add/remove as report</span>
              <button class="btn btn-sm btn-primary" onclick="exitAssignMode()">Done</button>
            </div>`
-        : `<div class="org-drag-hint" data-tip="The org chart is independent of job assignments — an employee on Job X can report to anyone, not necessarily the GF leading that job. This matters for rare cases like apprentices whose actual mentor differs from their job's FM.">💡 Right-click in Unassigned → Make root node · drag others from Unassigned onto tree cards · drag on empty canvas to pan · reporting is independent of job assignments</div>`)
+        : `<div class="org-drag-hint" data-tip="The org chart is independent of job assignments — an employee on Job X can report to anyone, not necessarily the GF leading that job.">💡 Drag from Unassigned onto empty canvas → new root node · drag onto a tree card → assign as report · drag on empty canvas → pan · right-click for more</div>`)
     : '';
 
   const controls = `
@@ -7556,8 +7578,8 @@ function renderOrgChart(containerId) {
     ? `<div class="org-empty-state">
          <div style="font-size:48px;opacity:.35;margin-bottom:8px">🌲</div>
          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">No one assigned yet</div>
-         <div style="font-size:12px;color:var(--muted);max-width:300px;margin:0 auto;line-height:1.5">
-           Right-click someone in the <strong>Unassigned</strong> list on the left and choose <strong>“Make root node”</strong> to start your tree. Then drag others onto them.
+         <div style="font-size:12px;color:var(--muted);max-width:320px;margin:0 auto;line-height:1.5">
+           Drag anyone from <strong>Unassigned</strong> onto this canvas to make them a root node. Then drag others onto them to build their team.
          </div>
        </div>`
     : `<div class="org-tree-pan" id="org-tree-pan">
@@ -8194,6 +8216,46 @@ function attachOrgDragHandlers(root) {
         ? `Moved ${srcEmp.last}, ${srcEmp.first} + ${reports.length} report${reports.length===1?'':'s'} back to unassigned`
         : `Moved ${srcEmp.last}, ${srcEmp.first} back to unassigned`;
       showToast(msg, 'success');
+      renderOrgChart(root.id || 'org-chart-container');
+    });
+  }
+
+  // Canvas background: drop here = make root node (start a new tree)
+  const canvas = root.querySelector('#org-canvas');
+  if (canvas) {
+    canvas.addEventListener('dragover', e => {
+      if (!dragSource) return;
+      // Only when hovering background — not when over a card
+      if (e.target.closest('.org-card')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      canvas.classList.add('canvas-drop-hover');
+    });
+    canvas.addEventListener('dragleave', e => {
+      // Only remove if we're leaving the canvas entirely
+      if (!canvas.contains(e.relatedTarget)) canvas.classList.remove('canvas-drop-hover');
+    });
+    canvas.addEventListener('drop', async e => {
+      if (!dragSource) return;
+      if (e.target.closest('.org-card')) return; // card drop handled elsewhere
+      e.preventDefault();
+      canvas.classList.remove('canvas-drop-hover');
+      const srcEmp = _empByDbId(dragSource.dataset.empDbId);
+      if (!srcEmp) return;
+      // Already a root? no-op
+      if (!srcEmp.manager_id && (typeof _rootedSolo === 'undefined' || _rootedSolo.has(srcEmp.db_id))) {
+        showToast(`${srcEmp.last}, ${srcEmp.first} is already a root node`, 'info');
+        return;
+      }
+      suppressNextClick = true;
+      srcEmp.manager_id = null;
+      // Remember this person as a solo-root so they stay on canvas even with no reports yet
+      if (typeof _rootedSolo !== 'undefined') {
+        _rootedSolo.add(srcEmp.db_id);
+        try { localStorage.setItem('fieldflow-rooted-solo', JSON.stringify([..._rootedSolo])); } catch {}
+      }
+      await saveOrgManager(srcEmp.db_id, null);
+      showToast(`${srcEmp.last}, ${srcEmp.first} added as a root node — drag others onto them to build their team`, 'success');
       renderOrgChart(root.id || 'org-chart-container');
     });
   }
