@@ -12234,6 +12234,36 @@ async function loadPersistedData() {
       }
     });
     if (typeof filterRoster === 'function') filterRoster('');
+
+    // ── FIRST-RUN CLEAN: if user has never built hierarchy, ignore stale manager_ids
+    // `_rootedSolo` is only populated by makeRootNode(). Empty set = user has never used it.
+    // In that case, we treat any existing manager_id values as stale (from old Auto-assign)
+    // and clear them both in memory AND in the database so next load is truly empty.
+    try {
+      const rootedSolo = JSON.parse(localStorage.getItem('fieldflow-rooted-solo') || '[]');
+      if (rootedSolo.length === 0) {
+        const stale = ROSTER.filter(e => e.manager_id);
+        if (stale.length > 0) {
+          console.log(`[org] First-run: clearing ${stale.length} stale manager_id values (user has not built hierarchy yet)`);
+          // Clear in-memory immediately so render sees empty tree
+          ROSTER.forEach(e => { e.manager_id = null; });
+          // Fire-and-forget DB cleanup
+          (async () => {
+            let cleared = 0;
+            for (const emp of stale) {
+              if (!emp.db_id) continue;
+              try {
+                const { error } = await _sb.from('employees')
+                  .update({ manager_id: null })
+                  .eq('id', emp.db_id);
+                if (!error) cleared++;
+              } catch {}
+            }
+            console.log(`[org] First-run: ${cleared}/${stale.length} DB rows cleared`);
+          })();
+        }
+      }
+    } catch (e) { console.warn('[org] first-run check failed', e); }
   }
 }
 
