@@ -1486,7 +1486,91 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 .cert-yes { color: var(--ff-green); font-weight: 500; }
 .cert-no  { color: var(--ff-tx4); }
 
-/* ── Interactive org tree (top-down) ─────────────────── */
+/* ── Full-profile overlay (from org chart, schedule, anywhere) ── */
+.emp-profile-overlay {
+  position: fixed; inset: 0;
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+.emp-profile-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.emp-profile-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(10, 14, 24, 0.55);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.emp-profile-modal {
+  position: relative;
+  background: var(--white);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px -12px rgba(0,0,0,.35), 0 8px 20px -6px rgba(0,0,0,.18);
+  width: min(640px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform: translateY(8px) scale(.98);
+  transition: transform .18s ease;
+}
+.emp-profile-overlay.open .emp-profile-modal {
+  transform: translateY(0) scale(1);
+}
+.emp-profile-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+  flex-shrink: 0;
+}
+.emp-profile-close {
+  width: 28px; height: 28px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px; line-height: 1;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .1s ease;
+}
+.emp-profile-close:hover { border-color: var(--bad); color: var(--bad); }
+.emp-profile-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 0 14px;
+  flex-shrink: 0;
+}
+.ep-tab {
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 12px; font-weight: 500;
+  color: var(--muted);
+  font-family: inherit;
+  transition: all .1s ease;
+}
+.ep-tab:hover { color: var(--ink); }
+.ep-tab.active {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.emp-profile-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: 6px 0;
+}
+.ep-section { padding: 10px 14px; }
 .org-tree-controls {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 10px; gap: 8px; flex-wrap: wrap;
@@ -5302,6 +5386,125 @@ function renderOrgSection(last, first) {
   return html;
 }
 
+// ══════════════════════════════════════════════════════════════
+// FULL PROFILE OVERLAY — works from anywhere (org chart, schedule, etc.)
+// ══════════════════════════════════════════════════════════════
+// Opens the same cert/profile/chain UI as openCertPanel, but as a
+// full-screen modal overlay so the user doesn't leave the current tab.
+function openEmpProfileOverlay(last, first, role) {
+  // Remove any existing overlay first
+  const existing = document.getElementById('emp-profile-overlay');
+  if (existing) existing.remove();
+
+  const emp = ROSTER.find(e => e.last === last);
+  if (!emp) { showToast(`Can't find ${last}, ${first}`, 'error'); return; }
+  if (!CERT_EXPIRY[last]) CERT_EXPIRY[last] = {};
+  const expiry = CERT_EXPIRY[last];
+  const isAdmin = typeof _currentUser !== 'undefined' &&
+    ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase());
+
+  const certRows = CERT_DEFS.map(cd => {
+    const has   = !!emp[cd.key];
+    const st    = certStatus(expiry[cd.key]);
+    const stCls = st === 'expired' ? 'cert-expired' : st === 'expiring' ? 'cert-expiring' : st === 'ok' ? 'cert-ok' : '';
+    const stTxt = st === 'expired' ? '⚠ Expired' : st === 'expiring' ? '⚠ Expiring soon' : st === 'ok' ? '✓ Valid' : '';
+    return `
+      <div class="cert-field-row" style="${st === 'expired' ? 'background:#FEF2F2' : st === 'expiring' ? 'background:#FFFBEB' : ''}">
+        <div style="flex:1">
+          <div class="cert-name-lbl">${esc(cd.label)}</div>
+          <div class="cert-has" style="color:${has ? 'var(--ff-green)' : 'var(--ff-tx4)'}">
+            ${has ? 'Has cert' : 'Not held'} ${stTxt ? '· <span class="'+stCls+'" style="font-size:9.5px">'+stTxt+'</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${isAdmin ? `<button onclick="toggleCertHeld('${esc(last)}','${esc(first)}','${esc(cd.key)}',${has});setTimeout(()=>openEmpProfileOverlay('${esc(last)}','${esc(first)}','${esc(role)}'),150)"
+            style="padding:2px 8px;border-radius:5px;border:1px solid ${has?'var(--bad)':'var(--good)'};background:transparent;cursor:pointer;font-size:10px;color:${has?'var(--bad)':'var(--good)'};font-family:inherit">
+            ${has ? 'Remove' : 'Add'}
+          </button>` : ''}
+          ${has ? `<input class="cert-date-input ${stCls}" type="date"
+            value="${esc(expiry[cd.key]||'')}"
+            data-cert="${esc(cd.key)}"
+            data-emp="${esc(last)}"
+            onchange="updateCertExpiry('${esc(last)}',this.dataset.cert,this.value)">` : '<span style="font-size:10px;color:var(--ff-tx4)">N/A</span>'}
+        </div>
+      </div>`;
+  }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'emp-profile-overlay';
+  overlay.className = 'emp-profile-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-label', `${last}, ${first} full profile`);
+  overlay.innerHTML = `
+    <div class="emp-profile-backdrop" onclick="closeEmpProfileOverlay()"></div>
+    <div class="emp-profile-modal">
+      <header class="emp-profile-hdr">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">${esc(last)}, ${esc(first)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${roleBadge(role)} full profile</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${isAdmin ? `
+            <button class="btn btn-sm" onclick="generateEmployeeScorecard('${esc(last)}','${esc(first)}')" data-tip="12-month scorecard PDF">📊 Scorecard</button>
+            <button class="btn btn-sm" onclick="openEditEmployeeModal('${esc(last)}','${esc(first)}')" data-tip="Edit name, role, certs, contact">Edit</button>
+            <button class="btn btn-sm" onclick="deleteEmployee('${esc(last)}','${esc(first)}','${esc(role)}')" style="color:var(--bad);border-color:var(--bad)" data-tip="Remove from roster">Remove</button>
+          ` : ''}
+          <button onclick="closeEmpProfileOverlay()" class="emp-profile-close" aria-label="Close" data-tip="Close profile (Esc)">×</button>
+        </div>
+      </header>
+
+      <div class="emp-profile-tabs">
+        <button class="ep-tab active" data-ep-tab="certs" onclick="switchEmpProfileTab('certs')">Certs</button>
+        <button class="ep-tab" data-ep-tab="profile" onclick="switchEmpProfileTab('profile')">Profile</button>
+        <button class="ep-tab" data-ep-tab="org" onclick="switchEmpProfileTab('org')">Chain</button>
+      </div>
+
+      <div class="emp-profile-body">
+        <div id="ep-section-certs" class="ep-section">
+          ${certRows}
+        </div>
+        <div id="ep-section-profile" class="ep-section" style="display:none">
+          ${renderFullProfile(last, first, role, emp)}
+        </div>
+        <div id="ep-section-org" class="ep-section" style="display:none">
+          ${renderOrgSection(last, first)}
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // ESC to close + focus trap
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeEmpProfileOverlay();
+    }
+  };
+  overlay._escHandler = escHandler;
+  document.addEventListener('keydown', escHandler);
+  // Trigger entrance animation next frame
+  requestAnimationFrame(() => overlay.classList.add('open'));
+}
+
+function closeEmpProfileOverlay() {
+  const overlay = document.getElementById('emp-profile-overlay');
+  if (!overlay) return;
+  if (overlay._escHandler) document.removeEventListener('keydown', overlay._escHandler);
+  overlay.classList.remove('open');
+  setTimeout(() => overlay.remove(), 180);
+}
+
+function switchEmpProfileTab(which) {
+  const overlay = document.getElementById('emp-profile-overlay');
+  if (!overlay) return;
+  overlay.querySelectorAll('.ep-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.epTab === which);
+  });
+  overlay.querySelectorAll('.ep-section').forEach(s => {
+    s.style.display = s.id === `ep-section-${which}` ? '' : 'none';
+  });
+}
+
 function openCertPanel(last, first, role) {
   certPanelOpen = last;
   // Highlight row
@@ -7536,7 +7739,11 @@ function renderOrgChart(containerId) {
         <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#64748B;border-radius:2px"></span>MH</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        ${isAdmin ? `<button class="btn btn-sm" onclick="resetOrgHierarchy()" data-tip="Clear the whole tree — everyone back to Unassigned">Clear tree</button>` : ''}
+        ${isAdmin ? `<button id="org-clear-btn" class="btn btn-sm" style="position:relative;overflow:hidden"
+            data-tip="Hold for 3 seconds to clear the entire tree. Click won't do it — this prevents accidents.">
+            <span class="org-clear-label" style="position:relative;z-index:2">Hold to clear tree</span>
+            <span id="org-clear-fill" style="position:absolute;inset:0;width:0%;background:var(--bad);transition:width .05s linear;z-index:1"></span>
+          </button>` : ''}
         <button class="btn btn-sm" onclick="expandAllOrg('${esc(containerId)}')" data-tip="Show every node">Expand all</button>
         <button class="btn btn-sm" onclick="collapseAllOrg('${esc(containerId)}')" data-tip="Show only top level">Collapse all</button>
       </div>
@@ -7564,7 +7771,7 @@ function renderOrgChart(containerId) {
       data-emp-hover="${esc(e.last)},${esc(e.first)}"
       oncontextmenu="showOrgContextMenu(event,'${esc(e.db_id||'')}','${esc(e.last)}','${esc(e.first)}')"
       data-tip="${esc(e.last)}, ${esc(e.first)} — ${esc(e.role)}. Not in org tree yet. Right-click → Make root node to place them, or drag onto a tree card to assign as report"
-      onclick="openCertPanel('${esc(e.last)}','${esc(e.first)}','${esc(e.role)}')">
+      onclick="openEmpProfileOverlay('${esc(e.last)}','${esc(e.first)}','${esc(e.role)}')">
       ${avatar}
       <div style="flex:1;min-width:0">
         <div class="unassigned-name">${esc(e.last)}, ${esc((e.first||'').charAt(0))}.</div>
@@ -7615,6 +7822,65 @@ function renderOrgChart(containerId) {
   if (_orgPanelFor) _renderManagePanel();
   if (isAdmin && !_orgAssignMode) attachOrgDragHandlers(el);
   if (!treeEmpty) attachPanHandlers(el);
+  if (isAdmin) attachClearTreeHoldHandler(el);
+}
+
+// Hold-to-activate for the "Clear tree" button — 3 seconds
+let _clearHoldAbort = null;
+function attachClearTreeHoldHandler(root) {
+  if (_clearHoldAbort) _clearHoldAbort.abort();
+  _clearHoldAbort = new AbortController();
+  const signal = _clearHoldAbort.signal;
+  const btn = root.querySelector('#org-clear-btn');
+  const fill = root.querySelector('#org-clear-fill');
+  const label = root.querySelector('.org-clear-label');
+  if (!btn || !fill || !label) return;
+
+  const HOLD_MS = 3000;
+  let pressedAt = null;
+  let rafId = null;
+
+  const reset = () => {
+    pressedAt = null;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    fill.style.width = '0%';
+    label.textContent = 'Hold to clear tree';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  };
+
+  const tick = () => {
+    if (!pressedAt) return;
+    const elapsed = Date.now() - pressedAt;
+    const pct = Math.min(100, (elapsed / HOLD_MS) * 100);
+    fill.style.width = pct + '%';
+    const remaining = Math.max(0, Math.ceil((HOLD_MS - elapsed) / 1000));
+    label.textContent = elapsed < HOLD_MS ? `Keep holding… ${remaining}s` : 'Releasing…';
+    btn.style.color = 'var(--white)';
+    if (elapsed >= HOLD_MS) {
+      // Fire!
+      reset();
+      resetOrgHierarchy();
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  };
+
+  const start = (e) => {
+    if (e.button !== undefined && e.button !== 0) return; // left-mouse only
+    e.preventDefault();
+    pressedAt = Date.now();
+    rafId = requestAnimationFrame(tick);
+  };
+
+  btn.addEventListener('mousedown',  start, { signal });
+  btn.addEventListener('touchstart', start, { signal, passive: false });
+  btn.addEventListener('mouseup',    reset, { signal });
+  btn.addEventListener('mouseleave', reset, { signal });
+  btn.addEventListener('touchend',   reset, { signal });
+  btn.addEventListener('touchcancel',reset, { signal });
+  // Block the default click so a regular click does nothing
+  btn.addEventListener('click', e => { e.preventDefault(); e.stopImmediatePropagation(); }, { signal, capture: true });
 }
 
 // Filter unassigned list by search query
@@ -7800,7 +8066,7 @@ function _renderManagePanel() {
       </div>
 
       <div class="manage-panel-section" style="border-top:1px solid var(--line);padding-top:12px">
-        <button class="btn btn-sm" style="width:100%" onclick="openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}');closeManagePanel()" data-tip="Open this employee's full profile (certs, contact, schedule)">Open full profile →</button>
+        <button class="btn btn-sm" style="width:100%" onclick="openEmpProfileOverlay('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}')" data-tip="Open full profile as a centered overlay — Esc to close, keep clicking other tree cards after">Open full profile →</button>
       </div>
     </div>`;
 }
@@ -7927,10 +8193,9 @@ async function resetOrgHierarchy() {
     showToast('Tree is already empty — nobody is assigned', 'info');
     return;
   }
-  if (!confirm(`Clear the whole tree?\n\n${count} manager assignment${count===1?'':'s'} and ${soloCount} root placement${soloCount===1?'':'s'} will be removed from the database.\n\nEveryone goes back to Unassigned.`)) {
-    console.log('[clear tree] cancelled by user');
-    return;
-  }
+
+  // NOTE: The Clear tree button requires a 3-second hold to reach this function,
+  // which is the confirmation. No extra confirm() dialog needed.
 
   // Clear in-memory state first so UI updates immediately
   ROSTER.forEach(emp => { emp.manager_id = null; });
@@ -8011,7 +8276,7 @@ function showOrgContextMenu(e, dbId, last, first) {
   const isCollapsed = _orgCollapsed.has(key);
 
   const items = [
-    { icon:'👤', label:'Open profile',            action:`openCertPanel('${esc(last)}','${esc(first)}','${esc(emp.role)}')` },
+    { icon:'👤', label:'Open profile',            action:`openEmpProfileOverlay('${esc(last)}','${esc(first)}','${esc(emp.role)}')` },
     { icon:'🌲', label:'Make root node',          action:`makeRootNode('${esc(dbId||'')}')` },
     { icon:'📌', label:'Set as manager — select reports…', action:`enterAssignMode('${esc(dbId||'')}','${esc(last)}','${esc(first)}')` },
     { icon:'⚙',  label:'Manage reporting…',       action:`openManagePanel('${esc(dbId||'')}','${esc(last)}','${esc(first)}')` },
@@ -8204,17 +8469,31 @@ function attachOrgDragHandlers(root) {
       const srcEmp = _empByDbId(dragSource.dataset.empDbId);
       if (!srcEmp) return;
       suppressNextClick = true;
-      srcEmp.manager_id = null;
-      // Also unassign anyone who reported to them (they'd become orphans otherwise)
+
+      // Capture the person's current parent and reports before we change anything
+      const oldManagerId = srcEmp.manager_id || null;
       const reports = ROSTER.filter(e => e.manager_id === srcEmp.db_id);
+
+      // Promote reports one level up — they take srcEmp's old manager as their new one
+      // (null = they become root nodes)
       for (const r of reports) {
-        r.manager_id = null;
-        await saveOrgManager(r.db_id, null);
+        r.manager_id = oldManagerId;
+        await saveOrgManager(r.db_id, oldManagerId);
+        // If being promoted to root, remember so they stay visible even with no reports
+        if (!oldManagerId && typeof _rootedSolo !== 'undefined') {
+          _rootedSolo.add(r.db_id);
+        }
       }
+
+      // Clear srcEmp — they're now truly unassigned
+      srcEmp.manager_id = null;
+      if (typeof _rootedSolo !== 'undefined') _rootedSolo.delete(srcEmp.db_id);
       await saveOrgManager(srcEmp.db_id, null);
+      try { localStorage.setItem('fieldflow-rooted-solo', JSON.stringify([..._rootedSolo])); } catch {}
+
       const msg = reports.length
-        ? `Moved ${srcEmp.last}, ${srcEmp.first} + ${reports.length} report${reports.length===1?'':'s'} back to unassigned`
-        : `Moved ${srcEmp.last}, ${srcEmp.first} back to unassigned`;
+        ? `${srcEmp.last}, ${srcEmp.first} moved to Unassigned · ${reports.length} direct report${reports.length===1?'':'s'} promoted to ${oldManagerId ? 'their grand-manager' : 'root level'}`
+        : `${srcEmp.last}, ${srcEmp.first} moved to Unassigned`;
       showToast(msg, 'success');
       renderOrgChart(root.id || 'org-chart-container');
     });
