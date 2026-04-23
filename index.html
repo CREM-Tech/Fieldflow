@@ -1627,37 +1627,132 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   .main { width: 100%; }
-
   .topbar { padding: 10px 12px; }
   .topbar-title { font-size: 13.5px; }
   .topbar-sub { display: none; }
   .topbar-right .btn:not(.btn-primary) { display: none; }
 
   .screen { padding: 10px 12px; }
+  .metrics { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .metric { padding: 10px 12px; }
+  .metric-value { font-size: 22px; }
 
-  .metrics { grid-template-columns: repeat(2, 1fr); }
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 10px; }
+  .col-stack { gap: 10px; }
 
-  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* Schedule table — horizontal scroll with sticky first col */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
   .sched-tbl { min-width: 580px; }
+  .sched-tbl td:first-child,
+  .sched-tbl th:first-child { position: sticky; left: 0; z-index: 2; background: var(--white); }
+  html.dark .sched-tbl td:first-child,
+  html.dark .sched-tbl th:first-child { background: var(--surface-2); }
 
-  #fin-job-detail { width: 100% !important; margin-top: 12px; }
-  #screen-admin > div { grid-template-columns: 1fr !important; }
-  #cert-panel { width: 100% !important; margin-top: 12px; }
+  /* Job view */
+  .jv-tbl { min-width: 560px; }
+
+  /* Cert panel becomes full-width bottom sheet on mobile */
+  #cert-panel {
+    width: 100% !important; position: fixed !important;
+    bottom: 0; left: 0; right: 0; top: auto !important;
+    max-height: 80dvh !important; border-radius: 16px 16px 0 0 !important;
+    box-shadow: 0 -8px 32px rgba(0,0,0,.2); z-index: 40;
+    overflow-y: auto;
+  }
+
+  /* Admin tabs — scroll horizontally */
+  #screen-admin > div:first-child { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; padding-bottom: 4px; }
+  .admin-tab { white-space: nowrap; flex-shrink: 0; font-size: 11.5px; padding: 7px 10px; }
+  .admin-pane { padding-top: 4px; }
+
+  /* Roster layout */
+  #screen-roster > div:last-child { flex-direction: column; }
+
+  /* Panel */
+  .panel { padding: 12px; }
+  .panel-header { margin-bottom: 10px; }
+
+  /* Controls bar wrap */
+  .controls { flex-wrap: wrap; gap: 6px; }
+  .ctrl-sel, .ctrl-lbl { font-size: 11px; }
+
+  /* Drag board */
   #ds-board { overflow-x: auto; }
-  #screen-job-manager > div { flex-direction: column !important; }
-  #screen-job-manager > div > div:first-child { width: 100% !important; }
 
+  /* Login */
   #ff-login > div { padding: 28px 20px !important; margin: 16px !important; }
   #ff-topbar-email { display: none; }
 
-  .btn { min-height: 36px; }
-  .controls { flex-wrap: wrap; gap: 6px; }
+  /* Touch targets */
+  .btn { min-height: 40px; }
+  .nav-item { min-height: 40px; padding: 10px 16px; }
+  .rbtn { min-height: 36px; padding: 6px 12px; }
+
+  /* Dashboard mini-grid — scroll if needed */
+  .mini-grid { min-width: 320px; overflow-x: auto; }
+  .mg-cell { min-width: 44px; font-size: 9px; padding: 3px 2px; }
+  .mg-name { font-size: 9px; }
+  .mg-head { font-size: 9px; }
+
+  /* FAB — lift above mobile nav bars */
+  #absent-fab { bottom: 80px; right: 14px; }
+
+  /* Cmd-K search */
+  #ff-cmdk-box { width: calc(100vw - 32px) !important; max-height: 60dvh; }
+
+  /* School grid */
+  .school-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+
+  /* Profile panel */
+  .profile-photo { width: 56px; height: 56px; font-size: 22px; }
+  .profile-field { grid-template-columns: 80px 1fr; }
+
+  /* Weather panel day cells */
+  #dash-weather > div > div:last-child { flex-wrap: wrap; gap: 4px; }
 }
 
 @media (max-width: 480px) {
   .metrics { grid-template-columns: 1fr 1fr; }
   .metric-value { font-size: 20px; }
+  .metric-sub { font-size: 9px; }
+  .panel-title { font-size: 12.5px; }
+  .admin-tab { font-size: 10.5px; padding: 6px 8px; }
+}
+
+/* ── Print layout ────────────────────────────────────────── */
+@media print {
+  /* Show only the schedule grid */
+  .sidebar, .topbar, #absent-fab, .controls,
+  .panel-link, .btn, .admin-tab,
+  #dash-sched-heat, #dash-act-changes,
+  .cert-tabs, #cert-section-org { display: none !important; }
+
+  html, body { overflow: visible !important; height: auto !important; }
+  .main { width: 100% !important; padding: 0 !important; }
+  .screen { display: none !important; padding: 0 !important; }
+  #screen-schedule { display: block !important; }
+
+  .tbl-wrap { overflow: visible !important; }
+  .sched-tbl { width: 100% !important; min-width: unset !important; font-size: 8pt; border-collapse: collapse; }
+  .sched-tbl th, .sched-tbl td { border: 1px solid #ccc !important; padding: 3px 4px !important; }
+  .sched-tbl thead tr { background: #f5f5f5 !important; color: #000 !important; }
+
+  /* Tag colors to grayscale for B&W printers */
+  .tag.t-job     { background: #e8e8e8 !important; color: #000 !important; }
+  .tag.t-school  { background: #d0d0d0 !important; color: #000 !important; }
+  .tag.t-vac     { background: #e0e0e0 !important; color: #000 !important; }
+  .tag.t-conf    { background: #b0b0b0 !important; color: #000 !important; font-weight: 700 !important; }
+  .tag.t-holiday { background: #c8c8c8 !important; color: #000 !important; }
+  .tag.t-empty   { color: #999 !important; }
+
+  @page { margin: 1cm; size: landscape; }
+
+  /* Print header */
+  #screen-schedule::before {
+    content: 'FieldFlow — CREM Inc. Crew Schedule — ' attr(data-print-date);
+    display: block; font-size: 10pt; font-weight: 600;
+    margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ccc;
+  }
 }
 
 
@@ -2384,7 +2479,34 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <div class="topbar-title" id="screen-title">Dashboard</div>
         <div class="topbar-sub"   id="screen-sub">Week of Apr 13, 2026</div>
       </div>
-      <div class="topbar-right" id="topbar-right"></div>
+      <div class="topbar-right" id="topbar-right">
+        <button onclick="openCmdK()" title="Search (⌘K)"
+          style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11.5px;color:var(--muted);font-family:inherit;transition:all .12s"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--ink)'"
+          onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--muted)'">
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Search
+          <kbd style="font-size:9.5px;background:var(--line);padding:1px 5px;border-radius:4px;font-family:var(--mono)">⌘K</kbd>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Global search overlay ────────────────────────── -->
+    <div id="ff-cmdk-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-start;justify-content:center;padding-top:15dvh"
+      onclick="if(event.target===this)closeCmdK()">
+      <div id="ff-cmdk-box" style="width:520px;background:var(--white);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.25);overflow:hidden;display:flex;flex-direction:column;max-height:70dvh">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" style="flex-shrink:0;color:var(--muted)"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input id="ff-cmdk-input" placeholder="Search employees, jobs, screens…"
+            oninput="runCmdK(this.value)" onkeydown="handleCmdKKey(event)"
+            style="flex:1;border:none;outline:none;font-size:15px;font-family:inherit;background:transparent;color:var(--ink)">
+          <kbd onclick="closeCmdK()" style="font-size:10px;background:var(--surface-2);padding:2px 7px;border-radius:5px;cursor:pointer;color:var(--muted);font-family:var(--mono)">esc</kbd>
+        </div>
+        <div id="ff-cmdk-results" style="overflow-y:auto;max-height:50dvh;padding:6px 0"></div>
+        <div style="padding:8px 14px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);display:flex;gap:14px">
+          <span>↑↓ navigate</span><span>↵ select</span><span>esc close</span>
+        </div>
+      </div>
     </div>
 
     <!-- DASHBOARD ──────────────────────────────────────── -->
@@ -2570,7 +2692,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="conflict">Conflicts first</option>
           <option value="unassigned">Unassigned first</option>
         </select>
-        <button class="btn btn-sm" onclick="exportScheduleCSV()" style="margin-left:auto">Export CSV</button>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="exportScheduleCSV()">Export CSV</button>
+          <button class="btn btn-sm" onclick="printSchedule()" title="Print schedule">🖨 Print</button>
+        </div>
       </div>
       <div class="tbl-wrap">
         <table class="sched-tbl">
@@ -2686,15 +2811,28 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 
     <!-- ROSTER ─────────────────────────────────────────── -->
     <div class="screen" id="screen-roster">
-      <div style="display:flex;gap:8px;margin-bottom:13px;align-items:center">
-        <button class="btn btn-primary btn-sm">+ Add employee</button>
-        <input id="roster-search" placeholder="Search name…" oninput="filterRoster(this.value)" style="padding:5px 9px;border:1px solid var(--ff-bdr-m);border-radius:5px;font-size:11.5px;font-family:inherit;width:200px">
+      <!-- Tab strip: Roster | Org chart -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px;flex-wrap:wrap">
+        <div style="display:flex;gap:2px;background:var(--surface-2);border-radius:8px;padding:3px;margin-right:4px">
+          <button id="roster-tab-list" onclick="rosterTab('list')"
+            style="padding:5px 14px;border-radius:6px;border:none;font-family:inherit;font-size:12px;cursor:pointer;font-weight:500;background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)">
+            Roster
+          </button>
+          <button id="roster-tab-org" onclick="rosterTab('org')"
+            style="padding:5px 14px;border-radius:6px;border:none;font-family:inherit;font-size:12px;cursor:pointer;font-weight:500;background:transparent;color:var(--muted)">
+            Org chart
+          </button>
+        </div>
+        <button class="btn btn-primary btn-sm" id="roster-add-btn" onclick="openAddEmployeeModal()">+ Add employee</button>
+        <input id="roster-search" placeholder="Search name…" oninput="filterRoster(this.value)" style="padding:5px 9px;border:1px solid var(--ff-bdr-m);border-radius:5px;font-size:11.5px;font-family:inherit;width:180px">
         <select class="ctrl-sel" id="roster-role-filter" onchange="filterRoster(document.getElementById('roster-search').value)">
           <option>All roles</option><option>GF</option><option>FM</option><option>JN/JW</option><option>Apprentices</option><option>MH</option>
         </select>
-        <span style="font-size:10.5px;color:var(--ff-tx3);margin-left:4px">Click any row to manage certifications &amp; expiry dates</span>
+        <span style="font-size:10.5px;color:var(--ff-tx3)">Click any row to manage certifications &amp; expiry dates</span>
       </div>
-      <div style="display:flex;gap:13px">
+
+      <!-- Roster list view -->
+      <div id="roster-view-list" style="display:flex;gap:13px">
         <div class="tbl-wrap" style="flex:1">
           <table class="roster-tbl">
             <thead><tr>
@@ -2710,6 +2848,13 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </div>
         <!-- Cert expiry panel — sticky so it follows scroll -->
         <div id="cert-panel" style="display:none;width:320px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto;border-radius:11px"></div>
+      </div>
+
+      <!-- Org chart view -->
+      <div id="roster-view-org" style="display:none">
+        <div style="max-width:560px" id="org-chart-container">
+          <div style="font-size:11.5px;color:var(--muted);padding:12px;text-align:center">Loading org chart…</div>
+        </div>
       </div>
     </div>
 
@@ -3711,7 +3856,7 @@ function buildSchedTbody() {
 
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
-    return `<tr>
+    return `<tr data-emp-key="${esc(key)}">
       <td class="stick"><div class="emp-name">${esc(last)}, ${esc(first)}</div><div class="emp-role">${roleBadge(role)}</div></td>
       ${viewWeeks.map((wi, wPos) =>
         (weeks[wi] || ['','','','','']).map((d, di) => {
@@ -3727,6 +3872,9 @@ function buildSchedTbody() {
       ).join('')}
     </tr>`;
   }).join('');
+
+  // Attach long-press / right-click for transfer requests
+  if (typeof attachScheduleRowEvents === 'function') attachScheduleRowEvents();
 }
 
 // Export current filtered schedule as CSV — only the visible 3-week window
@@ -4220,6 +4368,217 @@ function renderRosterTable() {
 
 function filterRoster(val) { renderRosterTable(); }
 
+// ── Employee CRUD ─────────────────────────────────────────────
+
+function openAddEmployeeModal() {
+  // Remove any existing modal
+  document.getElementById('emp-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'emp-modal';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  `;
+
+  const roles = ['GF','FM','JN','JW','WLD','5A','5B','4A','4B','3A','3B','2A','2B','2C','2D','2E','1A','1B','1C','1D','1E','MH','0'];
+
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:14px;padding:24px;width:100%;max-width:500px;max-height:90dvh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-family:var(--serif);font-size:18px;font-weight:500;color:var(--ink)">Add employee</div>
+        <button onclick="document.getElementById('emp-modal').remove()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);line-height:1">×</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="form-group">
+          <label class="form-label">Last name *</label>
+          <input id="emp-new-last" class="form-input" placeholder="Smith">
+        </div>
+        <div class="form-group">
+          <label class="form-label">First name *</label>
+          <input id="emp-new-first" class="form-input" placeholder="John">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role *</label>
+          <select id="emp-new-role" class="form-input">
+            ${roles.map(r => `<option value="${r}">${r}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge access</label>
+          <input id="emp-new-ba" class="form-input" placeholder="AWS, CREM, etc.">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input id="emp-new-phone" class="form-input" type="tel" placeholder="(503) 555-0100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hire date</label>
+          <input id="emp-new-hire" class="form-input" type="date">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Licenses &amp; certifications</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px">
+        ${[['wa','WA Lic'],['or','OR Lic'],['ae','Aerial'],['fk','Forklift'],['hz','HAZWOPER'],['o10','OSHA 10'],['o30','OSHA 30']].map(([key,lbl]) => `
+          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;cursor:pointer">
+            <input type="checkbox" id="emp-new-${key}" style="accent-color:var(--accent);width:14px;height:14px">
+            ${lbl}
+          </label>`).join('')}
+      </div>
+
+      <div id="emp-modal-err" style="display:none;font-size:12px;color:var(--bad);margin-bottom:10px;padding:8px 12px;background:var(--bad-bg);border-radius:6px"></div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="document.getElementById('emp-modal').remove()">Cancel</button>
+        <button class="btn btn-sm btn-primary" onclick="saveNewEmployee()">Add employee</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  document.getElementById('emp-new-last')?.focus();
+}
+
+async function saveNewEmployee() {
+  const last  = document.getElementById('emp-new-last')?.value.trim();
+  const first = document.getElementById('emp-new-first')?.value.trim();
+  const role  = document.getElementById('emp-new-role')?.value || '0';
+  const ba    = document.getElementById('emp-new-ba')?.value.trim() || '';
+  const phone = document.getElementById('emp-new-phone')?.value.trim() || '';
+  const hire  = document.getElementById('emp-new-hire')?.value || null;
+  const errEl = document.getElementById('emp-modal-err');
+
+  const showErr = msg => { if (errEl) { errEl.textContent = msg; errEl.style.display = ''; } };
+
+  if (!last || !first) { showErr('First and last name are required.'); return; }
+  if (ROSTER.find(e => e.last.toLowerCase() === last.toLowerCase() && e.first.toLowerCase() === first.toLowerCase())) {
+    showErr(`${last}, ${first} already exists in the roster.`); return;
+  }
+
+  const certFields = ['wa','or','ae','fk','hz','o10','o30'];
+  const certs = {};
+  certFields.forEach(k => { certs[k] = !!document.getElementById('emp-new-' + k)?.checked; });
+
+  const entry = { last, first, role, ba, phone, ...certs,
+    ec_name:'', ec_phone:'', ec_rel:'', photo_path:null, hire_date: hire };
+
+  // 1. Add to in-memory ROSTER
+  ROSTER.push({ ...entry });
+
+  // 2. Expand SCHED for this employee
+  const empKey = `${last},${first},${role}`;
+  if (!SCHED[empKey]) {
+    SCHED[empKey] = Array.from({ length: SCHED_WEEKS_TOTAL }, () => ['','','','','']);
+    applyFederalHolidays(true); // silently fill holidays for this employee too
+  }
+
+  // 3. Persist to Supabase employees table
+  if (typeof _sb !== 'undefined' && _sb) {
+    const { data, error } = await _sb.from('employees').insert({
+      last, first, role, ba,
+      wa:  certs.wa,
+      or:  certs.or,
+      ae:  certs.ae,
+      fk:  certs.fk,
+      hz:  certs.hz,
+      o10: certs.o10,
+      o30: certs.o30,
+      phone, hire_date: hire || null, active: true,
+    }).select().maybeSingle();
+    if (error) {
+      showErr(`Database error: ${error.message}`);
+      // Rollback in-memory
+      const idx = ROSTER.findIndex(e => e.last === last && e.first === first);
+      if (idx >= 0) ROSTER.splice(idx, 1);
+      delete SCHED[empKey];
+      return;
+    }
+    // Store DB-assigned id on in-memory entry for future updates
+    const addedEmp = ROSTER.find(e => e.last === last && e.first === first);
+    if (addedEmp && data?.id) addedEmp.db_id = data.id;
+  }
+
+  // Sync phone to CONTACT_INFO so it shows on profile without needing reload
+  if (phone) {
+    if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
+    CONTACT_INFO[last].phone = phone;
+    saveContactInfo();
+  }
+
+  document.getElementById('emp-modal')?.remove();
+  renderRosterTable();
+  buildSchedTbody();
+  showToast(`${last}, ${first} added to roster`, 'success');
+}
+
+async function deleteEmployee(last, first, role) {
+  if (!confirm(`Remove ${last}, ${first} from the roster?\n\nThis will:\n• Delete their record from the database\n• Remove their schedule data\n• Cannot be undone\n\nAny past schedule history will remain in transfers and absence logs.`)) return;
+
+  const empKey = `${last},${first},${role}`;
+
+  // 1. Remove from ROSTER
+  const idx = ROSTER.findIndex(e => e.last === last && e.first === first);
+  if (idx >= 0) ROSTER.splice(idx, 1);
+
+  // 2. Remove from SCHED
+  delete SCHED[empKey];
+
+  // 3. Remove from Supabase
+  if (typeof _sb !== 'undefined' && _sb) {
+    // Soft delete — mark inactive instead of hard delete to preserve audit trail
+    await _safeWrite('employees delete', () =>
+      _sb.from('employees').update({ active: false })
+        .eq('last', last).eq('first', first)
+    );
+    // Remove schedule overrides for this employee
+    await _safeWrite('schedule_day_overrides delete', () =>
+      _sb.from('schedule_day_overrides').delete().eq('emp_key', empKey)
+    );
+    // Remove photo from storage if one exists
+    const photoPath = CONTACT_INFO[last]?.photo_path;
+    if (photoPath) {
+      await _sb.storage.from('employee-photos').remove([photoPath]).catch(() => {});
+    }
+  }
+
+  // 4. Clear contact info
+  delete CONTACT_INFO[last];
+  saveContactInfo();
+
+  // 5. Close cert panel if this employee's profile was open
+  if (certPanelOpen === last) {
+    const panel = document.getElementById('cert-panel');
+    if (panel) panel.style.display = 'none';
+    certPanelOpen = null;
+  }
+
+  renderRosterTable();
+  buildSchedTbody();
+  showToast(`${last}, ${first} removed from roster`, 'success');
+}
+
+function rosterTab(tab) {
+  const listView = document.getElementById('roster-view-list');
+  const orgView  = document.getElementById('roster-view-org');
+  const btnList  = document.getElementById('roster-tab-list');
+  const btnOrg   = document.getElementById('roster-tab-org');
+  const on  = 'background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)';
+  const off = 'background:transparent;color:var(--muted);box-shadow:none';
+  if (tab === 'list') {
+    if (listView) listView.style.display = 'flex';
+    if (orgView)  orgView.style.display  = 'none';
+    if (btnList) btnList.setAttribute('style', btnList.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^;]+/, on));
+    if (btnOrg)  btnOrg.setAttribute('style',  btnOrg.getAttribute('style').replace(/background:[^;]+;color:[^;]+/, off.split(';box-shadow')[0]));
+  } else {
+    if (listView) listView.style.display = 'none';
+    if (orgView)  orgView.style.display  = 'block';
+    if (btnList) btnList.setAttribute('style', btnList.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^;]+/, off));
+    if (btnOrg)  btnOrg.setAttribute('style',  btnOrg.getAttribute('style').replace(/background:[^;]+;color:[^;]+/, 'background:var(--white);color:var(--ink)'));
+    renderOrgChart('org-chart-container');
+  }
+}
+
 // Initial render
 renderRosterTable();
 
@@ -4309,35 +4668,62 @@ function renderProfileSection(last, first, role, emp) {
         <div class="profile-field-value ${trainings.length ? '' : 'empty'}">${trainings.length ? esc(trainings.join(' · ')) : 'None on file'}</div>
       </div>
       <div class="profile-field">
-        <div class="profile-field-label">Email</div>
-        <div class="profile-field-value empty">Not set</div>
-      </div>
-      <div class="profile-field">
         <div class="profile-field-label">Phone</div>
-        <div class="profile-field-value empty">Not set</div>
+        <div class="profile-field-value ${CONTACT_INFO[last]?.phone ? '' : 'empty'}">
+          ${CONTACT_INFO[last]?.phone
+            ? `<a href="tel:${esc(CONTACT_INFO[last].phone)}" style="color:var(--accent-dark);text-decoration:none;font-weight:500">${esc(CONTACT_INFO[last].phone)}</a>`
+            : 'Not set'}
+        </div>
       </div>
       <div class="profile-field">
         <div class="profile-field-label">This week</div>
         <div class="profile-field-value">${esc(thisWeekJob(last) || '—')}</div>
       </div>
     </div>
-
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5">
-      Photo upload and full training records will be editable here once connected to the employees table.
-    </div>
   `;
 }
 
-// Wrapper that renders profile + admin contact section together
+// Wrapper that renders profile + admin contact section + absence history together
 function renderFullProfile(last, first, role, emp) {
   const isAdmin = typeof _currentUser !== 'undefined' &&
     ['superintendent','admin'].includes((_currentUser.role || '').toLowerCase());
   const base = renderProfileSection(last, first, role, emp);
   if (!isAdmin) return base;
+
   const contactId = `contact-panel-${esc(last).replace(/[^a-zA-Z0-9]/g,'').toLowerCase()}`;
-  // Defer render so the element is in the DOM first
   setTimeout(() => renderContactPanel(last, first, contactId), 0);
-  return base + `<div id="${contactId}" style="margin-top:12px"></div>`;
+
+  // Absence history for this employee (admin only)
+  const empKey = Object.keys(SCHED).find(k => k.startsWith(last + ',' + first + ','));
+  const history = ABSENT_LOG
+    .filter(e => e.empKey === empKey || e.empKey.startsWith(last + ',' + first + ','))
+    .slice(0, 20);
+
+  const absenceHtml = history.length === 0
+    ? `<div style="font-size:11px;color:var(--muted);font-style:italic;padding:6px 0">No incidents on record.</div>`
+    : history.map(e => {
+        const typePill = e.type === 'absent'
+          ? `<span class="absent-pill absent" style="font-size:10px">✗ Absent</span>`
+          : `<span class="absent-pill late" style="font-size:10px">⏰ Late</span>`;
+        const d = new Date(e.at);
+        const timeStr = d.toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
+          ${typePill}
+          <span style="color:var(--muted);flex:1">${esc(e.job || '—')}</span>
+          <span style="color:var(--muted);font-size:10.5px;font-family:var(--mono)">${timeStr}</span>
+        </div>`;
+      }).join('');
+
+  const absenceSection = `
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+      <div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>Absence history <span style="color:var(--muted);font-weight:400">(admin only)</span></span>
+        <span style="color:var(--muted);font-weight:400;font-size:10px">${history.length} record${history.length !== 1 ? 's' : ''}</span>
+      </div>
+      ${absenceHtml}
+    </div>`;
+
+  return base + `<div id="${contactId}" style="margin-top:12px"></div>` + absenceSection;
 }
 
 function renderOrgSection(last, first) {
@@ -4406,23 +4792,30 @@ function openCertPanel(last, first, role) {
   panel.style.display = 'block';
 
   const rows = CERT_DEFS.map(cd => {
-    const has    = emp[cd.key] === 1;
+    const has    = !!emp[cd.key];
     const st     = certStatus(expiry[cd.key]);
     const stCls  = st === 'expired' ? 'cert-expired' : st === 'expiring' ? 'cert-expiring' : st === 'ok' ? 'cert-ok' : '';
     const stTxt  = st === 'expired' ? '⚠ Expired' : st === 'expiring' ? '⚠ Expiring soon' : st === 'ok' ? '✓ Valid' : '';
+    const isAdmin = typeof _currentUser !== 'undefined' && ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase());
     return `
       <div class="cert-field-row" style="${st === 'expired' ? 'background:#FEF2F2' : st === 'expiring' ? 'background:#FFFBEB' : ''}">
-        <div>
+        <div style="flex:1">
           <div class="cert-name-lbl">${esc(cd.label)}</div>
           <div class="cert-has" style="color:${has ? 'var(--ff-green)' : 'var(--ff-tx4)'}">
             ${has ? 'Has cert' : 'Not held'} ${stTxt ? '· <span class="'+stCls+'" style="font-size:9.5px">'+stTxt+'</span>' : ''}
           </div>
         </div>
-        ${has ? `<input class="cert-date-input ${stCls}" type="date"
-          value="${esc(expiry[cd.key]||'')}"
-          placeholder="Expiry date"
-          data-cert="${esc(cd.key)}"
-          data-emp="${esc(last)}">` : '<span style="font-size:10px;color:var(--ff-tx4)">N/A</span>'}
+        <div style="display:flex;align-items:center;gap:8px">
+          ${isAdmin ? `<button onclick="toggleCertHeld('${esc(last)}','${esc(first)}','${esc(cd.key)}',${has})"
+            style="padding:2px 8px;border-radius:5px;border:1px solid ${has?'var(--bad)':'var(--good)'};background:transparent;cursor:pointer;font-size:10px;color:${has?'var(--bad)':'var(--good)'};font-family:inherit">
+            ${has ? 'Remove' : 'Add'}
+          </button>` : ''}
+          ${has ? `<input class="cert-date-input ${stCls}" type="date"
+            value="${esc(expiry[cd.key]||'')}"
+            placeholder="Expiry date"
+            data-cert="${esc(cd.key)}"
+            data-emp="${esc(last)}">` : '<span style="font-size:10px;color:var(--ff-tx4)">N/A</span>'}
+        </div>
       </div>`;
   }).join('');
 
@@ -4436,7 +4829,17 @@ function openCertPanel(last, first, role) {
           <div style="font-size:13.5px;font-weight:500">${esc(last)}, ${esc(first)}</div>
           <div style="font-size:11px;color:var(--ff-tx3);margin-top:1px">${roleBadge(role)} Certifications</div>
         </div>
-        <button onclick="closeCertPanel()" style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:16px;color:var(--ff-tx3)">×</button>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${typeof _currentUser !== 'undefined' && ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase())
+            ? `<button onclick="openEditEmployeeModal('${esc(last)}','${esc(first)}')"
+                style="padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:10.5px;color:var(--ink);font-family:inherit"
+                title="Edit employee">Edit</button>
+               <button onclick="deleteEmployee('${esc(last)}','${esc(first)}','${esc(role)}')"
+                style="padding:3px 8px;border-radius:5px;border:1px solid var(--bad);background:transparent;cursor:pointer;font-size:10.5px;color:var(--bad);font-family:inherit"
+                title="Remove from roster">Remove</button>`
+            : ''}
+          <button onclick="closeCertPanel()" style="width:24px;height:24px;border-radius:4px;border:none;background:transparent;cursor:pointer;font-size:16px;color:var(--ff-tx3)">×</button>
+        </div>
       </div>
 
       <!-- Drill-down tabs -->
@@ -4661,7 +5064,122 @@ function closeCertPanel() {
 
 // ── #3 Utilization heatmap ────────────────────────────────────
 // Shows a 12-week colored bar per employee (past 6 + future 6 from today)
-// ── Dashboard activity panel tab switcher ─────────────────────
+// ── Dashboard activity panel tab switcher ─────────────────────// ── Dashboard mini-grid cell editor ─────────────────────────
+// Opens a small popover directly on the clicked cell so supers
+// can change a day without going to the full schedule screen.
+function openDashCellEditor(empKey, weekIdx, dayIdx, currentVal, cellEl) {
+  // Remove any existing popover
+  document.querySelectorAll('.dash-cell-pop').forEach(p => p.remove());
+
+  const dayName = ['Mon','Tue','Wed','Thu','Fri'][dayIdx];
+  const [last, first] = empKey.split(',');
+
+  const pop = document.createElement('div');
+  pop.className = 'dash-cell-pop';
+  pop.style.cssText = `
+    position:fixed;background:var(--white);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:999;
+    font-size:12px;font-family:var(--sans);
+  `;
+
+  // Position near cell
+  const rect = cellEl.getBoundingClientRect();
+  const top  = Math.min(rect.bottom + 6, window.innerHeight - 220);
+  const left = Math.min(rect.left, window.innerWidth - 220);
+  pop.style.top  = top + 'px';
+  pop.style.left = left + 'px';
+
+  const options = [''].concat(JOBS.map(j => j.name), ['School','VACATION','HOLIDAY','OFF']);
+  const opts = options.map(v =>
+    `<option value="${esc(v)}" ${v === currentVal ? 'selected' : ''}>${v || '— Clear —'}</option>`
+  ).join('');
+
+  pop.innerHTML = `
+    <div style="font-weight:600;color:var(--ink);margin-bottom:8px">${esc(last)}, ${esc(first)} · ${dayName}</div>
+    <select id="dash-cell-sel" style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:12px;margin-bottom:10px">${opts}</select>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center"
+        onclick="applyDashCellEdit('${esc(empKey)}',${weekIdx},${dayIdx})">Save</button>
+      <button class="btn btn-sm" onclick="this.closest('.dash-cell-pop').remove()">Cancel</button>
+    </div>`;
+
+  document.body.appendChild(pop);
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!pop.contains(e.target) && e.target !== cellEl) {
+        pop.remove();
+        document.removeEventListener('click', handler);
+      }
+    });
+  }, 50);
+}
+
+function applyDashCellEdit(empKey, weekIdx, dayIdx) {
+  const sel = document.getElementById('dash-cell-sel');
+  if (!sel) return;
+  const newVal = sel.value;
+  document.querySelectorAll('.dash-cell-pop').forEach(p => p.remove());
+
+  applyDayChange({ empKey, weekIdx, dayIdx, newValue: newVal });
+  renderDashMiniGrid();
+}
+
+// ── #17 Undo last schedule change ────────────────────────────
+let _undoTimer = null;
+const _undoStack = []; // { empKey, weekIdx, dayIdx, oldVal, newVal }
+
+function pushUndo(empKey, weekIdx, dayIdx, oldVal, newVal) {
+  _undoStack.unshift({ empKey, weekIdx, dayIdx, oldVal, newVal });
+  if (_undoStack.length > 20) _undoStack.pop();
+}
+
+function showUndoToast(empKey, weekIdx, dayIdx, oldVal, newVal) {
+  const [last] = empKey.split(',');
+  const dayName = ['Mon','Tue','Wed','Thu','Fri'][dayIdx] || '';
+
+  // Clear previous undo toast if any
+  if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+  const existing = document.getElementById('ff-undo-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'ff-undo-toast';
+  toast.style.cssText = `
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--white);
+    padding:10px 16px;border-radius:10px;font-size:12.5px;font-family:var(--sans);
+    display:flex;align-items:center;gap:12px;box-shadow:0 6px 20px rgba(0,0,0,.25);
+    z-index:1000;animation:fadeInPane .2s ease;white-space:nowrap;
+  `;
+  toast.innerHTML = `
+    <span>${esc(last)} · ${dayName}: ${esc(oldVal||'—')} → ${esc(newVal||'—')}</span>
+    <button onclick="executeUndo('${esc(empKey)}',${weekIdx},${dayIdx},'${esc(oldVal||'')}')"
+      style="background:rgba(255,255,255,.2);border:none;color:var(--white);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:500">
+      Undo
+    </button>`;
+  document.body.appendChild(toast);
+
+  _undoTimer = setTimeout(() => { toast.remove(); _undoTimer = null; }, 8000);
+}
+
+function executeUndo(empKey, weekIdx, dayIdx, restoreVal) {
+  const toast = document.getElementById('ff-undo-toast');
+  if (toast) toast.remove();
+  if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
+
+  if (SCHED[empKey] && SCHED[empKey][weekIdx]) {
+    SCHED[empKey][weekIdx][dayIdx] = restoreVal;
+    if (typeof persistScheduleOverride === 'function')
+      persistScheduleOverride(empKey, weekIdx, dayIdx, restoreVal);
+    buildSchedTbody();
+    renderDashMiniGrid();
+    showToast(`Undone: ${empKey.split(',')[0]} restored to ${restoreVal || '—'}`, 'success');
+  }
+}
+
+
 function dashActTab(tab) {
   const alerts  = document.getElementById('dash-act-alerts');
   const changes = document.getElementById('dash-act-changes');
@@ -4759,7 +5277,9 @@ function renderDashMiniGrid() {
 
     const cells = wk.slice(0, 5).map((d, di) => {
       const label = d === '' ? '—' : d.length > 7 ? d.substring(0, 7) + '…' : d;
-      return `<div class="mg-cell ${tagCls(d)}" title="${esc(d || 'Unassigned')}">${esc(label)}</div>`;
+      return `<div class="mg-cell ${tagCls(d)}" title="${esc(d || 'Unassigned')} · click to edit" style="cursor:pointer"
+        onclick="openDashCellEditor('${esc(key)}',${SCHED_CURRENT_WEEK.index},${di},'${esc(d || '')}',this)"
+        >${esc(label)}</div>`;
     }).join('');
 
     return `<div class="mg-name"><div class="mg-dot" style="background:${dotColor}"></div><span title="${esc(last)}">${esc(last)}</span></div>${cells}`;
@@ -5322,56 +5842,274 @@ function renderContactPanel(last, first, containerId) {
 // ── Profile photo upload ─────────────────────────────────────
 // Stores photo as base64 in CONTACT_INFO + localStorage.
 // Max ~400KB after resize — good enough for a 300×300 avatar.
-function handleProfilePhoto(last, first, input) {
+async function handleProfilePhoto(last, first, input) {
   const file = input.files?.[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
   if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5 MB', 'error'); return; }
 
-  const reader = new FileReader();
-  reader.onload = e => {
-    // Resize to max 300×300 via canvas to keep localStorage lean
-    const img = new Image();
-    img.onload = () => {
-      const MAX = 300;
-      const scale = Math.min(MAX / img.width, MAX / img.height, 1);
-      const canvas = document.createElement('canvas');
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  // Resize to max 400×400 via canvas before upload
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 400;
+        const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-      if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
-      CONTACT_INFO[last].photo = dataUrl;
+  if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
+
+  // Try Supabase Storage first; fall back to localStorage base64
+  if (typeof _sb !== 'undefined' && _sb) {
+    try {
+      // Convert dataUrl → Blob for upload
+      const res  = await fetch(dataUrl);
+      const blob = await res.blob();
+      const path = `photos/${last.toLowerCase()}_${first.toLowerCase()}_${Date.now()}.jpg`;
+
+      // Remove old photo if one exists
+      const oldPath = CONTACT_INFO[last].photo_path;
+      if (oldPath) await _sb.storage.from('employee-photos').remove([oldPath]).catch(() => {});
+
+      const { error } = await _sb.storage
+        .from('employee-photos')
+        .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+
+      if (error) throw error;
+
+      // Store path + preview dataUrl
+      CONTACT_INFO[last].photo_path = path;
+      CONTACT_INFO[last].photo      = dataUrl; // keep for instant display
       saveContactInfo();
 
-      // Refresh the profile section in the open cert panel
-      const emp = ROSTER.find(e => e.last === last && e.first === first);
-      if (emp && certPanelOpen === last) openCertPanel(last, first, emp.role);
-      showToast(`Photo saved for ${last}, ${first}`, 'success');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+      // Update employees table row if it exists
+      await _safeWrite('employees photo_path', () =>
+        _sb.from('employees').update({ photo_path: path })
+          .eq('last', last).eq('first', first)
+      );
+      showToast(`Photo uploaded for ${last}, ${first}`, 'success');
+    } catch (err) {
+      // Storage failed — fall back to localStorage
+      CONTACT_INFO[last].photo = dataUrl;
+      saveContactInfo();
+      showToast(`Photo saved locally (storage unavailable)`, 'warn');
+    }
+  } else {
+    CONTACT_INFO[last].photo = dataUrl;
+    saveContactInfo();
+    showToast(`Photo saved for ${last}, ${first}`, 'success');
+  }
+
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (emp && certPanelOpen === last) openCertPanel(last, first, emp.role);
+}
+
+// ── Toggle cert held/not-held → writes to employees table ─────
+async function toggleCertHeld(last, first, certKey, currentlyHeld) {
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (!emp) return;
+
+  const newVal = !currentlyHeld;
+  emp[certKey] = newVal;
+
+  // Write to Supabase employees table
+  if (typeof _sb !== 'undefined' && _sb) {
+    const col = certKey === 'or' ? '"or"' : certKey; // 'or' is reserved in SQL
+    await _safeWrite('employees cert toggle', () =>
+      _sb.from('employees').update({ [certKey]: newVal })
+        .eq('last', last).eq('first', first)
+    );
+  }
+
+  // If removing cert, also clear the expiry date
+  if (!newVal && CERT_EXPIRY[last]?.[certKey]) {
+    CERT_EXPIRY[last][certKey] = null;
+    await _safeWrite('cert_expiries clear', () =>
+      _sb.from('cert_expiries').delete()
+        .eq('emp_last', last).eq('cert_key', certKey)
+    );
+  }
+
+  openCertPanel(last, first, emp.role);
+  renderRosterTable();
+  showToast(`${last}: ${certKey.toUpperCase()} ${newVal ? 'added' : 'removed'}`, 'success');
+}
+
+// ── Edit employee modal — full field editing ───────────────────
+function openEditEmployeeModal(last, first) {
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (!emp) return;
+
+  document.getElementById('emp-edit-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'emp-edit-modal';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  `;
+
+  const roles = ['GF','FM','JN','JW','WLD','5A','5B','4A','4B','3A','3B','2A','2B','2C','2D','2E','1A','1B','1C','1D','1E','MH','0'];
+  const ci = CONTACT_INFO[last] || {};
+
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:90dvh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-family:var(--serif);font-size:18px;font-weight:500;color:var(--ink)">Edit — ${esc(last)}, ${esc(first)}</div>
+        <button onclick="document.getElementById('emp-edit-modal').remove()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted)">×</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="form-group">
+          <label class="form-label">Last name</label>
+          <input id="emp-edit-last" class="form-input" value="${esc(last)}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">First name</label>
+          <input id="emp-edit-first" class="form-input" value="${esc(first)}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select id="emp-edit-role" class="form-input">
+            ${roles.map(r => `<option value="${r}" ${r===emp.role?'selected':''}>${r}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge access</label>
+          <input id="emp-edit-ba" class="form-input" value="${esc(emp.ba||'')}">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Contact info</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div class="form-group">
+          <label class="form-label">Direct phone</label>
+          <input id="emp-edit-phone" class="form-input" type="tel" value="${esc(ci.phone||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emergency contact</label>
+          <input id="emp-edit-ec-name" class="form-input" value="${esc(ci.ec_name||'')}" placeholder="Full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">EC phone</label>
+          <input id="emp-edit-ec-phone" class="form-input" type="tel" value="${esc(ci.ec_phone||'')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Relationship</label>
+          <input id="emp-edit-ec-rel" class="form-input" value="${esc(ci.ec_rel||'')}" placeholder="Spouse, Parent…">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Status</div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer">
+          <input type="radio" name="emp-edit-status" id="emp-edit-active" value="active" ${emp.active !== false ? 'checked' : ''} style="accent-color:var(--good)"> Active
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer">
+          <input type="radio" name="emp-edit-status" id="emp-edit-inactive" value="inactive" ${emp.active === false ? 'checked' : ''} style="accent-color:var(--muted)"> Inactive / on leave
+        </label>
+      </div>
+
+      <div id="emp-edit-err" style="display:none;font-size:12px;color:var(--bad);margin-bottom:10px;padding:8px 12px;background:var(--bad-bg);border-radius:6px"></div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="document.getElementById('emp-edit-modal').remove()">Cancel</button>
+        <button class="btn btn-sm btn-primary" onclick="saveEditEmployee('${esc(last)}','${esc(first)}')">Save changes</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+}
+
+async function saveEditEmployee(origLast, origFirst) {
+  const newLast  = document.getElementById('emp-edit-last')?.value.trim();
+  const newFirst = document.getElementById('emp-edit-first')?.value.trim();
+  const newRole  = document.getElementById('emp-edit-role')?.value || '0';
+  const newBa    = document.getElementById('emp-edit-ba')?.value.trim() || '';
+  const phone    = document.getElementById('emp-edit-phone')?.value.trim() || '';
+  const ec_name  = document.getElementById('emp-edit-ec-name')?.value.trim() || '';
+  const ec_phone = document.getElementById('emp-edit-ec-phone')?.value.trim() || '';
+  const ec_rel   = document.getElementById('emp-edit-ec-rel')?.value.trim() || '';
+  const active   = document.getElementById('emp-edit-active')?.checked !== false;
+  const errEl    = document.getElementById('emp-edit-err');
+  const showErr  = msg => { if (errEl) { errEl.textContent = msg; errEl.style.display = ''; } };
+
+  if (!newLast || !newFirst) { showErr('Name fields are required.'); return; }
+
+  const emp = ROSTER.find(e => e.last === origLast && e.first === origFirst);
+  if (!emp) { showErr('Employee not found.'); return; }
+
+  // Check name collision if renaming
+  if ((newLast !== origLast || newFirst !== origFirst) &&
+      ROSTER.find(e => e.last === newLast && e.first === newFirst && !(e.last === origLast && e.first === origFirst))) {
+    showErr(`${newLast}, ${newFirst} already exists in the roster.`); return;
+  }
+
+  // Update SCHED key if name/role changed
+  const oldKey = `${origLast},${origFirst},${emp.role}`;
+  const newKey = `${newLast},${newFirst},${newRole}`;
+  if (oldKey !== newKey && SCHED[oldKey]) {
+    SCHED[newKey] = SCHED[oldKey];
+    delete SCHED[oldKey];
+  }
+
+  // Update in-memory ROSTER
+  Object.assign(emp, { last: newLast, first: newFirst, role: newRole, ba: newBa, active });
+
+  // Update CONTACT_INFO
+  if (!CONTACT_INFO[newLast]) CONTACT_INFO[newLast] = {};
+  Object.assign(CONTACT_INFO[newLast], { phone, ec_name, ec_phone, ec_rel });
+  if (newLast !== origLast && CONTACT_INFO[origLast]) {
+    // Migrate contact info to new last name key
+    CONTACT_INFO[newLast] = { ...CONTACT_INFO[origLast], phone, ec_name, ec_phone, ec_rel };
+    delete CONTACT_INFO[origLast];
+  }
+  saveContactInfo();
+
+  // Write everything to Supabase
+  if (typeof _sb !== 'undefined' && _sb) {
+    const { error } = await _sb.from('employees')
+      .update({
+        last: newLast, first: newFirst, role: newRole, ba: newBa,
+        phone, ec_name, ec_phone, ec_rel, active,
+      })
+      .eq('last', origLast).eq('first', origFirst);
+
+    if (error) { showErr(`Database error: ${error.message}`); return; }
+
+    // If SCHED key changed, migrate schedule_day_overrides in DB too
+    if (oldKey !== newKey) {
+      await _safeWrite('schedule_day_overrides rename', () =>
+        _sb.from('schedule_day_overrides').update({ emp_key: newKey }).eq('emp_key', oldKey)
+      );
+    }
+  }
+
+  document.getElementById('emp-edit-modal')?.remove();
+  renderRosterTable();
+  buildSchedTbody();
+
+  // Re-open cert panel with new name/role
+  if (certPanelOpen === origLast) openCertPanel(newLast, newFirst, newRole);
+
+  showToast(`${newLast}, ${newFirst} updated`, 'success');
 }
 
 function editContactInfo(last, first) {
-  if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
-  const c = CONTACT_INFO[last];
-  const phone    = prompt(`${last}, ${first} — Direct phone:`, c.phone || '');
-  if (phone === null) return;
-  const ec_name  = prompt('Emergency contact name:', c.ec_name || '');
-  if (ec_name === null) return;
-  const ec_phone = prompt('Emergency contact phone:', c.ec_phone || '');
-  if (ec_phone === null) return;
-  const ec_rel   = prompt('Relationship (e.g. Spouse, Parent):', c.ec_rel || '');
-  if (ec_rel === null) return;
-  CONTACT_INFO[last] = { ...c, phone: phone.trim(), ec_name: ec_name.trim(), ec_phone: ec_phone.trim(), ec_rel: ec_rel.trim() };
-  saveContactInfo();
-  // Refresh open cert panel if it's showing this person
-  const emp = ROSTER.find(e => e.last === last && e.first === first);
-  if (emp && certPanelOpen === last) openCertPanel(last, first, emp.role);
-  showToast(`Contact info saved for ${last}, ${first}`, 'success');
+  // Now delegates to the full edit modal
+  openEditEmployeeModal(last, first);
 }
 
 // ── Build school grid ─────────────────────────────────────────
@@ -5751,7 +6489,354 @@ function goScreen(id) {
     try { renderWeekCompare('sched-compare'); } catch {}
     try { renderEmpTimeline('sched-timeline'); } catch {}
     try { renderFinder('sched-finder'); } catch {}
+
+// ══════════════════════════════════════════════════════════════
+// #15 GLOBAL ⌘K SEARCH
+// ══════════════════════════════════════════════════════════════
+
+let _cmdkIdx = -1;
+
+function openCmdK() {
+  const overlay = document.getElementById('ff-cmdk-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  const input = document.getElementById('ff-cmdk-input');
+  if (input) { input.value = ''; input.focus(); }
+  runCmdK('');
+}
+
+function closeCmdK() {
+  const overlay = document.getElementById('ff-cmdk-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdK(); }
+  if (e.key === 'Escape') closeCmdK();
+});
+
+function runCmdK(q) {
+  const res = document.getElementById('ff-cmdk-results');
+  if (!res) return;
+  _cmdkIdx = -1;
+  q = q.toLowerCase().trim();
+
+  const results = [];
+
+  // Screens
+  const screens = [
+    { label:'Dashboard', screen:'dashboard', icon:'📊' },
+    { label:'Schedule grid', screen:'schedule', icon:'📅' },
+    { label:'Job view', screen:'job-view', icon:'🏗' },
+    { label:'Requests', screen:'requests', icon:'✅' },
+    { label:'Roster', screen:'roster', icon:'👥' },
+    { label:'School schedule', screen:'school', icon:'📚' },
+    { label:'Admin', screen:'admin', icon:'⚙️' },
+    { label:'Settings', screen:'settings', icon:'🔧' },
+  ];
+  screens.forEach(s => {
+    if (!q || s.label.toLowerCase().includes(q))
+      results.push({ type:'screen', icon:s.icon, label:s.label, sub:'Screen', action:`goScreen('${s.screen}');closeCmdK()` });
+  });
+
+  // Employees
+  ROSTER.forEach(emp => {
+    const full = `${emp.last} ${emp.first} ${emp.role}`.toLowerCase();
+    if (!q || full.includes(q)) {
+      const job = thisWeekJob(emp.last) || '—';
+      const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+      results.push({
+        type:'employee', icon:'👤',
+        label:`${emp.last}, ${emp.first}`,
+        sub:`${emp.role} · ${job}`,
+        action:`goScreen('roster');closeCmdK();setTimeout(()=>{const r=ROSTER.find(e=>e.last==='${esc(emp.last)}');if(r)openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}')},200)`,
+      });
+    }
+  });
+
+  // Jobs
+  JOBS.forEach(j => {
+    if (!q || j.name.toLowerCase().includes(q) || j.number.toLowerCase().includes(q)) {
+      results.push({
+        type:'job', icon:'🏗',
+        label:j.name, sub:`${j.number} · ${j.location}`,
+        action:`goScreen('job-view');closeCmdK()`,
+      });
+    }
+  });
+
+  const shown = results.slice(0, 12);
+  if (!shown.length) {
+    res.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No results for "${esc(q)}"</div>`;
+    return;
   }
+
+  res.innerHTML = shown.map((r, i) => `
+    <div class="cmdk-item" data-idx="${i}" onclick="${r.action}"
+      style="display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:background .08s"
+      onmouseover="this.style.background='var(--accent-ghost)';_cmdkIdx=${i}"
+      onmouseout="this.style.background=''">
+      <span style="font-size:16px;flex-shrink:0">${r.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(r.label)}</div>
+        <div style="font-size:11px;color:var(--muted)">${esc(r.sub)}</div>
+      </div>
+      <span style="font-size:10px;color:var(--line);flex-shrink:0">${r.type}</span>
+    </div>`).join('');
+  _cmdkIndex = shown; // store for keyboard nav
+}
+
+let _cmdkIndex = [];
+function handleCmdKKey(e) {
+  const items = document.querySelectorAll('.cmdk-item');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _cmdkIdx = Math.min(_cmdkIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.style.background = i === _cmdkIdx ? 'var(--accent-ghost)' : '');
+    items[_cmdkIdx]?.scrollIntoView({ block:'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _cmdkIdx = Math.max(_cmdkIdx - 1, 0);
+    items.forEach((el, i) => el.style.background = i === _cmdkIdx ? 'var(--accent-ghost)' : '');
+    items[_cmdkIdx]?.scrollIntoView({ block:'nearest' });
+  } else if (e.key === 'Enter' && _cmdkIdx >= 0) {
+    items[_cmdkIdx]?.click();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// #11 LONG-PRESS / RIGHT-CLICK TRANSFER REQUEST FROM SCHEDULE
+// ══════════════════════════════════════════════════════════════
+
+let _lpTimer = null;
+
+function attachScheduleRowEvents() {
+  // Called after buildSchedTbody — attaches long-press + right-click to each row
+  document.querySelectorAll('#sched-tbody tr[data-emp-key]').forEach(row => {
+    const empKey = row.dataset.empKey;
+    if (!empKey) return;
+
+    // Long press (mobile)
+    row.addEventListener('touchstart', () => {
+      _lpTimer = setTimeout(() => openTransferFromSched(empKey), 600);
+    }, { passive: true });
+    row.addEventListener('touchend',   () => clearTimeout(_lpTimer));
+    row.addEventListener('touchmove',  () => clearTimeout(_lpTimer));
+
+    // Right-click (desktop)
+    row.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      openTransferFromSched(empKey, e.clientX, e.clientY);
+    });
+  });
+}
+
+function openTransferFromSched(empKey, x, y) {
+  document.querySelectorAll('.sched-ctx-menu').forEach(m => m.remove());
+  const [last, first, role] = empKey.split(',');
+  const wi = SCHED_CURRENT_WEEK.index;
+  const wk = SCHED[empKey]?.[wi] || [];
+  const { lbl: currentJob } = primaryJob(wk);
+
+  const menu = document.createElement('div');
+  menu.className = 'sched-ctx-menu';
+  menu.style.cssText = `
+    position:fixed;background:var(--white);border:1px solid var(--line);border-radius:10px;
+    padding:6px 0;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:300;
+    font-size:12.5px;font-family:var(--sans);
+  `;
+  if (x !== undefined) {
+    menu.style.left = Math.min(x, window.innerWidth  - 240) + 'px';
+    menu.style.top  = Math.min(y, window.innerHeight - 220) + 'px';
+  } else {
+    menu.style.left = '50%'; menu.style.top = '40%';
+    menu.style.transform = 'translate(-50%,-50%)';
+  }
+
+  const otherJobs = JOBS.filter(j => j.name !== currentJob && j.status === 'active');
+  const jobOpts = otherJobs.map(j =>
+    `<div class="ctx-item" onclick="initiateTransferFromSched('${esc(empKey)}','${esc(currentJob)}','${esc(j.name)}');this.closest('.sched-ctx-menu').remove()"
+      style="padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:8px"
+      onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''">
+      <span style="font-size:10px;width:10px;height:10px;border-radius:50%;background:${esc(j.color)};display:inline-block;flex-shrink:0"></span>
+      ${esc(j.name)}
+    </div>`
+  ).join('');
+
+  menu.innerHTML = `
+    <div style="padding:8px 16px 6px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);margin-bottom:4px">
+      ${esc(last)}, ${esc(first)}
+      <div style="font-size:10.5px;color:var(--muted);font-weight:400;margin-top:2px">Currently: ${esc(currentJob || 'Unassigned')}</div>
+    </div>
+    <div style="padding:4px 16px 6px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Transfer to</div>
+    ${jobOpts}
+    <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px">
+      <div class="ctx-item" onclick="openCertPanel('${esc(last)}','${esc(first)}','${esc(role)}');this.closest('.sched-ctx-menu').remove()"
+        style="padding:8px 16px;cursor:pointer;color:var(--muted)"
+        onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
+        View profile →
+      </div>
+    </div>`;
+
+  document.body.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', h); }
+  }), 50);
+}
+
+function initiateTransferFromSched(empKey, fromJob, toJob) {
+  const [last, first] = empKey.split(',');
+  const today = new Date().toISOString().slice(0, 10);
+  const nextMonday = (() => {
+    const d = new Date(); const dow = d.getDay();
+    d.setDate(d.getDate() + (dow === 0 ? 1 : 8 - dow)); return d.toISOString().slice(0, 10);
+  })();
+  const tx = {
+    id: Date.now(), type: 'reassign',
+    employee: `${last}, ${first}`,
+    fromJob, toJob, hours: null,
+    effectiveDate: nextMonday,
+    status: 'pending',
+    requestedBy: (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Unknown',
+    requestedAt: new Date().toISOString(),
+    notes: 'Created from schedule grid',
+  };
+  if (typeof TRANSFERS !== 'undefined') TRANSFERS.unshift(tx);
+  if (typeof persistTransfer === 'function') persistTransfer(tx);
+  showToast(`Transfer request created: ${last} → ${toJob}`, 'success');
+  if (typeof renderTransfers === 'function') renderTransfers();
+}
+
+// ══════════════════════════════════════════════════════════════
+// #12 ORG CHART — Roster tab
+// ══════════════════════════════════════════════════════════════
+
+function renderOrgChart(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  // Build hierarchy: GF → FM → everyone else
+  const gfs = ROSTER.filter(e => e.role === 'GF');
+  const fms = ROSTER.filter(e => e.role === 'FM');
+  const supers = ROSTER.filter(e => e.role === 'SUPER' || e.role === 'superintendent');
+
+  function empCard(emp, indent = 0) {
+    const initials = (emp.first?.[0]||'') + (emp.last?.[0]||'');
+    const photo = CONTACT_INFO[emp.last]?.photo;
+    const photoHtml = photo
+      ? `<img src="${esc(photo)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
+    const job = thisWeekJob(emp.last) || '—';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:background .1s;margin-left:${indent*24}px"
+      onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''"
+      onclick="openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}')">
+      ${photoHtml}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500;color:var(--ink)">${esc(emp.last)}, ${esc(emp.first)}</div>
+        <div style="font-size:10.5px;color:var(--muted)">${roleBadge(emp.role)} · ${esc(job)}</div>
+      </div>
+    </div>`;
+  }
+
+  // Group FMs under their GF (by current job match) + apprentices under FMs
+  const jobGF = {};
+  gfs.forEach(gf => {
+    const gfJob = thisWeekJob(gf.last);
+    if (!jobGF[gfJob]) jobGF[gfJob] = { gf, fms: [] };
+    else jobGF[gfJob].gf = gf;
+  });
+  fms.forEach(fm => {
+    const fmJob = thisWeekJob(fm.last);
+    if (jobGF[fmJob]) jobGF[fmJob].fms.push(fm);
+  });
+
+  const others = ROSTER.filter(e => !['GF','FM','SUPER','superintendent'].includes(e.role));
+
+  let html = '';
+
+  // Supers at top if any
+  if (supers.length) {
+    html += `<div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:8px 0 4px">Superintendent</div>`;
+    supers.forEach(s => { html += empCard(s, 0); });
+  }
+
+  // GF groups
+  Object.values(jobGF).forEach(({ gf, fms: groupFms }) => {
+    if (!gf) return;
+    const gfJob = thisWeekJob(gf.last);
+    html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line)">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;padding-left:4px">
+        ${gfJob ? esc(gfJob) : 'General Foreman'}
+      </div>`;
+    html += empCard(gf, 0);
+    groupFms.forEach(fm => {
+      html += empCard(fm, 1);
+      // Apprentices under this FM by same job
+      const fmJob = thisWeekJob(fm.last);
+      others.filter(e => thisWeekJob(e.last) === fmJob).forEach(app => {
+        html += empCard(app, 2);
+      });
+    });
+    html += '</div>';
+  });
+
+  // Unassigned / remaining
+  const placed = new Set([
+    ...gfs.map(e => e.last),
+    ...fms.map(e => e.last),
+    ...supers.map(e => e.last),
+    ...Object.values(jobGF).flatMap(g => g.fms.map(e => e.last)),
+  ]);
+  const unplaced = ROSTER.filter(e => !placed.has(e.last));
+  if (unplaced.length) {
+    html += `<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line)">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;padding-left:4px">Other crew</div>`;
+    unplaced.forEach(e => { html += empCard(e, 0); });
+    html += '</div>';
+  }
+
+  el.innerHTML = html || `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No org data available.</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// #13 CERT EXPIRY REMINDERS — proper email stubs
+// ══════════════════════════════════════════════════════════════
+
+function sendCertExpiryAlert(last, first, certLabel, expiresOn, tier) {
+  // tier: 'expired' | 'expiring' | 'soon'
+  const hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
+  const hrEmail = localStorage.getItem('fieldflow-hr-email') || 'hr@crem-inc.com';
+  const daysLeft = Math.ceil((new Date(expiresOn) - new Date()) / 86400000);
+  const subject = tier === 'expired'
+    ? `[FieldFlow] EXPIRED: ${last}, ${first} — ${certLabel}`
+    : `[FieldFlow] Cert expiring ${daysLeft}d: ${last}, ${first} — ${certLabel}`;
+  const body = tier === 'expired'
+    ? `${certLabel} for ${first} ${last} expired on ${expiresOn}. Renewal required before next assignment.`
+    : `${certLabel} for ${first} ${last} expires on ${expiresOn} (${daysLeft} days). Please schedule renewal.`;
+
+  console.log(
+    `[Resend → ${hrEmail}]\nSubject: ${subject}\nBody: ${body}\n` +
+    `[Also notify: ${last}, ${first} · ${first.toLowerCase()}.${last.toLowerCase()}@crem-inc.com]`
+  );
+  // TODO: replace console.log with Resend API call when email is live:
+  // await fetch('/api/send-email', { method:'POST', body: JSON.stringify({ to: hrEmail, subject, body }) })
+}
+
+// ══════════════════════════════════════════════════════════════
+// #16 PRINT — set date attribute + trigger
+// ══════════════════════════════════════════════════════════════
+
+function printSchedule() {
+  const schedEl = document.getElementById('screen-schedule');
+  if (schedEl) {
+    const label = schedWeekLabel(SCHED_CURRENT_WEEK.index);
+    schedEl.dataset.printDate = label;
+  }
+  window.print();
+}
+
+  } // end if (id === 'schedule') block — this closes the goScreen function
 }
 
 document.querySelectorAll('.nav-item[data-screen]').forEach(item => {
@@ -7302,6 +8387,9 @@ function applyDayChange(crid, newValue) {
   // Log change for diff view
   logDayChange(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
 
+  // Show 8-second undo toast
+  if (typeof showUndoToast === 'function') showUndoToast(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
+
   // Keep the drag-board copy in sync
   if (typeof DS_SCHEDULE !== 'undefined' && DS_SCHEDULE[d.empKey] && DS_SCHEDULE[d.empKey][d.weekIdx]) {
     DS_SCHEDULE[d.empKey][d.weekIdx][d.dayIdx] = newValue;
@@ -8322,8 +9410,14 @@ function ffSetBtn(id, busy, label) {
 }
 
 async function ffAllowed(email) {
-  const { data } = await _sb.from('allowed_users').select('name,role,active').ilike('email', email).maybeSingle();
-  return (data && data.active) ? data : null;
+  try {
+    const { data, error } = await _sb.from('allowed_users').select('name,role,active').ilike('email', email).maybeSingle();
+    if (error) { console.warn('[ffAllowed]', error.message); return null; }
+    return (data && data.active) ? data : null;
+  } catch (e) {
+    console.warn('[ffAllowed] threw', e?.message || e);
+    return null;
+  }
 }
 
 async function ffSignIn() {
@@ -8469,23 +9563,47 @@ async function loadPersistedData() {
   );
   if (absRows && absRows.length) {
     absRows.forEach(r => {
-      // Avoid duplicates (in case logAbsence already added this session)
       if (!ABSENT_LOG.find(e => e.id === r.id)) {
-        ABSENT_LOG.push({
-          id:          r.id,
-          empKey:      r.emp_key,
-          type:        r.type,
-          date:        r.date,
-          job:         r.job,
-          reportedBy:  r.reported_by,
-          at:          r.at,
-        });
+        ABSENT_LOG.push({ id:r.id, empKey:r.emp_key, type:r.type, date:r.date,
+          job:r.job, reportedBy:r.reported_by, at:r.at });
       }
     });
-    // Keep sorted newest-first
     ABSENT_LOG.sort((a, b) => new Date(b.at) - new Date(a.at));
-    // Refresh badge if admin panel is open
     if (typeof updateAbsentBadge === 'function') setTimeout(updateAbsentBadge, 0);
+  }
+
+  // 6. Employees — sync roster from DB, override in-memory ROSTER
+  const empRows = await _safeLoad('employees', () =>
+    _sb.from('employees')
+      .select('id,last,first,role,ba,wa,or,ae,fk,hz,o10,o30,phone,ec_name,ec_phone,ec_rel,photo_path,notes,active')
+      .eq('active', true)
+      .order('last')
+  );
+  if (empRows && empRows.length) {
+    empRows.forEach(r => {
+      const idx = ROSTER.findIndex(e => e.last === r.last && e.first === r.first);
+      const entry = {
+        last:r.last, first:r.first, role:r.role||'0', ba:r.ba||'',
+        wa:!!r.wa, or:!!r.or, ae:!!r.ae, fk:!!r.fk, hz:!!r.hz, o10:!!r.o10, o30:!!r.o30,
+        phone:r.phone||'', ec_name:r.ec_name||'', ec_phone:r.ec_phone||'', ec_rel:r.ec_rel||'',
+        photo_path:r.photo_path||null,
+      };
+      if (idx >= 0) Object.assign(ROSTER[idx], entry);
+      else ROSTER.push({ ...entry, db_id: r.id });
+
+      // Sync contact info store
+      if (!CONTACT_INFO[r.last]) CONTACT_INFO[r.last] = {};
+      if (r.phone)    CONTACT_INFO[r.last].phone    = r.phone;
+      if (r.ec_name)  CONTACT_INFO[r.last].ec_name  = r.ec_name;
+      if (r.ec_phone) CONTACT_INFO[r.last].ec_phone = r.ec_phone;
+      if (r.ec_rel)   CONTACT_INFO[r.last].ec_rel   = r.ec_rel;
+      // Resolve photo URL from storage path
+      if (r.photo_path && !CONTACT_INFO[r.last].photo) {
+        const { data } = _sb.storage.from('employee-photos').getPublicUrl(r.photo_path);
+        if (data?.publicUrl) CONTACT_INFO[r.last].photo = data.publicUrl;
+      }
+    });
+    if (typeof filterRoster === 'function') filterRoster('');
   }
 }
 
