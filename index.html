@@ -2694,9 +2694,9 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="unassigned">Unassigned first</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="btn btn-sm" onclick="openCopyWeekModal()" title="Copy this week's schedule to another week">📋 Copy week</button>
-          <button class="btn btn-sm" onclick="exportScheduleCSV()">Export CSV</button>
-          <button class="btn btn-sm" onclick="printSchedule()" title="Print schedule">🖨 Print</button>
+          <button class="btn btn-sm" onclick="openCopyWeekModal()" data-tip="Duplicate this week's schedule (all employees' Mon-Fri assignments) to another week. Useful when most of next week will look like this one.">📋 Copy week</button>
+          <button class="btn btn-sm" onclick="exportScheduleCSV()" data-tip="Download the visible schedule as a CSV file you can open in Excel or import into Spectrum">Export CSV</button>
+          <button class="btn btn-sm" onclick="printSchedule()" data-tip="Print the current 3-week view in landscape. Headers, sidebar, and panels are hidden. Tag colors convert to grayscale for B&W printers.">🖨 Print</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -2893,6 +2893,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <button class="admin-tab"        data-admin-tab="absents"   onclick="adminTab('absents')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 10l3 3m0-3l-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           Employee absents <span id="admin-absent-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:rgba(248,113,113,.15);color:var(--bad);font-size:10px;font-weight:600">0</span>
+        </button>
+        <button class="admin-tab"        data-admin-tab="certs"     onclick="adminTab('certs')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M4 2h6l2 2v10H4V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 6h4M6 9h4M6 12h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Certs <span id="admin-certs-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:rgba(217,119,6,.15);color:#D97706;font-size:10px;font-weight:600">0</span>
         </button>
         <button class="admin-tab"        data-admin-tab="system"    onclick="adminTab('system')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -3154,6 +3158,60 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </div>
         <div id="absents-admin-empty" style="display:none;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">
           No records match the current filter.
+        </div>
+      </div>
+
+      <!-- ── CERTS PANE ── -->
+      <div id="admin-pane-certs" class="admin-pane" style="display:none">
+        <!-- Tiles -->
+        <div class="metrics" id="certs-admin-tiles" style="margin-bottom:16px">
+          <div class="metric" style="border-left:3px solid var(--bad)">
+            <div class="metric-label">Expired</div>
+            <div class="metric-value" id="certs-tile-expired">0</div>
+            <div class="metric-sub" style="color:var(--bad)">Renewal required</div>
+          </div>
+          <div class="metric" style="border-left:3px solid var(--warn)">
+            <div class="metric-label">Expiring ≤ 7 days</div>
+            <div class="metric-value" id="certs-tile-week">0</div>
+            <div class="metric-sub" style="color:var(--warn)">Critical window</div>
+          </div>
+          <div class="metric" style="border-left:3px solid #D97706">
+            <div class="metric-label">Expiring ≤ 30 days</div>
+            <div class="metric-value" id="certs-tile-month">0</div>
+            <div class="metric-sub" style="color:#D97706">Plan renewal</div>
+          </div>
+          <div class="metric" style="border-left:3px solid var(--good)">
+            <div class="metric-label">Total certs</div>
+            <div class="metric-value" id="certs-tile-total">0</div>
+            <div class="metric-sub">Across all employees</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Cert <em>expiry schedule</em></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select id="certs-admin-filter" class="ctrl-sel" onchange="renderCertsAdmin()">
+                <option value="all">All expiries</option>
+                <option value="expired">Expired</option>
+                <option value="week">Next 7 days</option>
+                <option value="month" selected>Next 30 days</option>
+                <option value="quarter">Next 90 days</option>
+              </select>
+              <button class="btn btn-sm" onclick="exportCertsCSV()" data-tip="Download a CSV of all cert expiries matching the current filter">Export CSV</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="roster-tbl">
+              <thead>
+                <tr><th>Employee</th><th>Role</th><th>Certification</th><th>Expires</th><th>Days</th><th>Status</th></tr>
+              </thead>
+              <tbody id="certs-admin-tbody"></tbody>
+            </table>
+          </div>
+          <div id="certs-admin-empty" style="display:none;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">
+            No cert expiries match the current filter.
+          </div>
         </div>
       </div>
 
@@ -3858,8 +3916,21 @@ function buildSchedTbody() {
 
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
+    const photo = CONTACT_INFO[last]?.photo;
+    const initials = (first?.[0]||'') + (last?.[0]||'');
+    const avatarHtml = photo
+      ? `<img src="${esc(photo)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
     return `<tr data-emp-key="${esc(key)}">
-      <td class="stick"><div class="emp-name">${esc(last)}, ${esc(first)}</div><div class="emp-role">${roleBadge(role)}</div></td>
+      <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
+        <div style="display:flex;align-items:center;gap:7px">
+          ${avatarHtml}
+          <div>
+            <div class="emp-name">${esc(last)}, ${esc(first)}</div>
+            <div class="emp-role">${roleBadge(role)}</div>
+          </div>
+        </div>
+      </td>
       ${viewWeeks.map((wi, wPos) =>
         (weeks[wi] || ['','','','','']).map((d, di) => {
           const sep  = (di === 4 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
@@ -4113,16 +4184,23 @@ function renderJobView() {
     const progressHtml = jobObj
       ? `<div style="margin-top:4px">${renderJobProgressBar(jobObj, { compact: true })}</div>`
       : '';
-    return `<tr style="${bg}">
+    return `<tr style="${bg}" data-jv-job="${esc(job)}" ondragover="jvDragOver(event)" ondragleave="jvDragLeave(event)" ondrop="jvDrop(event,'${esc(job)}')">
       <td>
         <div class="jv-job">${esc(job)}${violationBadge}</div>
         ${progressHtml}
       </td>
       <td><div class="jv-count">${thisWeekCount}</div></td>
-      ${data.weeks.slice(0, COLS).map(names =>
+      ${data.weeks.slice(0, COLS).map((names, colIdx) =>
         !names.length
           ? '<td><div class="jv-empty">—</div></td>'
-          : `<td><div class="jv-wk-n">${names.length} ▸</div><div class="jv-names">${names.map(n => esc(n)).join('<br>')}</div></td>`
+          : `<td><div class="jv-wk-n">${names.length} ▸</div><div class="jv-names">${names.map(n => {
+              const [last, first] = n.split(', ');
+              // Only first column (this week) is draggable — moves apply to current week
+              const draggable = colIdx === 0;
+              return `<span class="jv-chip" ${draggable?`draggable="true" ondragstart="jvDragStart(event,'${esc(n)}','${esc(job)}')"`:''}
+                data-emp-hover="${esc(last)},${esc(first)}"
+                style="cursor:${draggable?'grab':'default'};padding:1px 0;display:inline-block">${esc(n)}</span>`;
+            }).join('<br>')}</div></td>`
       ).join('')}
     </tr>`;
   }).join('');
@@ -4350,8 +4428,18 @@ function buildRosterRows(filter, roleFilter) {
     }
 
     const rid = reg({ last: e.last, first: e.first, role: e.role });
-    return `<tr class="roster-row" style="cursor:pointer" data-rid="${rid}" data-last="${esc(e.last)}">
-      <td style="font-weight:500">${esc(e.last)}, ${esc(e.first)}</td>
+    const photo = CONTACT_INFO[e.last]?.photo;
+    const initials = (e.first?.[0]||'') + (e.last?.[0]||'');
+    const avatarHtml = photo
+      ? `<img src="${esc(photo)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
+    return `<tr class="roster-row" style="cursor:pointer" data-rid="${rid}" data-last="${esc(e.last)}" data-emp-hover="${esc(e.last)},${esc(e.first)}">
+      <td style="font-weight:500">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${avatarHtml}
+          <span>${esc(e.last)}, ${esc(e.first)}</span>
+        </div>
+      </td>
       <td>${roleBadge(e.role)}</td>
       <td style="font-size:10px;color:var(--ff-tx3)">${esc(e.ba)||'—'}</td>
       ${certCell(e.wa,'wa')}${certCell(e.or,'or')}${certCell(e.ae,'ae')}
@@ -5276,7 +5364,7 @@ function renderDashMiniGrid() {
   ).join('');
 
   const rows = shown.map(([key, weeks]) => {
-    const [last, , role] = key.split(',');
+    const [last, first, role] = key.split(',');
     const wk = weeks[wi] || ['','','','',''];
     const { cls } = primaryJob(wk);
     const dotColor = cls === 't-school' ? '#F59E0B'
@@ -5292,7 +5380,7 @@ function renderDashMiniGrid() {
         >${esc(label)}</div>`;
     }).join('');
 
-    return `<div class="mg-name"><div class="mg-dot" style="background:${dotColor}"></div><span title="${esc(last)}">${esc(last)}</span></div>${cells}`;
+    return `<div class="mg-name" data-emp-hover="${esc(last)},${esc(first)}"><div class="mg-dot" style="background:${dotColor}"></div><span>${esc(last)}</span></div>${cells}`;
   }).join('');
 
   const footer = remaining > 0
@@ -6841,6 +6929,275 @@ function sendCertExpiryAlert(last, first, certLabel, expiresOn, tier) {
 // #16 PRINT — set date attribute + trigger
 // ══════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════
+// HOVER CARDS — employee quick-info + UI tooltip helper
+// ══════════════════════════════════════════════════════════════
+// Fires after 400ms hover delay so it doesn't spam on mouse pass-through.
+// Any element with data-emp-hover="Last,First" or data-tip="text" will show a card.
+
+let _hoverTimer = null;
+let _hoverCard = null;
+
+function _removeHoverCard() {
+  if (_hoverCard) { _hoverCard.remove(); _hoverCard = null; }
+  if (_hoverTimer) { clearTimeout(_hoverTimer); _hoverTimer = null; }
+}
+
+function _showEmpHoverCard(last, first, anchor) {
+  _removeHoverCard();
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (!emp) return;
+  const ci = CONTACT_INFO[last] || {};
+  const isAdmin = typeof _currentUser !== 'undefined' && ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase());
+  const job = thisWeekJob(last) || '—';
+  const initials = (first?.[0]||'') + (last?.[0]||'');
+  const photoHtml = ci.photo
+    ? `<img src="${esc(ci.photo)}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+    : `<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
+
+  // Cert chips
+  const certs = [];
+  if (emp.wa)  certs.push('WA');
+  if (emp.or)  certs.push('OR');
+  if (emp.ae)  certs.push('Aerial');
+  if (emp.fk)  certs.push('Forklift');
+  if (emp.hz)  certs.push('HAZWOPER');
+  if (emp.o10) certs.push('OSHA-10');
+  if (emp.o30) certs.push('OSHA-30');
+  const certHtml = certs.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px">${certs.map(c => `<span style="font-size:9.5px;padding:2px 6px;background:var(--good-bg);color:var(--good);border-radius:4px;font-weight:500">${esc(c)}</span>`).join('')}</div>`
+    : `<div style="margin-top:6px;font-size:10.5px;color:var(--muted);font-style:italic">No certs on file</div>`;
+
+  const card = document.createElement('div');
+  card.id = '_emp-hover-card';
+  card.style.cssText = `
+    position:fixed;background:var(--white);border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;min-width:240px;max-width:290px;
+    box-shadow:0 12px 36px rgba(0,0,0,.18);z-index:400;
+    font-family:var(--sans);font-size:12px;color:var(--ink);
+    animation:fadeInPane .15s ease;pointer-events:none;
+  `;
+
+  const phoneLine = ci.phone
+    ? `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11.5px"><span style="color:var(--muted)">📞</span><span style="color:var(--ink);font-weight:500">${esc(ci.phone)}</span></div>`
+    : '';
+  const ecLine = isAdmin && ci.ec_name
+    ? `<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:10.5px;color:var(--muted)">EC: ${esc(ci.ec_name)}${ci.ec_phone?` · ${esc(ci.ec_phone)}`:''}</div>`
+    : '';
+
+  card.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      ${photoHtml}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;color:var(--ink)">${esc(last)}, ${esc(first)}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px">${roleBadge(emp.role)}<span>·</span><span>${esc(job)}</span></div>
+        ${phoneLine}
+      </div>
+    </div>
+    ${certHtml}
+    ${ecLine}
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);text-align:center">Click name to open full profile</div>
+  `;
+
+  document.body.appendChild(card);
+  _hoverCard = card;
+  _positionHoverCard(card, anchor);
+}
+
+function _showTipCard(text, anchor) {
+  _removeHoverCard();
+  const card = document.createElement('div');
+  card.id = '_tip-card';
+  card.style.cssText = `
+    position:fixed;background:var(--ink);color:var(--white);
+    padding:7px 11px;border-radius:7px;font-size:11.5px;font-family:var(--sans);
+    max-width:260px;z-index:400;box-shadow:0 6px 18px rgba(0,0,0,.25);
+    animation:fadeInPane .12s ease;pointer-events:none;line-height:1.4;
+  `;
+  card.textContent = text;
+  document.body.appendChild(card);
+  _hoverCard = card;
+  _positionHoverCard(card, anchor);
+}
+
+function _positionHoverCard(card, anchor) {
+  const rect = anchor.getBoundingClientRect();
+  const cw = card.offsetWidth;
+  const ch = card.offsetHeight;
+  let top  = rect.bottom + 6;
+  let left = rect.left;
+  // Flip up if would overflow bottom
+  if (top + ch > window.innerHeight - 8) top = Math.max(8, rect.top - ch - 6);
+  // Clamp right
+  if (left + cw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - cw - 8);
+  card.style.top  = top + 'px';
+  card.style.left = left + 'px';
+}
+
+// Global hover listeners — event delegation handles all data-emp-hover + data-tip
+document.addEventListener('mouseover', e => {
+  const empEl = e.target.closest?.('[data-emp-hover]');
+  const tipEl = e.target.closest?.('[data-tip]');
+  if (empEl) {
+    const [last, first] = empEl.dataset.empHover.split(',');
+    if (_hoverTimer) clearTimeout(_hoverTimer);
+    _hoverTimer = setTimeout(() => _showEmpHoverCard(last, first, empEl), 400);
+  } else if (tipEl) {
+    if (_hoverTimer) clearTimeout(_hoverTimer);
+    _hoverTimer = setTimeout(() => _showTipCard(tipEl.dataset.tip, tipEl), 600);
+  }
+});
+
+document.addEventListener('mouseout', e => {
+  const empEl = e.target.closest?.('[data-emp-hover]');
+  const tipEl = e.target.closest?.('[data-tip]');
+  if (empEl || tipEl) _removeHoverCard();
+});
+
+document.addEventListener('scroll', () => _removeHoverCard(), true);
+document.addEventListener('click', () => _removeHoverCard(), true);
+
+// ══════════════════════════════════════════════════════════════
+// #3 DRAG EMPLOYEES BETWEEN JOBS (Job View)
+// ══════════════════════════════════════════════════════════════
+
+let _jvDragData = null;
+
+function jvDragStart(e, name, fromJob) {
+  _jvDragData = { name, fromJob };
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', name);
+  if (e.target.style) e.target.style.opacity = '0.5';
+}
+
+function jvDragOver(e) {
+  if (!_jvDragData) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.target.closest('tr[data-jv-job]');
+  if (row && row.dataset.jvJob !== _jvDragData.fromJob) {
+    row.style.outline = '2px solid var(--accent)';
+    row.style.outlineOffset = '-2px';
+  }
+}
+
+function jvDragLeave(e) {
+  const row = e.target.closest('tr[data-jv-job]');
+  if (row) { row.style.outline = ''; row.style.outlineOffset = ''; }
+}
+
+function jvDrop(e, toJob) {
+  e.preventDefault();
+  document.querySelectorAll('tr[data-jv-job]').forEach(r => {
+    r.style.outline = ''; r.style.outlineOffset = '';
+    if (r.querySelector('[draggable]')) {
+      r.querySelectorAll('[draggable]').forEach(el => el.style.opacity = '');
+    }
+  });
+  if (!_jvDragData) return;
+  const { name, fromJob } = _jvDragData;
+  _jvDragData = null;
+  if (fromJob === toJob) return;
+  // Only real JOBS can be drop targets — no School/Varies
+  const targetJob = JOBS.find(j => j.name === toJob);
+  if (!targetJob) {
+    showToast(`Cannot transfer to ${toJob} — not a work site`, 'error');
+    return;
+  }
+  const [last, first] = name.split(', ');
+  const emp = ROSTER.find(r => r.last === last && r.first === first);
+  if (!emp) return;
+  const empKey = Object.keys(SCHED).find(k => k.startsWith(`${last},${first},`));
+  if (!empKey) return;
+  // Reuse the existing transfer creation flow
+  initiateTransferFromSched(empKey, fromJob, toJob);
+}
+
+// ══════════════════════════════════════════════════════════════
+// #7 PDF CREW PACKET per foreman
+// ══════════════════════════════════════════════════════════════
+// Generates a printable one-page view scoped to a single FM's crew.
+// Uses a hidden print-only container populated on demand.
+
+function generateCrewPacket(fmName) {
+  // fmName expected format: "Porter, Billy" or a first-name match
+  const jobObj = JOBS.find(j => j.lead === fmName || j.lead === fmName.replace(', ',' '));
+  if (!jobObj) {
+    showToast(`No job found led by ${fmName}`, 'error');
+    return;
+  }
+  const crew = getJobCrew(jobObj);
+  if (!crew.length) {
+    showToast(`${jobObj.name} has no crew assigned this week`, 'warn');
+    return;
+  }
+
+  const weekLabel = schedWeekLabel(SCHED_CURRENT_WEEK.index);
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+
+  // Build HTML for the packet
+  const crewRows = crew.map(empKey => {
+    const [last, first, role] = empKey.split(',');
+    const ci = CONTACT_INFO[last] || {};
+    const wk = SCHED[empKey]?.[SCHED_CURRENT_WEEK.index] || [];
+    return `<tr>
+      <td style="padding:6px 8px;border:1px solid #bbb">${last}, ${first}</td>
+      <td style="padding:6px 8px;border:1px solid #bbb">${role}</td>
+      <td style="padding:6px 8px;border:1px solid #bbb">${ci.phone || '—'}</td>
+      ${wk.slice(0,5).map(d => `<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-size:10px">${d || '—'}</td>`).join('')}
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><title>Crew Packet — ${esc(jobObj.name)}</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #111; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      h2 { font-size: 13px; color: #555; font-weight: 500; margin: 0 0 18px; }
+      table { border-collapse: collapse; width: 100%; font-size: 11px; }
+      th { background: #333; color: #fff; padding: 6px 8px; text-align: left; border: 1px solid #333; font-weight: 600; }
+      .meta { margin: 14px 0; font-size: 11px; color: #444; line-height: 1.6; }
+      .meta strong { color: #111; }
+      .footer { margin-top: 30px; font-size: 10px; color: #888; border-top: 1px solid #ddd; padding-top: 10px; }
+      @media print { body { padding: 0; } }
+    </style></head><body>
+    <h1>CREM Inc. — Crew Packet</h1>
+    <h2>${esc(jobObj.name)} · ${esc(jobObj.number)} · ${esc(weekLabel)}</h2>
+    <div class="meta">
+      <div><strong>Foreman:</strong> ${esc(fmName)}${jobObj.leadEmail?` · ${esc(jobObj.leadEmail)}`:''}</div>
+      <div><strong>Site:</strong> ${esc(jobObj.address || jobObj.location || '—')}</div>
+      <div><strong>Crew size:</strong> ${crew.length}</div>
+      <div><strong>Generated:</strong> ${today}</div>
+      ${jobObj.notes?`<div><strong>Notes:</strong> ${esc(jobObj.notes)}</div>`:''}
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Role</th><th>Phone</th>
+          <th style="text-align:center">Mon</th>
+          <th style="text-align:center">Tue</th>
+          <th style="text-align:center">Wed</th>
+          <th style="text-align:center">Thu</th>
+          <th style="text-align:center">Fri</th>
+        </tr>
+      </thead>
+      <tbody>${crewRows}</tbody>
+    </table>
+    <div class="footer">FieldFlow · Generated for ${esc(fmName)} · Emergency: (503) 555-0100</div>
+    </body></html>`;
+
+  // Open in a new window and trigger print
+  const w = window.open('', '_blank');
+  if (!w) {
+    showToast('Popup blocked — please allow popups for FieldFlow', 'error');
+    return;
+  }
+  // Write via innerHTML on the new doc — safer than legacy APIs
+  w.document.open();
+  w.document.documentElement.innerHTML = html.replace(/^<!DOCTYPE html><html>/, '').replace(/<\/html>$/, '');
+  w.document.close();
+  setTimeout(() => { try { w.print(); } catch {} }, 250);
+}
+
 function printSchedule() {
   const schedEl = document.getElementById('screen-schedule');
   if (schedEl) {
@@ -8014,6 +8371,7 @@ function renderJobDetail(id) {
       <div class="panel-header">
         <div class="panel-title" style="font-size:15px">${esc(j.name)}</div>
         <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="generateCrewPacket('${esc(j.lead)}')" data-tip="Print a one-page PDF showing this job's crew with their Mon-Fri schedule, phone numbers, and site info — ready to hand to the foreman">🖨 Crew packet</button>
           <button class="btn btn-sm" onclick="closeJobEdit()">Close</button>
           <button class="btn btn-sm btn-primary" onclick="saveJobEdit('${esc(j.id)}')">Save changes</button>
         </div>
@@ -8902,6 +9260,7 @@ function renderAdmin() {
   if (typeof renderJobManager === 'function') renderJobManager();
   if (typeof renderTransfers === 'function')  renderTransfers();
   if (typeof updateAbsentBadge === 'function') updateAbsentBadge();
+  if (typeof updateCertsBadge === 'function') updateCertsBadge();
   // Update transfer badge
   const pending = (typeof TRANSFERS !== 'undefined')
     ? TRANSFERS.filter(t => t.status === 'pending').length
@@ -8914,9 +9273,9 @@ function renderAdmin() {
   }
 }
 
-// Switch between the 5 admin tabs
+// Switch between the admin tabs
 function adminTab(which) {
-  ['users','jobs','reassign','transfers','absents','system'].forEach(name => {
+  ['users','jobs','reassign','transfers','absents','certs','system'].forEach(name => {
     const pane = document.getElementById('admin-pane-' + name);
     const btn  = document.querySelector(`.admin-tab[data-admin-tab="${name}"]`);
     if (pane) pane.style.display = name === which ? '' : 'none';
@@ -8927,6 +9286,7 @@ function adminTab(which) {
   if (which === 'jobs'      && typeof renderJobManager === 'function')   renderJobManager();
   if (which === 'reassign'  && typeof renderDragSchedule === 'function') renderDragSchedule();
   if (which === 'absents')  renderAbsentsAdmin();
+  if (which === 'certs')    renderCertsAdmin();
   if (which === 'system') {
     try { renderHandoffPanel('admin-handoff-panel'); } catch {}
     try { loadHRContact(); } catch {}
@@ -9041,6 +9401,112 @@ function exportAbsentsCSV() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = 'fieldflow-absents-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════════
+// #10 CERTS ADMIN TAB — expiry metrics + schedule
+// ══════════════════════════════════════════════════════════════
+
+function getAllCertExpiries() {
+  // Returns [{ last, first, role, certKey, certLabel, expiresOn, daysLeft, status }, ...]
+  const rows = [];
+  Object.entries(CERT_EXPIRY).forEach(([last, byKey]) => {
+    const emp = ROSTER.find(e => e.last === last);
+    if (!emp) return;
+    Object.entries(byKey).forEach(([certKey, expiresOn]) => {
+      if (!expiresOn) return;
+      const def = CERT_DEFS.find(d => d.key === certKey);
+      if (!def) return;
+      const days = Math.ceil((new Date(expiresOn) - new Date()) / 86400000);
+      const status = certStatus(expiresOn);
+      rows.push({
+        last, first: emp.first, role: emp.role,
+        certKey, certLabel: def.label,
+        expiresOn, daysLeft: days, status,
+      });
+    });
+  });
+  return rows.sort((a, b) => a.daysLeft - b.daysLeft);
+}
+
+function updateCertsBadge() {
+  const all = getAllCertExpiries();
+  // Badge shows # expired + # expiring within 30d
+  const urgent = all.filter(r => r.status === 'expired' || r.status === 'expiring').length;
+  const badge = document.getElementById('admin-certs-badge');
+  if (!badge) return;
+  badge.textContent = urgent;
+  badge.style.display = urgent > 0 ? '' : 'none';
+}
+
+function renderCertsAdmin() {
+  const tbody  = document.getElementById('certs-admin-tbody');
+  const empty  = document.getElementById('certs-admin-empty');
+  if (!tbody) return;
+
+  const filter = document.getElementById('certs-admin-filter')?.value || 'month';
+  const all = getAllCertExpiries();
+
+  // Update tiles
+  const expired = all.filter(r => r.daysLeft < 0).length;
+  const week    = all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 7).length;
+  const month   = all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 30).length;
+  const total   = all.length;
+
+  const setTile = (id, val, color) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = val;
+      if (color && val > 0) el.style.color = color;
+    }
+  };
+  setTile('certs-tile-expired', expired, 'var(--bad)');
+  setTile('certs-tile-week',    week,    'var(--warn)');
+  setTile('certs-tile-month',   month,   '#D97706');
+  setTile('certs-tile-total',   total);
+
+  // Filter rows
+  let filtered = all;
+  if (filter === 'expired') filtered = all.filter(r => r.daysLeft < 0);
+  else if (filter === 'week')    filtered = all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 7);
+  else if (filter === 'month')   filtered = all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 30);
+  else if (filter === 'quarter') filtered = all.filter(r => r.daysLeft >= 0 && r.daysLeft <= 90);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(r => {
+    const pillStyle = r.status === 'expired'
+      ? 'background:var(--bad-bg);color:var(--bad)'
+      : r.status === 'expiring'
+      ? 'background:var(--warn-bg);color:var(--warn)'
+      : 'background:var(--good-bg);color:var(--good)';
+    const pillText = r.status === 'expired' ? 'Expired' : r.status === 'expiring' ? 'Expiring' : 'Valid';
+    const daysText = r.daysLeft < 0 ? `${Math.abs(r.daysLeft)}d ago` : `${r.daysLeft}d`;
+    return `<tr style="cursor:pointer" onclick="goScreen('roster');setTimeout(()=>{const e=ROSTER.find(x=>x.last==='${esc(r.last)}');if(e)openCertPanel('${esc(r.last)}','${esc(r.first)}',e.role)},150)">
+      <td data-emp-hover="${esc(r.last)},${esc(r.first)}">${esc(r.last)}, ${esc(r.first)}</td>
+      <td>${roleBadge(r.role)}</td>
+      <td>${esc(r.certLabel)}</td>
+      <td style="font-family:var(--mono);font-size:11px">${esc(r.expiresOn)}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:${r.daysLeft < 0 ? 'var(--bad)' : r.daysLeft <= 7 ? 'var(--warn)' : 'var(--ink)'}">${esc(daysText)}</td>
+      <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;${pillStyle}">${pillText}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCertsCSV() {
+  const rows = getAllCertExpiries();
+  const header = ['Last','First','Role','Certification','Expires On','Days Left','Status'].join(',');
+  const lines = rows.map(r => [r.last, r.first, r.role, r.certLabel, r.expiresOn, r.daysLeft, r.status].join(','));
+  const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'fieldflow-certs-'+new Date().toISOString().slice(0,10)+'.csv';
   a.click(); URL.revokeObjectURL(url);
 }
 
@@ -9707,20 +10173,7 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
-  // ── DEV MODE ──────────────────────────────────────────────
-  // Set to false to enable full auth wall. When true, skips login
-  // and auto-signs in as Cameron for iteration/preview.
-  const DEV_MODE = true;
-
-  if (DEV_MODE) {
-    ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
-    loadPersistedData().catch(err => console.warn('[load] failed', err));
-    refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
-    loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
-    console.warn('⚠ DEV MODE — auth bypassed. Set DEV_MODE = false before deploying to real users.');
-    return;
-  }
-
+  // Full auth wall — session restore or login screen.
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
