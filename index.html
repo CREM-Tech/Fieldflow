@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co https://api.weather.gov; frame-ancestors *;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co https://api.weather.gov https://nominatim.openstreetmap.org; frame-ancestors *;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>FieldFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -513,6 +513,132 @@ html.dark .jump-today-btn:hover {
 }
 
 /* ── Toast ──────────────────────────────────────────────── */
+
+/* ── Utilization heatmap ─────────────────────────────────── */
+.util-heat-row { display:flex; align-items:center; gap:6px; margin-bottom:5px; font-size:11px; }
+.util-heat-name { width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ink); font-weight:500; flex-shrink:0; }
+.util-heat-bars { display:flex; gap:2px; flex:1; }
+.util-heat-cell { flex:1; height:16px; border-radius:3px; min-width:8px; transition:opacity .15s; cursor:default; }
+.util-heat-cell.assigned  { background:var(--good); opacity:.8; }
+.util-heat-cell.school    { background:var(--warn); opacity:.8; }
+.util-heat-cell.vacation  { background:#60A5FA; opacity:.8; }
+.util-heat-cell.empty     { background:var(--line); opacity:.6; }
+.util-heat-cell.current   { outline:2px solid var(--accent); outline-offset:1px; }
+
+/* ── Schedule diff view ──────────────────────────────────── */
+.diff-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid var(--line-soft); font-size:12px; }
+.diff-row:last-child { border-bottom:none; }
+.diff-old { color:var(--bad); text-decoration:line-through; font-family:var(--mono); font-size:11px; }
+.diff-new { color:var(--good); font-family:var(--mono); font-size:11px; font-weight:600; }
+.diff-arrow { color:var(--muted); font-size:11px; }
+.diff-meta { font-size:10px; color:var(--muted); margin-left:auto; white-space:nowrap; }
+
+/* ── "Who can I send" finder ─────────────────────────────── */
+.finder-panel { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+.finder-result { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:7px; cursor:pointer; transition:background .12s; }
+.finder-result:hover { background:var(--accent-ghost); }
+.finder-avail-bar { display:flex; gap:2px; margin-top:2px; }
+.finder-avail-cell { width:12px; height:8px; border-radius:2px; }
+.finder-avail-cell.free { background:var(--good); opacity:.7; }
+.finder-avail-cell.busy { background:var(--line); }
+
+/* ── Week comparison view ────────────────────────────────── */
+.compare-thead th { background:var(--surface-2); font-size:11px; text-align:center; padding:5px 4px; }
+.compare-thead th.compare-this  { background:rgba(234,179,8,.15); color:var(--accent-dark); font-weight:600; }
+.compare-thead th.compare-next  { background:rgba(99,102,241,.1); color:#6366F1; font-weight:600; }
+.compare-diff-cell { background:rgba(248,113,113,.12); color:var(--bad); font-weight:600; }
+
+/* ── Employee timeline ───────────────────────────────────── */
+.timeline-wrap { overflow-x:auto; padding-bottom:8px; }
+.timeline-row { display:flex; align-items:center; gap:0; height:28px; margin-bottom:4px; }
+.timeline-name { width:110px; font-size:11px; font-weight:500; color:var(--ink); flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.timeline-bar { height:20px; border-radius:3px; font-size:9px; display:flex; align-items:center; justify-content:center; white-space:nowrap; overflow:hidden; padding:0 4px; transition:opacity .15s; cursor:default; min-width:6px; }
+.timeline-bar.job      { background:var(--good-bg); color:var(--good); border:1px solid rgba(52,211,153,.3); }
+.timeline-bar.school   { background:rgba(251,191,36,.25); color:#92400E; border:1px solid rgba(251,191,36,.4); }
+.timeline-bar.vacation { background:rgba(96,165,250,.2); color:#1E40AF; border:1px solid rgba(96,165,250,.3); }
+.timeline-bar.empty    { background:var(--surface-2); border:1px solid var(--line-soft); }
+.timeline-wk-labels { display:flex; margin-left:110px; gap:0; margin-bottom:4px; }
+.timeline-wk-lbl    { font-size:9px; color:var(--muted); text-align:center; flex-shrink:0; }
+
+/* ── Late / absent log ──────────────────────────────────── */
+.absent-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:10px; font-size:10.5px; font-weight:500; }
+.absent-pill.late   { background:rgba(251,191,36,.2); color:#92400E; }
+.absent-pill.absent { background:rgba(248,113,113,.2); color:var(--bad); }
+
+/* ── Weather widget ─────────────────────────────────────── */
+.weather-card { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; border:1px solid var(--line); margin-bottom:8px; font-size:12px; }
+.weather-icon { font-size:22px; flex-shrink:0; }
+.weather-alert { background:rgba(248,113,113,.1); border-color:rgba(248,113,113,.3); }
+.weather-alert .weather-temp { color:var(--bad); }
+
+/* ── Contact info (admin only) ───────────────────────────── */
+
+/* ── Job document upload panel ──────────────────────────── */
+.job-doc-drop {
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  background: var(--surface-2);
+}
+.job-doc-drop:hover,
+.job-doc-drop.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-ghost);
+}
+.job-doc-drop input[type="file"] {
+  display: none;
+}
+.job-doc-existing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--good-bg);
+  border: 1px solid rgba(52,211,153,.3);
+  border-radius: 8px;
+}
+html.dark .job-doc-existing {
+  background: rgba(52,211,153,.1);
+  border-color: rgba(52,211,153,.25);
+}
+.job-doc-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.job-doc-meta { flex: 1; min-width: 0; }
+.job-doc-name { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-doc-sub  { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.job-doc-uploading {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px; color: var(--muted);
+}
+@keyframes docUploadPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .4; }
+}
+.job-doc-uploading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  animation: docUploadPulse 1s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.contact-section { background:var(--surface-2); border-radius:8px; padding:12px 14px; border:1px solid var(--line); margin-top:8px; }
+.contact-field { display:flex; flex-direction:column; gap:3px; margin-bottom:8px; }
+.contact-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.contact-val { font-size:12.5px; color:var(--ink); }
+.contact-phone-link { color:var(--accent-dark); text-decoration:none; font-weight:500; }
+.contact-phone-link:hover { text-decoration:underline; }
+
+/* ── Holiday badge on schedule cells ─────────────────────── */
+.tag.t-holiday { background:rgba(99,102,241,.15); color:#4338CA; font-weight:600; }
+html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
 @keyframes ffToastIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -982,6 +1108,24 @@ html.dark .jump-today-btn:hover {
   display: flex; align-items: center; justify-content: center;
   color: white; font-family: var(--serif); font-weight: 500; font-size: 28px;
   flex-shrink: 0; font-style: italic;
+  position: relative; cursor: pointer; overflow: hidden;
+  transition: filter .15s;
+}
+.profile-photo img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.profile-photo:hover::after {
+  content: '📷';
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-style: normal;
+}
+.profile-photo-wrap {
+  position: relative; flex-shrink: 0;
+}
+.profile-photo-wrap input[type="file"] {
+  display: none;
 }
 .profile-field {
   padding: 8px 0; border-bottom: 1px solid var(--line-soft);
@@ -1333,7 +1477,7 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 /* ── Cert expiry panel ───────────────────────────────────── */
 .cert-panel-inner {
   background: var(--ff-surface); border: 1px solid var(--ff-bdr);
-  border-radius: 11px; overflow: hidden; animation: slideIn .18s ease;
+  border-radius: 11px; overflow: visible; animation: slideIn .18s ease;
 }
 .cert-field-row {
   display: flex; align-items: center; justify-content: space-between;
@@ -2282,123 +2426,120 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <div id="action-panel" style="display:none;margin-bottom:13px"></div>
 
       <div class="grid-2">
+        <!-- Combined snapshot + heatmap panel -->
         <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">This week — schedule snapshot</div>
-            <span class="panel-link" onclick="goScreen('schedule')">Full grid →</span>
+          <div class="panel-header" style="margin-bottom:0">
+            <div class="panel-title">Crew <em>schedule</em></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="display:flex;gap:2px;background:var(--surface-2);border-radius:6px;padding:2px">
+                <button id="dash-sched-tab-snap" onclick="dashSchedTab('snap')"
+                  style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)">
+                  This week
+                </button>
+                <button id="dash-sched-tab-heat" onclick="dashSchedTab('heat')"
+                  style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:transparent;color:var(--muted)">
+                  Trend
+                </button>
+              </div>
+              <span class="panel-link" onclick="goScreen('schedule')">Full grid →</span>
+            </div>
           </div>
-          <div class="mini-grid">
-            <div class="mg-head"></div>
-            <div class="mg-head">Mon</div><div class="mg-head">Tue</div><div class="mg-head">Wed</div><div class="mg-head">Thu</div><div class="mg-head">Fri</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#FACC15"></div><span>Munson</span></div>
-            <div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-job">Live Work</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#10B981"></div><span>Weaver</span></div>
-            <div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-vac">Vacation</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#F59E0B"></div><span>Kegel</span></div>
-            <div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div><div class="mg-cell t-school">School</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#8B5CF6"></div><span>Boden</span></div>
-            <div class="mg-cell t-job">TK</div><div class="mg-cell t-job">TK</div><div class="mg-cell t-var">VA</div><div class="mg-cell t-var">LW</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#FACC15"></div><span>Davis</span></div>
-            <div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-job">PDX247</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name"><div class="mg-dot" style="background:#EF4444"></div><span>Siharath</span></div>
-            <div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-conf">???</div><div class="mg-cell t-empty">—</div>
-            <div class="mg-name" style="color:var(--ff-tx4);font-style:italic;font-size:9px">+38 more</div>
-            <div class="mg-cell t-empty" style="grid-column:span 5;text-align:left;padding-left:5px;font-style:italic;font-size:8.5px">open full grid to see all 44</div>
+
+          <!-- This week — live mini-grid -->
+          <div id="dash-sched-snap" style="margin-top:10px">
+            <div id="dash-mini-grid-wrap"></div>
+          </div>
+
+          <!-- Trend — 12-week heatmap -->
+          <div id="dash-sched-heat" style="margin-top:10px;display:none">
+            <div style="font-size:10.5px;color:var(--muted);margin-bottom:8px;display:flex;gap:12px">
+              <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--good);display:inline-block;opacity:.8"></span>On job</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--warn);display:inline-block;opacity:.8"></span>School</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#60A5FA;display:inline-block;opacity:.8"></span>Vacation</span>
+            </div>
+            <div id="dash-util-heatmap" style="overflow-y:auto;max-height:280px"></div>
           </div>
         </div>
 
         <div class="col-stack">
+
+          <!-- Requests — single panel, live from REQUESTS_DATA -->
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Pending approvals</div>
-              <span class="panel-link" onclick="goScreen('requests')">View all →</span>
+              <div class="panel-title">Pending <em>requests</em></div>
+              <span class="panel-link" onclick="goScreen('requests')">All requests →</span>
             </div>
-            <div id="dash-req-list">
-              <div class="req-item">
-                <div class="req-dot" style="background:#FACC15"></div>
-                <div class="req-body"><div class="req-title">2 JNs — PDX248 SEC, wk May 4</div><div class="req-meta">Frison · 2 hrs ago</div></div>
-                <div class="req-btns"><button class="rbtn rbtn-ok" onclick="approveItem(this)">Approve</button><button class="rbtn rbtn-no" onclick="denyItem(this)">Deny</button></div>
-              </div>
-              <div class="req-item">
-                <div class="req-dot" style="background:#FACC15"></div>
-                <div class="req-body"><div class="req-title">1 GF — LW Outage, wk May 4</div><div class="req-meta">Sorbel · 5 hrs ago</div></div>
-                <div class="req-btns"><button class="rbtn rbtn-ok" onclick="approveItem(this)">Approve</button><button class="rbtn rbtn-no" onclick="denyItem(this)">Deny</button></div>
-              </div>
-              <div class="req-item">
-                <div class="req-dot" style="background:#F59E0B"></div>
-                <div class="req-body"><div class="req-title">3 apprentices — CAMPUS, Apr 20</div><div class="req-meta">Marsolek · yesterday</div></div>
-                <div class="req-btns"><button class="rbtn rbtn-ok" onclick="approveItem(this)">Approve</button><button class="rbtn rbtn-no" onclick="denyItem(this)">Deny</button></div>
-              </div>
+            <div id="dash-req-preview" style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:11px;color:var(--muted);padding:6px 0">Loading…</div>
             </div>
           </div>
+
+          <!-- Alerts + recent changes — tabbed -->
           <div class="panel">
-            <div class="panel-header"><div class="panel-title">Alerts</div></div>
-            <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">1 school conflict to resolve</div><div class="alert-sub">Apprentice scheduled during a school week</div></div></div>
-            <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Weaver returns from vacation Apr 20</div><div class="alert-sub">Assignment to LW crew confirmed</div></div></div>
-          <div id="alert-union-holidays"></div>
+            <div class="panel-header" style="margin-bottom:0">
+              <div class="panel-title">Activity</div>
+              <div style="display:flex;gap:2px;background:var(--surface-2);border-radius:6px;padding:2px">
+                <button id="dash-act-tab-alerts" onclick="dashActTab('alerts')"
+                  style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)">
+                  Alerts
+                </button>
+                <button id="dash-act-tab-changes" onclick="dashActTab('changes')"
+                  style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:transparent;color:var(--muted)">
+                  Changes
+                </button>
+              </div>
+            </div>
+
+            <div id="dash-act-alerts" style="margin-top:10px">
+              <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">1 school conflict to resolve</div><div class="alert-sub">Apprentice scheduled during a school week</div></div></div>
+              <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Weaver returns from vacation Apr 20</div><div class="alert-sub">Assignment to LW crew confirmed</div></div></div>
+              <div id="alert-union-holidays"></div>
+            </div>
+
+            <div id="dash-act-changes" style="margin-top:10px;display:none">
+              <select id="diff-range" class="ctrl-sel" style="font-size:11px;margin-bottom:8px" onchange="renderDiffView('dash-diff',parseInt(this.value))">
+                <option value="24">Last 24h</option>
+                <option value="48">Last 48h</option>
+                <option value="168" selected>Last 7 days</option>
+              </select>
+              <div id="dash-diff" style="max-height:200px;overflow-y:auto"></div>
+            </div>
           </div>
+
         </div>
       </div>
 
-      <!-- 7-day weather forecast — heat-advisory aware -->
-      <div class="panel" style="margin-bottom:13px">
+      <!-- Weather: per-jobsite current conditions -->
+      <div class="panel" style="margin-top:13px;margin-bottom:0">
         <div class="panel-header">
-          <div class="panel-title">Weather <em>forecast</em> · Umatilla, OR</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span id="weather-status" style="font-size:11px;color:var(--muted);font-family:var(--mono)">Loading…</span>
-            <button onclick="refreshWeather()" title="Refresh forecast now" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;font-size:13px;line-height:1" onmouseover="this.style.background='var(--surface-2)';this.style.color='var(--accent-dark)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">↻</button>
-          </div>
+          <div class="panel-title">Job site <em>weather</em></div>
+          <button onclick="renderWeatherPanel('dash-weather')" title="Refresh"
+            style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;font-size:13px;line-height:1"
+            onmouseover="this.style.background='var(--surface-2)';this.style.color='var(--accent-dark)'"
+            onmouseout="this.style.background='none';this.style.color='var(--muted)'">↻</button>
         </div>
-        <div id="weather-strip" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px"></div>
-        <div style="margin-top:10px;display:flex;gap:14px;font-size:11px;color:var(--muted);align-items:center;flex-wrap:wrap">
-          <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FEF3C7;border:1px solid #D97706"></span>Caution · 90°F+</span>
-          <span style="display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FEE2E2;border:1px solid #DC2626"></span>Red flag · 100°F+ (outdoor work blocked)</span>
-        </div>
-      </div>
-
-      <div class="grid-3">
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Headcount by job</div><span class="panel-link" onclick="goScreen('job-view')">Job view →</span></div>
-          <div class="bar-row"><div class="bar-lbl">PDX247 BMS</div><div class="bar-track"><div class="bar-fill" style="width:86%;background:#FACC15"></div></div><div class="bar-val">6</div></div>
-          <div class="bar-row"><div class="bar-lbl">PDX246 SEC</div><div class="bar-track"><div class="bar-fill" style="width:71%;background:#FACC15"></div></div><div class="bar-val">5</div></div>
-          <div class="bar-row"><div class="bar-lbl">CAMPUS WIDE</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
-          <div class="bar-row"><div class="bar-lbl">LW</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
-          <div class="bar-row"><div class="bar-lbl">PDX247 SEC</div><div class="bar-track"><div class="bar-fill" style="width:43%;background:#FACC15"></div></div><div class="bar-val">3</div></div>
-          <div class="bar-row"><div class="bar-lbl">Varies</div><div class="bar-track"><div class="bar-fill" style="width:57%;background:#8B5CF6"></div></div><div class="bar-val">4</div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Pending <em>requests</em></div><span class="panel-link" onclick="goScreen('requests')">All requests →</span></div>
-          <div id="dash-req-preview" style="display:flex;flex-direction:column;gap:6px">
-            <div style="font-size:11px;color:var(--muted);padding:6px 0">Loading…</div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-header"><div class="panel-title">Utilization — 8 weeks</div></div>
-          <div class="util-bars">
-            <div class="util-bar" style="height:70%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:78%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:65%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:82%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:74%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:88%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:79%;background:#BFDBFE"></div>
-            <div class="util-bar" style="height:82%;background:#FACC15"></div>
-          </div>
-          <div class="util-lbls">
-            <span class="util-lbl">2/23</span><span class="util-lbl">3/2</span><span class="util-lbl">3/9</span><span class="util-lbl">3/16</span>
-            <span class="util-lbl">3/23</span><span class="util-lbl">3/30</span><span class="util-lbl">4/6</span>
-            <span class="util-lbl" style="font-weight:500;color:var(--ff-tx2)">4/13</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--ff-bdr)">
-            <span style="font-size:10px;color:var(--ff-tx3)">8-week avg</span>
-            <span style="font-size:11px;font-weight:500">79% utilized</span>
-          </div>
+        <div id="dash-weather">
+          <div style="font-size:11px;color:var(--muted);padding:4px 0">Click ↻ to load job site forecasts.</div>
         </div>
       </div>
     </div>
 
     <!-- SCHEDULE GRID ──────────────────────────────────── -->
     <div class="screen" id="screen-schedule">
+      <!-- Late / Absent floating action button -->
+      <div id="absent-fab" style="position:absolute;bottom:22px;right:22px;z-index:20;display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div id="absent-fab-menu" style="display:none;flex-direction:column;gap:6px;align-items:flex-end">
+          <div id="absent-log-mini" style="background:var(--white);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:220px;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:11.5px"></div>
+          <input id="absent-search" placeholder="Type last name…" oninput="renderAbsentSearch(this.value)"
+            style="padding:7px 11px;border-radius:8px;border:1px solid var(--line);font-family:inherit;font-size:12px;width:200px;background:var(--white)">
+          <div id="absent-search-results" style="background:var(--white);border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:200px;box-shadow:0 4px 14px rgba(0,0,0,.1)"></div>
+        </div>
+        <button onclick="toggleAbsentFab()" title="Report late or absent"
+          style="width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;box-shadow:0 4px 12px rgba(234,179,8,.5);display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .15s"
+          onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+          ⚠️
+        </button>
+      </div>
       <div class="controls">
         <button class="btn jump-today-btn" onclick="schedJumpToday()">
           <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:4px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor"/></svg>
@@ -2437,6 +2578,63 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <tbody id="sched-tbody"></tbody>
         </table>
       </div>
+
+      <!-- Tools row: Compare · Timeline · Finder ─────────── -->
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:14px">
+
+        <!-- Week compare -->
+        <div class="panel" style="overflow:visible">
+          <div class="panel-header">
+            <div class="panel-title">Week <em>compare</em></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select id="compare-week-a" class="ctrl-sel" style="max-width:160px" onchange="renderWeekCompare('sched-compare')"></select>
+              <span style="font-size:11px;color:var(--muted)">vs</span>
+              <select id="compare-week-b" class="ctrl-sel" style="max-width:160px" onchange="renderWeekCompare('sched-compare')"></select>
+            </div>
+          </div>
+          <div id="sched-compare"></div>
+        </div>
+
+        <!-- Employee timeline -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Employee <em>timeline</em></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:11px;color:var(--muted)">Span</span>
+              <select id="timeline-span" class="ctrl-sel" onchange="renderEmpTimeline('sched-timeline')">
+                <option value="12">12 weeks</option>
+                <option value="26" selected>26 weeks</option>
+                <option value="52">52 weeks</option>
+              </select>
+            </div>
+          </div>
+          <div id="sched-timeline" style="overflow-x:auto"></div>
+        </div>
+
+        <!-- Who can I send -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Who can I <em>send?</em></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select id="finder-role" class="ctrl-sel" onchange="renderFinder('sched-finder')">
+                <option value="JN">Journeyman (JN+)</option>
+                <option value="APP">Any apprentice</option>
+                <option value="5">5th-year</option>
+                <option value="4">4th-year</option>
+                <option value="3">3rd-year</option>
+                <option value="2">2nd-year</option>
+                <option value="1">1st-year</option>
+                <option value="GF">General Foreman</option>
+                <option value="FM">Foreman</option>
+                <option value="MH">Material Handler</option>
+              </select>
+              <select id="finder-week" class="ctrl-sel" style="max-width:160px" onchange="renderFinder('sched-finder')"></select>
+            </div>
+          </div>
+          <div id="sched-finder" class="finder-panel" style="background:none;border:none;padding:0"></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- CERTIFICATIONS — merged into roster ────────────── -->
@@ -2458,12 +2656,11 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       </div>
       <div class="tbl-wrap">
         <table class="jv-tbl">
-          <thead>
+          <thead id="jv-thead">
             <tr style="background:var(--ff-blue);color:rgba(255,255,255,.92)">
               <th>Job / Project</th>
-              <th># Emp</th>
-              <th>Apr 13–17</th><th>Apr 20–24</th><th>Apr 27–May 1</th>
-              <th>May 4–8</th><th>May 11–15</th><th>May 18–22</th>
+              <th>This week</th>
+              <th></th><th></th><th></th><th></th><th></th>
             </tr>
           </thead>
           <tbody id="jv-tbody"></tbody>
@@ -2512,14 +2709,14 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </table>
         </div>
         <!-- Cert expiry panel — sticky so it follows scroll -->
-        <div id="cert-panel" style="display:none;width:320px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 120px);overflow-y:auto"></div>
+        <div id="cert-panel" style="display:none;width:320px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto;border-radius:11px"></div>
       </div>
     </div>
 
     <!-- SCHOOL ─────────────────────────────────────────── -->
     <div class="screen" id="screen-school">
       <div style="display:flex;gap:8px;margin-bottom:13px;align-items:center">
-        <button class="btn btn-primary btn-sm">+ Add session</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddSchoolSession()">+ Add session</button>
         <span style="font-size:11px;color:var(--ff-tx3)">Adding a session auto-fills school weeks for all matching apprentices on the Schedule</span>
       </div>
       <div class="school-grid" id="school-grid"></div>
@@ -2545,6 +2742,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <button class="admin-tab"        data-admin-tab="transfers" onclick="adminTab('transfers')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M2 5h11M9 2l4 3-4 3M13 11H2M6 8l-4 3 4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Labor transfers <span id="admin-tx-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:var(--accent-faint);color:var(--accent-dark);font-size:10px;font-weight:600">0</span>
+        </button>
+        <button class="admin-tab"        data-admin-tab="absents"   onclick="adminTab('absents')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.7-5 6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 10l3 3m0-3l-3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          Employee absents <span id="admin-absent-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:rgba(248,113,113,.15);color:var(--bad);font-size:10px;font-weight:600">0</span>
         </button>
         <button class="admin-tab"        data-admin-tab="system"    onclick="adminTab('system')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -2743,6 +2944,72 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 
       </div>
 
+      <!-- ── EMPLOYEE ABSENTS PANE ── -->
+      <div id="admin-pane-absents" class="admin-pane" style="display:none">
+
+        <!-- KPI strip -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px">
+          <div class="metric" id="absent-kpi-today">
+            <div class="metric-label">Today</div>
+            <div class="metric-val" style="font-size:26px">—</div>
+            <div class="metric-sub">absences + late</div>
+          </div>
+          <div class="metric" id="absent-kpi-week">
+            <div class="metric-label">This week</div>
+            <div class="metric-val" style="font-size:26px">—</div>
+            <div class="metric-sub">incidents</div>
+          </div>
+          <div class="metric" id="absent-kpi-absences">
+            <div class="metric-label">Total absences</div>
+            <div class="metric-val" style="font-size:26px">—</div>
+            <div class="metric-sub">last 90 days</div>
+          </div>
+          <div class="metric" id="absent-kpi-late">
+            <div class="metric-label">Total late</div>
+            <div class="metric-val" style="font-size:26px">—</div>
+            <div class="metric-sub">last 90 days</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select id="absent-filter-type" class="ctrl-sel" onchange="renderAbsentsAdmin()">
+            <option value="all">All types</option>
+            <option value="absent">Absent only</option>
+            <option value="late">Late only</option>
+          </select>
+          <select id="absent-filter-range" class="ctrl-sel" onchange="renderAbsentsAdmin()">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90" selected>Last 90 days</option>
+            <option value="all">All time</option>
+          </select>
+          <input id="absent-filter-emp" class="ctrl-sel" placeholder="Filter by name…"
+            oninput="renderAbsentsAdmin()" style="width:160px;padding:5px 9px;font-size:11.5px">
+          <button class="btn btn-sm" onclick="exportAbsentsCSV()" style="margin-left:auto">Export CSV</button>
+        </div>
+
+        <!-- Log table -->
+        <div class="tbl-wrap">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--surface-2)">
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Employee</th>
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Type</th>
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Date</th>
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Job</th>
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Reported by</th>
+                <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Time</th>
+              </tr>
+            </thead>
+            <tbody id="absents-admin-tbody"></tbody>
+          </table>
+        </div>
+        <div id="absents-admin-empty" style="display:none;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">
+          No records match the current filter.
+        </div>
+      </div>
+
       <!-- ── SYSTEM PANE ── -->
       <div id="admin-pane-system" class="admin-pane" style="display:none">
         <div style="max-width:720px;display:flex;flex-direction:column;gap:16px">
@@ -2765,6 +3032,18 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             </div>
             <button class="btn btn-sm btn-primary" onclick="adminSaveHR()">Save HR contact</button>
             <div id="admin-hr-saved" style="display:none;font-size:11px;color:var(--ff-green);margin-top:8px">✓ Saved</div>
+          </div>
+
+          <!-- Crew hand-off -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Crew <em>hand-off</em></div>
+              <span style="font-size:11px;color:var(--muted)">This week → Next week</span>
+            </div>
+            <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
+              Employees moving between jobs next week. Add notes for the receiving foreman.
+            </div>
+            <div id="admin-handoff-panel"></div>
           </div>
 
           <!-- Notification settings -->
@@ -2792,7 +3071,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
               </div>
               <div style="display:flex;justify-content:space-between">
                 <span style="color:var(--ff-tx3)">Weather API</span>
-                <span style="font-weight:500">National Weather Service · Umatilla (PDT)</span>
+                <span style="font-weight:500">National Weather Service</span>
               </div>
               <div style="display:flex;justify-content:space-between">
                 <span style="color:var(--ff-tx3)">Email</span>
@@ -2980,6 +3259,26 @@ function reg(obj) { _reg[++_regId] = obj; return _regId; }
 function get(id)  { return _reg[id] || {}; }
 
 // ── Data ──────────────────────────────────────────────────────
+// ── Holiday definitions — 4 major federal holidays ───────────
+// Auto-populates "HOLIDAY" across all employees for:
+// Independence Day, Labor Day, Thanksgiving, Christmas
+// Multi-year coverage so the button works from 2025-2027.
+const FEDERAL_HOLIDAYS = [
+  { name:'Independence Day',  date:'2025-07-04' },
+  { name:'Labor Day',         date:'2025-09-01' },
+  { name:'Thanksgiving',      date:'2025-11-27' },
+  { name:'Christmas',         date:'2025-12-25' },
+  { name:'Independence Day',  date:'2026-07-04' },  // Saturday → no observed Mon override, falls on Sat so skip; use '2026-07-03' for observed Friday if needed
+  { name:'Labor Day',         date:'2026-09-07' },
+  { name:'Thanksgiving',      date:'2026-11-26' },
+  { name:'Christmas',         date:'2026-12-25' },
+  { name:'Independence Day',  date:'2027-07-05' },  // observed Mon
+  { name:'Labor Day',         date:'2027-09-06' },
+  { name:'Thanksgiving',      date:'2027-11-25' },
+  { name:'Christmas',         date:'2027-12-24' },  // observed Fri
+];
+
+
 const SCHED = {
   'Munson,Mike,GF':          [['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW',''],         ['LW','LW','LW','LW','']],
   'Braught,Isaiah,JN':       [['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS',''],['PDX247 BMS','PDX247 BMS','PDX247 BMS','PDX247 BMS','']],
@@ -3089,6 +3388,9 @@ function schedDayLabel(wkIdx, dayIdx) {
     });
     SCHED[key] = blank;
   });
+  // Auto-apply the 4 federal holidays silently into the expanded schedule
+  // (idempotent — only fills cells not already marked HOLIDAY)
+  if (typeof applyFederalHolidays === 'function') applyFederalHolidays(true);
 })();
 
 const SCHOOL_SESSIONS = [
@@ -3180,12 +3482,59 @@ const REQUESTS_DATA = [
 function tagCls(v) {
   if (!v || v === '') return 't-empty';
   if (v === 'School')  return 't-school';
+  if (v === 'HOLIDAY') return 't-holiday';
   if (v === '???' || v.includes('⚠')) return 't-conf';
   if (v.includes('VACATION') || v === 'Vacation') return 't-vac';
   if (v === 'OFF') return 't-empty';
   return 't-job';
 }
 function tagVal(v) { return (!v || v === '') ? '—' : v; }
+
+// ── Holiday auto-populate ─────────────────────────────────────
+// Writes 'HOLIDAY' into every employee's SCHED cell for each federal holiday
+// that falls Mon-Fri within the 105-week window. Idempotent — safe to call
+// multiple times. Confirmation is shown before applying.
+// Called automatically on app boot after SCHED is expanded.
+// Idempotent — HOLIDAY cells are only written once per slot.
+// Silent — no confirmation dialog, no toast unless cells were actually changed.
+function applyFederalHolidays(silent = false) {
+  let filled = 0;
+  FEDERAL_HOLIDAYS.forEach(({ name, date }) => {
+    const d = new Date(date + 'T12:00:00');
+    const dow = d.getDay(); // 0=Sun, 6=Sat
+    if (dow === 0 || dow === 6) return; // skip weekends
+    const dayIdx = dow - 1; // Mon=0 … Fri=4
+
+    // Compute weekIdx
+    const diffMs = d - SCHED_CURRENT_WEEK.date;
+    const weekIdx = SCHED_CURRENT_WEEK.index + Math.floor(diffMs / (7 * 86400000));
+    if (weekIdx < 0 || weekIdx >= SCHED_WEEKS_TOTAL) return;
+
+    Object.keys(SCHED).forEach(empKey => {
+      if (!SCHED[empKey][weekIdx]) return;
+      // Only write if not already HOLIDAY (idempotent — don't overwrite manual changes)
+      if (SCHED[empKey][weekIdx][dayIdx] !== 'HOLIDAY') {
+        SCHED[empKey][weekIdx][dayIdx] = 'HOLIDAY';
+        filled++;
+      }
+    });
+  });
+
+  if (filled === 0) return; // nothing new to apply
+
+  // Only sync drag board + views when called interactively (not during boot)
+  if (!silent) {
+    if (typeof DS_SCHEDULE !== 'undefined') {
+      Object.keys(SCHED).forEach(k => {
+        if (DS_SCHEDULE[k]) DS_SCHEDULE[k] = SCHED[k].map(wk => [...wk]);
+      });
+    }
+    buildSchedTbody();
+    buildSchedThead();
+    if (typeof renderJobView === 'function') renderJobView();
+    showToast(`✓ ${FEDERAL_HOLIDAYS.length} holidays applied (${filled} cells updated)`, 'success');
+  }
+}
 
 function primaryJob(days) {
   const school   = days.filter(d => d === 'School');
@@ -3526,17 +3875,24 @@ function renderJobView() {
 
   const sortKey = document.getElementById('jv-sort')?.value || 'headcount';
 
+  // Show 6 weeks starting from current week
+  const weekStart = SCHED_CURRENT_WEEK.index;
+  const COLS = 6;
+
   const jvMap = {};
   Object.entries(SCHED).forEach(([key, weeks]) => {
     const [last, first] = key.split(',');
     const name = `${last}, ${first}`;
-    weeks.forEach((wk, wi) => {
+    for (let col = 0; col < COLS; col++) {
+      const wi = weekStart + col;
+      const wk = weeks[wi];
+      if (!wk) continue;
       const { lbl, cls } = primaryJob(wk);
       if (lbl && lbl !== '—') {
-        if (!jvMap[lbl]) jvMap[lbl] = { cls, weeks: Array(8).fill(null).map(() => []) };
-        if (wi < 8) jvMap[lbl].weeks[wi].push(name);
+        if (!jvMap[lbl]) jvMap[lbl] = { cls, weeks: Array(COLS).fill(null).map(() => []) };
+        jvMap[lbl].weeks[col].push(name);
       }
-    });
+    }
   });
 
   const entriesArr = Object.entries(jvMap);
@@ -3580,8 +3936,20 @@ function renderJobView() {
     }
   });
 
+  // Render dynamic week headers
+  const thead = document.getElementById('jv-thead');
+  if (thead) {
+    const cols = Array.from({length: COLS}, (_, i) => schedWeekLabel(weekStart + i));
+    thead.innerHTML = `<tr style="background:var(--ff-blue);color:rgba(255,255,255,.92)">
+      <th>Job / Project</th>
+      <th>This week</th>
+      ${cols.map((l, i) => `<th style="${i===0?'font-weight:700':''}">${esc(l)}</th>`).join('')}
+    </tr>`;
+  }
+
   tbody.innerHTML = sorted.map(([job, data]) => {
-    const all = [...new Set(data.weeks.flat())];
+    // This-week count = unique names in column 0 (current week)
+    const thisWeekCount = [...new Set(data.weeks[0])].length;
     const hasViolation = jobRatioViolation(job);
     const bg = hasViolation
       ? 'background:var(--bad-bg)'
@@ -3592,8 +3960,8 @@ function renderJobView() {
       : '';
     return `<tr style="${bg}">
       <td><div class="jv-job">${esc(job)}${violationBadge}</div></td>
-      <td><div class="jv-count">${all.length}</div></td>
-      ${data.weeks.slice(0, 6).map(names =>
+      <td><div class="jv-count">${thisWeekCount}</div></td>
+      ${data.weeks.slice(0, COLS).map(names =>
         !names.length
           ? '<td><div class="jv-empty">—</div></td>'
           : `<td><div class="jv-wk-n">${names.length} ▸</div><div class="jv-names">${names.map(n => esc(n)).join('<br>')}</div></td>`
@@ -3605,49 +3973,49 @@ function renderJobView() {
 
 // ── Build roster ──────────────────────────────────────────────
 const ROSTER = [
-  {last:'Berry',     first:'Vanessa',   role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Boden',     first:'Charlie',   role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
-  {last:'Boles',     first:'James',     role:'FM', ba:'',    wa:1,or:0,ae:1,fk:1,hz:1,o10:1,o30:1},
-  {last:'Braught',   first:'Isaiah',    role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
-  {last:'Brundridge',first:'Guinevere', role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Budan',     first:'Ryan',      role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Campuzano', first:'Eric',      role:'1E', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Chirhart',  first:'Phillip',   role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Clark',     first:'Collin',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Clugston',  first:'Cody',      role:'JN', ba:'AWS', wa:1,or:0,ae:1,fk:0,hz:0,o10:0,o30:0},
-  {last:'Cole',      first:'Kolten',    role:'1C', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Cramer',    first:'Mason',     role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
-  {last:'Davis',     first:'Jayden',    role:'1A', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Dik',       first:'Stefhan',   role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Fellows',   first:'Shay',      role:'4B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Fielding',  first:'Joshua',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Frison',    first:'Brad',      role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:1,hz:0,o10:1,o30:0},
-  {last:'Grossruck', first:'Michael',   role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Gunderson', first:'Hunter',    role:'4B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Isley',     first:'Mike',      role:'FM', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Kegel',     first:'Alex',      role:'2D', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Lambert',   first:'Kevin',     role:'GF', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Marsolek',  first:'Tyler',     role:'GF', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Mellotte',  first:'Colby',     role:'2B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Mercado',   first:'Fabian',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Miller',    first:'Easton',    role:'1',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Montelongo',first:'Miguel',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Munson',    first:'Mike',      role:'GF', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:1,o10:0,o30:0},
-  {last:'Olveda',    first:'Tanner',    role:'FM', ba:'AWS', wa:1,or:0,ae:1,fk:0,hz:0,o10:1,o30:0},
-  {last:'Ortega',    first:'Miguel',    role:'5B', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Pierce',    first:'Ernest',    role:'2A', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Porter',    first:'Billy',     role:'FM', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:0,o10:1,o30:1},
-  {last:'Purser',    first:'Tim',       role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0},
-  {last:'Reynolds',  first:'Brendan',   role:'5A', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Robins',    first:'Jason',     role:'4A', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Rodgers',   first:'Shawn',     role:'JN', ba:'var', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Schroder',  first:'Hailey',    role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Sholotyuk', first:'Alexsei',   role:'2E', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Siharath',  first:'Vayourinh', role:'GF', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:0,o10:1,o30:1},
-  {last:'Sorbel',    first:'Chayce',    role:'GF', ba:'AWS', wa:1,or:1,ae:1,fk:1,hz:1,o10:1,o30:1},
-  {last:'Tikka',     first:'Alan',      role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Walker',    first:'Rodger',    role:'5A', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
-  {last:'Weaver',    first:'Corey',     role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0},
+  {last:'Berry',     first:'Vanessa',   role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Boden',     first:'Charlie',   role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Boles',     first:'James',     role:'FM', ba:'',    wa:1,or:0,ae:1,fk:1,hz:1,o10:1,o30:1, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Braught',   first:'Isaiah',    role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Brundridge',first:'Guinevere', role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Budan',     first:'Ryan',      role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Campuzano', first:'Eric',      role:'1E', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Chirhart',  first:'Phillip',   role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Clark',     first:'Collin',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Clugston',  first:'Cody',      role:'JN', ba:'AWS', wa:1,or:0,ae:1,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Cole',      first:'Kolten',    role:'1C', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Cramer',    first:'Mason',     role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Davis',     first:'Jayden',    role:'1A', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Dik',       first:'Stefhan',   role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Fellows',   first:'Shay',      role:'4B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Fielding',  first:'Joshua',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Frison',    first:'Brad',      role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:1,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Grossruck', first:'Michael',   role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Gunderson', first:'Hunter',    role:'4B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Isley',     first:'Mike',      role:'FM', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Kegel',     first:'Alex',      role:'2D', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Lambert',   first:'Kevin',     role:'GF', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Marsolek',  first:'Tyler',     role:'GF', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Mellotte',  first:'Colby',     role:'2B', ba:'AWS', wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Mercado',   first:'Fabian',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Miller',    first:'Easton',    role:'1',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Montelongo',first:'Miguel',    role:'MH', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Munson',    first:'Mike',      role:'GF', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:1,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Olveda',    first:'Tanner',    role:'FM', ba:'AWS', wa:1,or:0,ae:1,fk:0,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Ortega',    first:'Miguel',    role:'5B', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Pierce',    first:'Ernest',    role:'2A', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Porter',    first:'Billy',     role:'FM', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:0,o10:1,o30:1, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Purser',    first:'Tim',       role:'FM', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:1,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Reynolds',  first:'Brendan',   role:'5A', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Robins',    first:'Jason',     role:'4A', ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Rodgers',   first:'Shawn',     role:'JN', ba:'var', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Schroder',  first:'Hailey',    role:'0',  ba:'',    wa:0,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Sholotyuk', first:'Alexsei',   role:'2E', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Siharath',  first:'Vayourinh', role:'GF', ba:'AWS', wa:1,or:1,ae:0,fk:0,hz:0,o10:1,o30:1, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Sorbel',    first:'Chayce',    role:'GF', ba:'AWS', wa:1,or:1,ae:1,fk:1,hz:1,o10:1,o30:1, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Tikka',     first:'Alan',      role:'JN', ba:'',    wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Walker',    first:'Rodger',    role:'5A', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
+  {last:'Weaver',    first:'Corey',     role:'JN', ba:'AWS', wa:1,or:0,ae:0,fk:0,hz:0,o10:0,o30:0, phone:'',ec_name:'',ec_phone:'',ec_rel:''},
 ];
 
 // ── Normalize roles ────────────────────────────────────────────
@@ -3680,6 +4048,25 @@ const thisWeekJob = last => {
 
 // ── Cert expiry data (last → cert map with expiry dates) ──────
 const CERT_EXPIRY = {}; // last → { wa:'2027-06-01', or:null, ae:null, ... }
+
+// ── Contact info store (admin-only, not shown in roster) ────
+// Keyed by emp.last. Populated from localStorage on load.
+// Contains: phone, ec_name, ec_phone, ec_rel, notes
+const CONTACT_INFO = {};
+(function loadContactInfo() {
+  try {
+    const raw = localStorage.getItem('fieldflow-contact-info');
+    if (raw) Object.assign(CONTACT_INFO, JSON.parse(raw));
+  } catch {}
+})();
+function saveContactInfo() {
+  try { localStorage.setItem('fieldflow-contact-info', JSON.stringify(CONTACT_INFO)); } catch {}
+}
+
+// ── Late / absent log ────────────────────────────────────────
+// { id, empKey, type:'late'|'absent', date, job, reportedBy, at }
+const ABSENT_LOG = [];
+
 
 const CERT_DEFS = [
   { key:'wa',  label:'WA License' },
@@ -3876,12 +4263,26 @@ function renderProfileSection(last, first, role, emp) {
   if (emp.wa) licenses.push('WA Electrical');
   if (emp.or) licenses.push('OR Electrical');
 
+  const photoKey = `photo_${last}_${first}`.replace(/[^a-zA-Z0-9_]/g, '_');
+  const savedPhoto = CONTACT_INFO[last]?.photo || null;
+  const photoContent = savedPhoto
+    ? `<img src="${esc(savedPhoto)}" alt="${esc(first)} ${esc(last)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+    : esc(initials);
+
   return `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      <div class="profile-photo">${esc(initials)}</div>
+      <div class="profile-photo-wrap">
+        <div class="profile-photo" onclick="document.getElementById('${esc(photoKey)}').click()" title="Click to upload photo">
+          ${photoContent}
+        </div>
+        <input type="file" id="${esc(photoKey)}" accept="image/*"
+          onchange="handleProfilePhoto('${esc(last)}','${esc(first)}',this)">
+        ${savedPhoto ? `<div style="position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--good);display:flex;align-items:center;justify-content:center;font-size:10px;border:2px solid var(--white)">✓</div>` : ''}
+      </div>
       <div>
         <div style="font-family:var(--serif);font-size:18px;font-weight:500;color:var(--ink);letter-spacing:-.02em">${esc(last)}, ${esc(first)}</div>
         <div style="margin-top:3px">${roleBadge(role)}</div>
+        <div style="margin-top:5px;font-size:10.5px;color:var(--muted)">Click photo to ${savedPhoto ? 'change' : 'upload'}</div>
       </div>
     </div>
 
@@ -3922,9 +4323,21 @@ function renderProfileSection(last, first, role, emp) {
     </div>
 
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.5">
-      Photo upload, contact info, and full training records will be editable here once connected to the employees table.
+      Photo upload and full training records will be editable here once connected to the employees table.
     </div>
   `;
+}
+
+// Wrapper that renders profile + admin contact section together
+function renderFullProfile(last, first, role, emp) {
+  const isAdmin = typeof _currentUser !== 'undefined' &&
+    ['superintendent','admin'].includes((_currentUser.role || '').toLowerCase());
+  const base = renderProfileSection(last, first, role, emp);
+  if (!isAdmin) return base;
+  const contactId = `contact-panel-${esc(last).replace(/[^a-zA-Z0-9]/g,'').toLowerCase()}`;
+  // Defer render so the element is in the DOM first
+  setTimeout(() => renderContactPanel(last, first, contactId), 0);
+  return base + `<div id="${contactId}" style="margin-top:12px"></div>`;
 }
 
 function renderOrgSection(last, first) {
@@ -4034,8 +4447,8 @@ function openCertPanel(last, first, role) {
       </div>
 
       <!-- Profile section (hidden by default) -->
-      <div id="cert-section-profile" style="display:none;padding:14px">
-        ${renderProfileSection(last, first, role, emp)}
+      <div id="cert-section-profile" style="display:none;padding:14px;overflow:visible">
+        ${renderFullProfile(last, first, role, emp)}
       </div>
 
       <!-- Org chain section (hidden by default) -->
@@ -4240,14 +4653,799 @@ function closeCertPanel() {
 
 
 
+// ══════════════════════════════════════════════════════════════
+// NEW FEATURES: Utilization Heatmap · Diff View · Finder
+//               Week Compare · Employee Timeline · Weather
+//               Late/Absent · Handoff · Admin Contact Info
+// ══════════════════════════════════════════════════════════════
+
+// ── #3 Utilization heatmap ────────────────────────────────────
+// Shows a 12-week colored bar per employee (past 6 + future 6 from today)
+// ── Dashboard activity panel tab switcher ─────────────────────
+function dashActTab(tab) {
+  const alerts  = document.getElementById('dash-act-alerts');
+  const changes = document.getElementById('dash-act-changes');
+  const btnA = document.getElementById('dash-act-tab-alerts');
+  const btnC = document.getElementById('dash-act-tab-changes');
+  if (!alerts || !changes) return;
+
+  const on  = 'background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)';
+  const off = 'background:transparent;color:var(--muted);box-shadow:none';
+
+  if (tab === 'alerts') {
+    alerts.style.display  = '';
+    changes.style.display = 'none';
+    if (btnA) btnA.setAttribute('style', btnA.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^"]+/, on));
+    if (btnC) btnC.setAttribute('style', btnC.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^"]+/, off));
+  } else {
+    alerts.style.display  = 'none';
+    changes.style.display = '';
+    if (btnA) btnA.setAttribute('style', btnA.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^"]+/, off));
+    if (btnC) btnC.setAttribute('style', btnC.getAttribute('style').replace(/background:[^;]+;color:[^;]+;box-shadow:[^"]+/, on));
+    renderDiffView('dash-diff', parseInt(document.getElementById('diff-range')?.value || '168'));
+  }
+}
+
+// ── Dashboard combined schedule panel tab switcher ────────────
+let _dashSchedActiveTab = 'snap';
+
+function dashSchedTab(tab) {
+  _dashSchedActiveTab = tab;
+  const snap = document.getElementById('dash-sched-snap');
+  const heat = document.getElementById('dash-sched-heat');
+  const btnSnap = document.getElementById('dash-sched-tab-snap');
+  const btnHeat = document.getElementById('dash-sched-tab-heat');
+  if (!snap || !heat) return;
+
+  const activeStyle = 'background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)';
+  const inactiveStyle = 'background:transparent;color:var(--muted);box-shadow:none';
+
+  if (tab === 'snap') {
+    snap.style.display = '';
+    heat.style.display = 'none';
+    if (btnSnap) btnSnap.style.cssText += `;${activeStyle}`;
+    if (btnHeat) btnHeat.style.cssText += `;${inactiveStyle}`;
+    renderDashMiniGrid();
+  } else {
+    snap.style.display = 'none';
+    heat.style.display = '';
+    if (btnSnap) btnSnap.style.cssText += `;${inactiveStyle}`;
+    if (btnHeat) btnHeat.style.cssText += `;${activeStyle}`;
+    renderUtilHeatmap('dash-util-heatmap');
+  }
+}
+
+// Renders a live snapshot of the current week — 8 employees, sorted by conflicts first
+function renderDashMiniGrid() {
+  const wrap = document.getElementById('dash-mini-grid-wrap');
+  if (!wrap) return;
+
+  const wi = SCHED_CURRENT_WEEK.index;
+  const dayLabels = ['Mon','Tue','Wed','Thu','Fri'];
+
+  // Sort: conflicts first, then unassigned, then alphabetical
+  const entries = Object.entries(SCHED).sort(([ka, wa], [kb, wb]) => {
+    const daysA = wa[wi] || [];
+    const daysB = wb[wi] || [];
+    const confA = daysA.filter(d => d === '???').length;
+    const confB = daysB.filter(d => d === '???').length;
+    const unassA = daysA.filter(d => !d || d === '').length;
+    const unassB = daysB.filter(d => !d || d === '').length;
+    if (confB !== confA) return confB - confA;
+    if (unassB !== unassA) return unassB - unassA;
+    return ka.localeCompare(kb);
+  });
+
+  const shown = entries.slice(0, 8);
+  const remaining = entries.length - shown.length;
+
+  // Job → color map using JOBS data
+  const jobColor = {};
+  JOBS.forEach(j => { jobColor[j.name] = j.color; });
+
+  const headerCells = dayLabels.map(d =>
+    `<div class="mg-head">${d}</div>`
+  ).join('');
+
+  const rows = shown.map(([key, weeks]) => {
+    const [last, , role] = key.split(',');
+    const wk = weeks[wi] || ['','','','',''];
+    const { cls } = primaryJob(wk);
+    const dotColor = cls === 't-school' ? '#F59E0B'
+                   : cls === 't-vac'    ? '#60A5FA'
+                   : cls === 't-conf'   ? '#EF4444'
+                   : cls === 't-empty'  ? 'var(--line)'
+                   : (jobColor[wk.find(d => d && d !== '')] || '#FACC15');
+
+    const cells = wk.slice(0, 5).map((d, di) => {
+      const label = d === '' ? '—' : d.length > 7 ? d.substring(0, 7) + '…' : d;
+      return `<div class="mg-cell ${tagCls(d)}" title="${esc(d || 'Unassigned')}">${esc(label)}</div>`;
+    }).join('');
+
+    return `<div class="mg-name"><div class="mg-dot" style="background:${dotColor}"></div><span title="${esc(last)}">${esc(last)}</span></div>${cells}`;
+  }).join('');
+
+  const footer = remaining > 0
+    ? `<div class="mg-name" style="color:var(--ff-tx4);font-style:italic;font-size:9px">+${remaining} more</div>
+       <div class="mg-cell t-empty" style="grid-column:span 5;text-align:left;padding-left:5px;font-style:italic;font-size:8.5px">open full grid to see all ${entries.length}</div>`
+    : '';
+
+  wrap.innerHTML = `<div class="mini-grid">
+    <div class="mg-head"></div>${headerCells}
+    ${rows}${footer}
+  </div>`;
+}
+
+function renderUtilHeatmap(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const start = Math.max(0, SCHED_CURRENT_WEEK.index - 6);
+  const end   = Math.min(SCHED_WEEKS_TOTAL - 1, SCHED_CURRENT_WEEK.index + 5);
+  const weeks = [];
+  for (let i = start; i <= end; i++) weeks.push(i);
+
+  // Header row: week labels
+  const wkLabels = weeks.map(wi => {
+    const isCurrent = wi === SCHED_CURRENT_WEEK.index;
+    return `<div class="timeline-wk-lbl" style="flex:1;font-weight:${isCurrent?'600':'400'};color:${isCurrent?'var(--accent-dark)':'var(--muted)'}">${schedWeekLabel(wi, true)}</div>`;
+  }).join('');
+
+  // One row per employee
+  const rows = ROSTER.map(emp => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+    const cells = weeks.map(wi => {
+      const isCurrent = wi === SCHED_CURRENT_WEEK.index;
+      if (!key || !SCHED[key][wi]) return `<div class="util-heat-cell empty${isCurrent?' current':''}"></div>`;
+      const days = SCHED[key][wi];
+      const hasJob = days.some(d => d && d !== '' && d !== 'School' && d !== 'VACATION' && d !== 'OFF' && d !== 'HOLIDAY');
+      const hasSchool = days.some(d => d === 'School');
+      const hasVac = days.some(d => d === 'VACATION' || d === 'Vacation');
+      const cls = hasJob ? 'assigned' : hasSchool ? 'school' : hasVac ? 'vacation' : 'empty';
+      const pj = hasJob ? (days.find(d => d && d !== '' && d !== 'School' && d !== 'VACATION' && d !== 'OFF') || '') : '';
+      const title = `${emp.last}, ${emp.first} · ${schedWeekLabel(wi, true)} · ${cls === 'assigned' ? pj : cls}`;
+      return `<div class="util-heat-cell ${cls}${isCurrent?' current':''}" title="${esc(title)}"></div>`;
+    }).join('');
+    return `<div class="util-heat-row">
+      <div class="util-heat-name" title="${esc(emp.last)}, ${esc(emp.first)}">${esc(emp.last)}, ${esc(emp.first[0])}.</div>
+      <div class="util-heat-bars">${cells}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="display:flex;margin-bottom:4px">
+      <div style="width:110px;flex-shrink:0"></div>
+      <div class="util-heat-bars">${wkLabels}</div>
+    </div>
+    ${rows}`;
+}
+
+// ── #4 Schedule diff view ─────────────────────────────────────
+// Shows every SCHED cell changed in the last N days by checking
+// schedule_day_overrides table (persisted). Falls back to a
+// in-memory change log if Supabase isn't reachable.
+const CHANGE_LOG = []; // { empKey, weekIdx, dayIdx, oldVal, newVal, changedBy, at }
+function logDayChange(empKey, weekIdx, dayIdx, oldVal, newVal) {
+  CHANGE_LOG.unshift({ empKey, weekIdx, dayIdx, oldVal, newVal,
+    changedBy: (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Unknown',
+    at: new Date().toISOString() });
+  if (CHANGE_LOG.length > 200) CHANGE_LOG.pop();
+}
+
+function renderDiffView(containerId, sinceHours = 168) { // default: last 7 days
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const since = Date.now() - sinceHours * 3600000;
+  const recent = CHANGE_LOG.filter(c => new Date(c.at).getTime() >= since);
+  if (recent.length === 0) {
+    el.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">No schedule changes in the last ${sinceHours >= 168 ? '7 days' : sinceHours + ' hours'}.</div>`;
+    return;
+  }
+  el.innerHTML = recent.map(c => {
+    const [last, first] = c.empKey.split(',');
+    const wkLbl = schedWeekLabel(c.weekIdx, true);
+    const dayLbl = ['Mon','Tue','Wed','Thu','Fri'][c.dayIdx] || '';
+    const relTime = (() => {
+      const ms = Date.now() - new Date(c.at).getTime();
+      const mins = Math.floor(ms / 60000);
+      if (mins < 2) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.floor(hrs/24)}d ago`;
+    })();
+    return `<div class="diff-row">
+      <div style="font-size:11.5px;font-weight:500;color:var(--ink);min-width:120px">${esc(last)}, ${esc(first)}</div>
+      <div style="font-size:10.5px;color:var(--muted);min-width:60px">${esc(dayLbl)} ${esc(wkLbl)}</div>
+      <span class="diff-old">${esc(c.oldVal || '—')}</span>
+      <span class="diff-arrow">→</span>
+      <span class="diff-new">${esc(c.newVal || '—')}</span>
+      <div class="diff-meta">${esc(c.changedBy)} · ${relTime}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── #2 "Who can I send" finder ────────────────────────────────
+function renderFinder(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const role   = document.getElementById('finder-role')?.value || 'JN';
+  const weekStr= document.getElementById('finder-week')?.value || '';
+  const weekIdx = weekStr !== '' ? parseInt(weekStr) : SCHED_CURRENT_WEEK.index;
+  const JN_OR_HIGHER = new Set(['SUPER','GF','FM','JN','JW','WLD']);
+
+  const matches = ROSTER.filter(emp => {
+    const r = emp.role || '';
+    if (role === 'JN'  && !JN_OR_HIGHER.has(r)) return false;
+    if (role === 'APP' && !/^[0-9]/.test(r))     return false;
+    if (role === 'GF'  && r !== 'GF')             return false;
+    if (role === 'FM'  && r !== 'FM')             return false;
+    if (role === 'MH'  && r !== 'MH')             return false;
+    if (role === '5'   && !r.startsWith('5'))     return false;
+    if (role === '4'   && !r.startsWith('4'))     return false;
+    if (role === '3'   && !r.startsWith('3'))     return false;
+    if (role === '2'   && !r.startsWith('2'))     return false;
+    if (role === '1'   && !r.startsWith('1'))     return false;
+    return true;
+  }).map(emp => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+    const weeks = key ? SCHED[key] : null;
+    // Check next 4 weeks availability
+    const avail = [];
+    for (let i = 0; i < 4; i++) {
+      const wi = weekIdx + i;
+      if (!weeks || !weeks[wi]) { avail.push('free'); continue; }
+      const days = weeks[wi];
+      const busy = days.some(d => d && d !== '' && d !== 'HOLIDAY' && d !== 'OFF' && d !== 'VACATION');
+      avail.push(busy ? 'busy' : 'free');
+    }
+    const currentWk = weeks && weeks[weekIdx];
+    const { lbl } = currentWk ? primaryJob(currentWk) : { lbl: 'Available' };
+    return { emp, avail, currentJob: lbl };
+  }).filter(r => r.avail[0] === 'free') // only show people free this week
+    .sort((a, b) => a.emp.last.localeCompare(b.emp.last));
+
+  if (matches.length === 0) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">No available employees match this filter for week ${weekIdx}.</div>`;
+    return;
+  }
+
+  el.innerHTML = matches.slice(0, 15).map(({ emp, avail }) => {
+    const bars = avail.map(a => `<div class="finder-avail-cell ${a}"></div>`).join('');
+    const phone = CONTACT_INFO[emp.last]?.phone || '';
+    return `<div class="finder-result">
+      <div style="flex:1">
+        <div style="font-size:12.5px;font-weight:500;color:var(--ink)">${esc(emp.last)}, ${esc(emp.first)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+          ${roleBadge(emp.role)}
+          <div class="finder-avail-bar" title="Next 4 weeks availability">${bars}</div>
+        </div>
+      </div>
+      ${phone ? `<a class="contact-phone-link" href="tel:${esc(phone)}" onclick="event.stopPropagation()" style="font-size:11px">📞 ${esc(phone)}</a>` : ''}
+    </div>`;
+  }).join('') + (matches.length > 15 ? `<div style="text-align:center;font-size:11px;color:var(--muted);padding:8px">+${matches.length-15} more</div>` : '');
+}
+
+// ── #34 Week comparison view ──────────────────────────────────
+function renderWeekCompare(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const wiA = parseInt(document.getElementById('compare-week-a')?.value || SCHED_CURRENT_WEEK.index);
+  const wiB = parseInt(document.getElementById('compare-week-b')?.value || SCHED_CURRENT_WEEK.index + 1);
+
+  const rows = ROSTER.map(emp => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+    const wkA = key ? (SCHED[key][wiA] || []) : [];
+    const wkB = key ? (SCHED[key][wiB] || []) : [];
+    const { lbl: lblA } = primaryJob(wkA);
+    const { lbl: lblB } = primaryJob(wkB);
+    const changed = lblA !== lblB;
+    return { emp, lblA, lblB, changed };
+  });
+
+  const allChanged = rows.filter(r => r.changed);
+  const unchanged  = rows.filter(r => !r.changed);
+
+  const renderRow = r => `<tr ${r.changed ? 'style="background:rgba(248,113,113,.05)"' : ''}>
+    <td style="padding:5px 8px;font-size:11.5px;font-weight:500">${esc(r.emp.last)}, ${esc(r.emp.first)} ${roleBadge(r.emp.role)}</td>
+    <td style="padding:5px 8px;text-align:center" class="${r.changed?'compare-diff-cell':''}"><span class="tag ${tagCls(r.lblA.replace('📚 ',''))}">${esc(r.lblA || '—')}</span></td>
+    <td style="padding:5px 8px;text-align:center"><span class="tag ${tagCls(r.lblB.replace('📚 ',''))}">${esc(r.lblB || '—')}</span></td>
+  </tr>`;
+
+  el.innerHTML = `
+    <div style="margin-bottom:12px;font-size:12px;color:var(--muted)">
+      ${allChanged.length} employee${allChanged.length!==1?'s':''} change jobs between these two weeks.
+    </div>
+    <div class="tbl-wrap" style="max-height:420px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead class="compare-thead"><tr>
+          <th style="text-align:left;padding:5px 8px">Employee</th>
+          <th class="compare-this" style="width:160px">${schedWeekLabel(wiA)}</th>
+          <th class="compare-next" style="width:160px">${schedWeekLabel(wiB)}</th>
+        </tr></thead>
+        <tbody>
+          ${allChanged.map(renderRow).join('')}
+          ${unchanged.length ? `<tr><td colspan="3" style="padding:8px;font-size:10.5px;color:var(--muted);text-align:center;border-top:1px solid var(--line)">${unchanged.length} employees unchanged</td></tr>` : ''}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── #38 Employee timeline ─────────────────────────────────────
+function renderEmpTimeline(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const span = parseInt(document.getElementById('timeline-span')?.value || '26');
+  const start = Math.max(0, SCHED_CURRENT_WEEK.index - Math.floor(span/2));
+  const end   = Math.min(SCHED_WEEKS_TOTAL - 1, start + span - 1);
+  const weeks = [];
+  for (let i = start; i <= end; i++) weeks.push(i);
+  const cellW = Math.max(16, Math.floor(680 / span));
+
+  const wkLabels = weeks.map((wi, idx) => {
+    const isCurrent = wi === SCHED_CURRENT_WEEK.index;
+    const lbl = idx % 4 === 0 ? schedWeekLabel(wi, true) : '';
+    return `<div class="timeline-wk-lbl" style="width:${cellW}px;font-weight:${isCurrent?'600':'400'}">${lbl}</div>`;
+  }).join('');
+
+  const rows = ROSTER.map(emp => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+    // Merge consecutive same-job weeks into a single bar
+    const segs = [];
+    let cur = null;
+    weeks.forEach(wi => {
+      const wk = key ? (SCHED[key][wi] || []) : [];
+      const { lbl, cls } = primaryJob(wk);
+      const type = cls === 't-school' ? 'school' : cls === 't-vac' ? 'vacation' : (lbl && lbl !== '—') ? 'job' : 'empty';
+      const label = type === 'job' ? lbl : type;
+      if (cur && cur.label === label) { cur.span++; }
+      else { cur = { label, type, span: 1 }; segs.push(cur); }
+    });
+
+    const bars = segs.map(s => {
+      const w = s.span * cellW - 1;
+      const show = w > 20 && s.type !== 'empty';
+      return `<div class="timeline-bar ${s.type}" style="width:${w}px;flex-shrink:0" title="${esc(s.label)}">${show ? esc(s.label.substring(0,10)) : ''}</div>`;
+    }).join('');
+
+    return `<div class="timeline-row">
+      <div class="timeline-name" title="${esc(emp.last)}, ${esc(emp.first)}">${esc(emp.last)}, ${esc(emp.first[0])}.</div>
+      <div style="display:flex;gap:1px;overflow:hidden">${bars}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="timeline-wrap">
+      <div style="display:flex;margin-bottom:4px">
+        <div style="width:110px;flex-shrink:0"></div>
+        <div class="timeline-wk-labels">${wkLabels}</div>
+      </div>
+      ${rows}
+    </div>`;
+}
+
+// ── #25 Weather alerts ────────────────────────────────────────
+const _weatherCache = {}; // jobId → { temp, desc, alert, updated }
+// ── Weather: geocode address → NWS 5-day forecast ─────────────
+// Geocodes via Nominatim (OpenStreetMap, free, no key needed).
+// NWS returns day + night periods; we extract only the daytime highs.
+// Results are cached on the job object (j.lat, j.lng, j._wxCache)
+// so subsequent refreshes skip the geocode round-trip.
+
+const WX_ICONS = {
+  sunny:    '☀️', 'mostly sunny': '🌤', 'partly sunny': '⛅',
+  cloudy:   '☁️', 'mostly cloudy': '🌥', overcast: '☁️',
+  rain:     '🌧', 'light rain': '🌦', showers: '🌦',
+  thunder:  '⛈', thunderstorm: '⛈',
+  snow:     '❄️', flurries: '🌨',
+  fog:      '🌫', windy: '💨', hazy: '🌫',
+  default:  '🌡',
+};
+
+function wxIcon(shortForecast) {
+  if (!shortForecast) return WX_ICONS.default;
+  const s = shortForecast.toLowerCase();
+  for (const [key, icon] of Object.entries(WX_ICONS)) {
+    if (s.includes(key)) return icon;
+  }
+  return WX_ICONS.default;
+}
+
+async function geocodeAddress(address) {
+  if (!address) return null;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'FieldFlow/1.0' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.length) return null;
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  } catch { return null; }
+}
+
+async function fetchJobForecast(j) {
+  // Use cached coords if available
+  if (!j.lat || !j.lng) {
+    const coords = await geocodeAddress(j.address);
+    if (!coords) return null;
+    j.lat = coords.lat;
+    j.lng = coords.lng;
+  }
+
+  // Cache the forecast for 1 hour per job
+  const now = Date.now();
+  if (j._wxCache && j._wxCacheAt && (now - j._wxCacheAt) < 3600000) {
+    return j._wxCache;
+  }
+
+  try {
+    const ptRes = await fetch(`https://api.weather.gov/points/${j.lat.toFixed(4)},${j.lng.toFixed(4)}`);
+    if (!ptRes.ok) return null;
+    const ptData = await ptRes.json();
+    const fUrl = ptData.properties?.forecast;
+    if (!fUrl) return null;
+    const fRes = await fetch(fUrl);
+    if (!fRes.ok) return null;
+    const fData = await fRes.json();
+    const periods = fData.properties?.periods || [];
+
+    // Only daytime periods — NWS alternates Day/Night
+    const days = periods
+      .filter(p => p.isDaytime)
+      .slice(0, 5)
+      .map(p => ({
+        name:   p.name,         // "Monday", "Tuesday"…
+        high:   p.temperature,
+        unit:   p.temperatureUnit,
+        short:  p.shortForecast,
+        icon:   wxIcon(p.shortForecast),
+        alert:  p.temperature >= 95 || p.temperature <= 20 ||
+                p.shortForecast.toLowerCase().includes('thunder') ||
+                p.shortForecast.toLowerCase().includes('ice'),
+      }));
+
+    j._wxCache   = days;
+    j._wxCacheAt = now;
+    return days;
+  } catch { return null; }
+}
+
+async function renderWeatherPanel(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = `<div style="color:var(--muted);font-size:11.5px;padding:8px;display:flex;align-items:center;gap:8px"><span style="animation:docUploadPulse 1s ease-in-out infinite;display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent)"></span>Loading forecasts…</div>`;
+
+  // Get active jobs this week
+  const activeJobNames = [...new Set(
+    Object.values(DS_SCHEDULE)
+      .flatMap(wks => (wks[SCHED_CURRENT_WEEK.index] || []))
+      .filter(v => v && v !== '' && v !== 'School' && v !== 'VACATION' && v !== 'HOLIDAY' && v !== 'OFF')
+  )];
+  const activeJobs = JOBS.filter(j => activeJobNames.includes(j.name) && j.status === 'active');
+
+  if (!activeJobs.length) {
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:8px">No active jobs this week.</div>`;
+    return;
+  }
+
+  // Fetch all forecasts in parallel
+  const results = await Promise.all(activeJobs.map(async j => ({ j, days: await fetchJobForecast(j) })));
+
+  el.innerHTML = results.map(({ j, days }) => {
+    if (!days || !days.length) {
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:12px">
+        <div style="width:130px;flex-shrink:0">
+          <div style="font-weight:600;color:var(--ink)">${esc(j.name)}</div>
+          <div style="font-size:10.5px;color:var(--muted)">${esc(j.address || j.location || '')}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted)">Forecast unavailable${!j.address ? ' — add address' : ''}</div>
+      </div>`;
+    }
+
+    const dayCells = days.map((d, i) => {
+      const isToday = i === 0;
+      const alertBg = d.alert ? 'rgba(248,113,113,.12)' : isToday ? 'var(--accent-ghost)' : 'var(--surface-2)';
+      const tempColor = d.high >= 95 ? 'var(--bad)' : d.high >= 85 ? 'var(--warn)' : d.high <= 32 ? '#60A5FA' : 'var(--ink)';
+      // Short day label: "Today", "Mon", "Tue"…
+      const dayLabel = isToday ? 'Today' : d.name.substring(0, 3);
+      return `<div style="text-align:center;padding:6px 4px;border-radius:7px;background:${alertBg};min-width:52px;flex:1">
+        <div style="font-size:9.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px">${esc(dayLabel)}</div>
+        <div style="font-size:18px;line-height:1.1;margin-bottom:2px">${d.icon}</div>
+        <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${tempColor}">${d.high}°</div>
+        ${d.alert ? `<div style="font-size:9px;color:var(--bad);font-weight:600;margin-top:2px">⚠</div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Overall week alert?
+    const anyAlert = days.some(d => d.alert);
+
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--line-soft)${anyAlert ? ';background:rgba(248,113,113,.04);margin:0 -16px;padding-left:16px;padding-right:16px' : ''}">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(j.name)}</div>
+        <div style="font-size:10.5px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.address || j.location || '')}</div>
+        ${anyAlert ? `<span style="font-size:10px;color:var(--bad);font-weight:600;flex-shrink:0">⚠ Extreme conditions</span>` : ''}
+      </div>
+      <div style="display:flex;gap:6px">${dayCells}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── #26 Late / absent log ─────────────────────────────────────
+function logAbsence(empKey, type) {
+  const [last, first] = empKey.split(',');
+  const today = new Date().toISOString().slice(0, 10);
+  const key = Object.keys(SCHED).find(k => k === empKey);
+  const wk = key ? (SCHED[key][SCHED_CURRENT_WEEK.index] || []) : [];
+  const { lbl: job } = primaryJob(wk);
+  const entry = {
+    id: Date.now(),
+    empKey,
+    type,
+    date: today,
+    job: job || 'Unknown',
+    reportedBy: (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Unknown',
+    at: new Date().toISOString(),
+  };
+  ABSENT_LOG.unshift(entry);
+
+  // Persist to Supabase
+  _safeWrite('absence_log', () =>
+    _sb.from('absence_log').insert({
+      id:          entry.id,
+      emp_key:     entry.empKey,
+      type:        entry.type,
+      date:        entry.date,
+      job:         entry.job,
+      reported_by: entry.reportedBy,
+      at:          entry.at,
+    })
+  );
+
+  console.log(`[Notify] ${type === 'absent' ? 'ABSENT' : 'LATE'}: ${last}, ${first} · ${job} · ${today} · reported by ${entry.reportedBy}`);
+  showToast(`${last}, ${first} marked as ${type} on ${job}`, type === 'absent' ? 'error' : 'warn');
+  if (typeof renderAbsencePanel === 'function') renderAbsencePanel();
+  if (typeof updateAbsentBadge === 'function') updateAbsentBadge();
+}
+
+function renderAbsencePanel(containerId) {
+  containerId = containerId || 'absence-log-panel';
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const todayLog = ABSENT_LOG.filter(e => e.date === today);
+  if (todayLog.length === 0) {
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:8px 0">No late or absent reports today.</div>`;
+    return;
+  }
+  el.innerHTML = todayLog.map(e => {
+    const [last, first] = e.empKey.split(',');
+    const relTime = (() => {
+      const ms = Date.now() - new Date(e.at).getTime();
+      const mins = Math.floor(ms / 60000);
+      return mins < 2 ? 'just now' : mins < 60 ? `${mins}m ago` : `${Math.floor(mins/60)}h ago`;
+    })();
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:12px">
+      <span class="absent-pill ${e.type}">${e.type === 'absent' ? '✗ Absent' : '⏰ Late'}</span>
+      <span style="font-weight:500;color:var(--ink)">${esc(last)}, ${esc(first)}</span>
+      <span style="color:var(--muted)">${esc(e.job)}</span>
+      <span style="margin-left:auto;font-size:10.5px;color:var(--muted)">${esc(e.reportedBy)} · ${relTime}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── #16 Crew hand-off panel ───────────────────────────────────
+function renderHandoffPanel(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const wiA = SCHED_CURRENT_WEEK.index;
+  const wiB = wiA + 1;
+  // Find employees whose job changes between this week and next
+  const handoffs = [];
+  ROSTER.forEach(emp => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
+    if (!key) return;
+    const wkA = SCHED[key][wiA] || [];
+    const wkB = SCHED[key][wiB] || [];
+    const { lbl: jobA } = primaryJob(wkA);
+    const { lbl: jobB } = primaryJob(wkB);
+    if (jobA !== jobB && jobA !== '—' && jobB !== '—') {
+      handoffs.push({ emp, jobA, jobB, key });
+    }
+  });
+
+  if (handoffs.length === 0) {
+    el.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:12px 0">No crew changes between this week and next.</div>`;
+    return;
+  }
+
+  // Group by source job
+  const byJob = {};
+  handoffs.forEach(h => {
+    if (!byJob[h.jobA]) byJob[h.jobA] = [];
+    byJob[h.jobA].push(h);
+  });
+
+  el.innerHTML = Object.entries(byJob).map(([fromJob, people]) => `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:8px;display:flex;align-items:center;gap:8px">
+        <span>Moving off</span>
+        <span style="background:var(--surface-2);padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:11px">${esc(fromJob)}</span>
+        <span style="color:var(--muted)">${schedWeekLabel(wiA, true)} → ${schedWeekLabel(wiB, true)}</span>
+      </div>
+      ${people.map(h => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border-radius:7px;margin-bottom:4px;font-size:12px">
+          ${roleBadge(h.emp.role)}
+          <span style="font-weight:500;color:var(--ink)">${esc(h.emp.last)}, ${esc(h.emp.first)}</span>
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="color:var(--muted)">${esc(h.jobB)}</span>
+          <div style="margin-left:auto;font-size:10.5px;color:var(--accent-dark);cursor:pointer;font-weight:500" onclick="openHandoffNote('${esc(h.emp.last)}','${esc(h.emp.first)}','${esc(fromJob)}','${esc(h.jobB)}')">Add note ›</div>
+        </div>
+      `).join('')}
+    </div>`).join('');
+}
+
+function openHandoffNote(last, first, fromJob, toJob) {
+  const note = prompt(`Hand-off note for ${last}, ${first}\n${fromJob} → ${toJob}\n\nEnter tasks, tools, or info for the receiving foreman:`, '');
+  if (note !== null && note.trim()) {
+    if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
+    CONTACT_INFO[last][`handoff_${Date.now()}`] = {
+      from: fromJob, to: toJob,
+      note: note.trim(),
+      at: new Date().toISOString(),
+      by: (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Unknown',
+    };
+    saveContactInfo();
+    showToast(`Hand-off note saved for ${last}, ${first}`, 'success');
+  }
+}
+
+// ── Admin contact panel ───────────────────────────────────────
+function renderContactPanel(last, first, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const info = CONTACT_INFO[last] || {};
+  const ro = (f, label, ph) => `
+    <div class="contact-field">
+      <div class="contact-label">${label}</div>
+      <div class="contact-val">${ph && info[f] ? `<a class="contact-phone-link" href="tel:${esc(info[f])}">${esc(info[f])}</a>` : esc(info[f] || '—')}</div>
+    </div>`;
+  el.innerHTML = `
+    <div class="contact-section">
+      <div style="font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:10px">Contact info <span style="font-size:10px;color:var(--muted);font-weight:400">(admin only)</span></div>
+      ${ro('phone','Direct phone', true)}
+      ${ro('ec_name','Emergency contact', false)}
+      ${ro('ec_phone','EC phone', true)}
+      ${ro('ec_rel','Relationship', false)}
+      <button class="btn btn-sm btn-primary" style="margin-top:8px;width:100%" onclick="editContactInfo('${esc(last)}','${esc(first)}')">Edit contact info</button>
+    </div>`;
+}
+
+// ── Profile photo upload ─────────────────────────────────────
+// Stores photo as base64 in CONTACT_INFO + localStorage.
+// Max ~400KB after resize — good enough for a 300×300 avatar.
+function handleProfilePhoto(last, first, input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please select an image file', 'error'); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5 MB', 'error'); return; }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Resize to max 300×300 via canvas to keep localStorage lean
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 300;
+      const scale = Math.min(MAX / img.width, MAX / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+      if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
+      CONTACT_INFO[last].photo = dataUrl;
+      saveContactInfo();
+
+      // Refresh the profile section in the open cert panel
+      const emp = ROSTER.find(e => e.last === last && e.first === first);
+      if (emp && certPanelOpen === last) openCertPanel(last, first, emp.role);
+      showToast(`Photo saved for ${last}, ${first}`, 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function editContactInfo(last, first) {
+  if (!CONTACT_INFO[last]) CONTACT_INFO[last] = {};
+  const c = CONTACT_INFO[last];
+  const phone    = prompt(`${last}, ${first} — Direct phone:`, c.phone || '');
+  if (phone === null) return;
+  const ec_name  = prompt('Emergency contact name:', c.ec_name || '');
+  if (ec_name === null) return;
+  const ec_phone = prompt('Emergency contact phone:', c.ec_phone || '');
+  if (ec_phone === null) return;
+  const ec_rel   = prompt('Relationship (e.g. Spouse, Parent):', c.ec_rel || '');
+  if (ec_rel === null) return;
+  CONTACT_INFO[last] = { ...c, phone: phone.trim(), ec_name: ec_name.trim(), ec_phone: ec_phone.trim(), ec_rel: ec_rel.trim() };
+  saveContactInfo();
+  // Refresh open cert panel if it's showing this person
+  const emp = ROSTER.find(e => e.last === last && e.first === first);
+  if (emp && certPanelOpen === last) openCertPanel(last, first, emp.role);
+  showToast(`Contact info saved for ${last}, ${first}`, 'success');
+}
+
 // ── Build school grid ─────────────────────────────────────────
-document.getElementById('school-grid').innerHTML = SCHOOL_SESSIONS.map(s => `
-  <div class="school-card">
-    <div class="sc-code">${esc(s.code)}</div>
-    <div class="sc-dates">${esc(s.start)} – ${esc(s.end)}</div>
-    <span class="sc-badge">${s.emps.length} emp${s.emps.length !== 1 ? 's' : ''}</span>
-    <div class="sc-emps">${s.emps.map(e => esc(e)).join('<br>')}</div>
-  </div>`).join('');
+// ── School sessions — render with edit + remove ───────────────
+function renderSchoolGrid() {
+  const grid = document.getElementById('school-grid');
+  if (!grid) return;
+  if (SCHOOL_SESSIONS.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);font-size:13px">No school sessions scheduled. Click + Add session to add one.</div>`;
+    return;
+  }
+  grid.innerHTML = SCHOOL_SESSIONS.map((s, idx) => `
+    <div class="school-card" style="position:relative">
+      <div style="position:absolute;top:6px;right:6px;display:flex;gap:4px">
+        <button class="btn btn-sm" style="padding:1px 7px;font-size:10px" onclick="editSchoolSession(${idx})" title="Edit">✏</button>
+        <button class="btn btn-sm" style="padding:1px 7px;font-size:10px;color:var(--bad);border-color:var(--bad)" onclick="removeSchoolSession(${idx})" title="Remove">×</button>
+      </div>
+      <div class="sc-code">${esc(s.code)}</div>
+      <div class="sc-dates">${esc(s.start)} – ${esc(s.end)}</div>
+      <span class="sc-badge">${s.emps.length} emp${s.emps.length !== 1 ? 's' : ''}</span>
+      <div class="sc-emps">${s.emps.map(e => esc(e)).join('<br>')}</div>
+    </div>`).join('');
+}
+
+function openAddSchoolSession() {
+  openSchoolSessionModal(-1, { code:'', start:'', end:'', emps:[] });
+}
+
+function editSchoolSession(idx) {
+  openSchoolSessionModal(idx, { ...SCHOOL_SESSIONS[idx] });
+}
+
+function removeSchoolSession(idx) {
+  const s = SCHOOL_SESSIONS[idx];
+  if (!confirm(`Remove ${s.code} session (${s.start} – ${s.end}) for ${s.emps.join(', ')}?\n\nThis will NOT automatically clear those employees' schedule cells.`)) return;
+  SCHOOL_SESSIONS.splice(idx, 1);
+  renderSchoolGrid();
+  showToast('School session removed', 'success');
+}
+
+function openSchoolSessionModal(idx, session) {
+  // Simple prompt-chain for now — modal UI can be added later
+  const code = prompt('Class code (e.g. 2D, 4B):', session.code || '');
+  if (code === null) return;
+  const start = prompt('Start date (e.g. Apr 13):', session.start || '');
+  if (start === null) return;
+  const end = prompt('End date (e.g. Apr 17, 2026):', session.end || '');
+  if (end === null) return;
+  const empsRaw = prompt('Employees (comma-separated "Last, First"):', session.emps.join(', ') || '');
+  if (empsRaw === null) return;
+  const emps = empsRaw.split(',').map(e => e.trim()).filter(Boolean);
+
+  const updated = { code: code.trim(), start: start.trim(), end: end.trim(), emps };
+  if (idx === -1) {
+    SCHOOL_SESSIONS.push(updated);
+    showToast(`School session ${updated.code} added`, 'success');
+  } else {
+    SCHOOL_SESSIONS[idx] = updated;
+    showToast(`School session ${updated.code} updated`, 'success');
+  }
+  renderSchoolGrid();
+}
+
+// Initial render + wire the + Add button
+renderSchoolGrid();
+
+// ── Director cache (used by renderRequestsList et al.) ──────
+// Directors are anyone in allowed_users with role='superintendent' AND active=true.
+// We keep a synchronous cache so render functions don't need to be async.
+// The cache is refreshed on app boot and whenever Admin mutates users.
+// If the cache is empty (first load, Supabase down), fall back to a static
+// bootstrap list so the app stays functional.
+const _DIRECTOR_FALLBACK = ['Cameron Laws', 'Tristan Lozano', 'Joshua Bohlke', 'Zech Noel'];
+let _directorsCache = null; // null = not yet loaded; [] = loaded + empty; [...] = loaded
 
 // ── Build requests screen ─────────────────────────────────────
 // Renders the structured request list with director responses,
@@ -4344,11 +5542,47 @@ document.getElementById('req-full-list').addEventListener('click', e => {
 renderRequestsList();
 
 // ── Director polling logic ────────────────────────────────────
+// (See cache declarations above renderRequestsList — _DIRECTOR_FALLBACK
+//  and _directorsCache are defined there so render functions can use them
+//  without tripping the temporal-dead-zone.)
+
 function getDirectors() {
-  // In production, read from allowed_users table where role='superintendent'.
-  // For now, static list matching the authorized users.
-  return ['Cameron Laws', 'Tristan Lozano', 'Joshua Bohlke', 'Zech Noel'];
+  // If we've loaded from DB, return that. Otherwise fall back to the bootstrap list
+  // so the app doesn't break if Supabase is unreachable.
+  if (Array.isArray(_directorsCache) && _directorsCache.length > 0) {
+    return _directorsCache.slice();
+  }
+  return _DIRECTOR_FALLBACK.slice();
 }
+
+async function refreshDirectorsCache() {
+  if (typeof _sb === 'undefined' || !_sb) return;
+  try {
+    const { data, error } = await _sb
+      .from('allowed_users')
+      .select('name')
+      .eq('role', 'superintendent')
+      .eq('active', true);
+    if (error) {
+      const msg = (typeof _errMsg === 'function') ? _errMsg(error) : String(error);
+      if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+        console.warn('[directors]', msg);
+      }
+      return;
+    }
+    if (Array.isArray(data)) {
+      _directorsCache = data.map(r => r.name).filter(Boolean);
+      // Re-render request list in case the pending-response roster changed
+      if (typeof renderRequestsList === 'function') renderRequestsList();
+    }
+  } catch (e) {
+    const msg = (typeof _errMsg === 'function') ? _errMsg(e) : String(e);
+    if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+      console.warn('[directors] threw', msg);
+    }
+  }
+}
+
 function isCurrentUserDirector() {
   const me = (typeof _currentUser !== 'undefined' && _currentUser.role) || '';
   return ['superintendent','admin'].includes(me.toLowerCase());
@@ -4493,7 +5727,31 @@ function goScreen(id) {
   const meta = SCREEN_META[id] || { title: id, sub: '' };
   document.getElementById('screen-title').textContent = meta.title;
   document.getElementById('screen-sub').textContent   = meta.sub;
-  if (id === 'admin')         renderAdmin();
+  if (id === 'admin')     renderAdmin();
+  if (id === 'dashboard') {
+    try { renderDashMiniGrid(); } catch {}
+    try { renderDiffView('dash-diff', parseInt(document.getElementById('diff-range')?.value || '168')); } catch {}
+    try { renderWeatherPanel('dash-weather'); } catch {}
+  }
+  if (id === 'schedule') {
+    // Populate compare week selects with all 105 weeks
+    ['compare-week-a','compare-week-b','finder-week'].forEach((selId, i) => {
+      const sel = document.getElementById(selId);
+      if (!sel || sel.options.length >= 105) return;
+      const defaultIdx = selId === 'compare-week-b'
+        ? SCHED_CURRENT_WEEK.index + 1
+        : SCHED_CURRENT_WEEK.index;
+      const opts = [];
+      for (let w = 0; w < SCHED_WEEKS_TOTAL; w++) {
+        const isCurrent = w === SCHED_CURRENT_WEEK.index;
+        opts.push(`<option value="${w}"${w===defaultIdx?' selected':''}>${schedWeekLabel(w)}${isCurrent?' · current':''}</option>`);
+      }
+      sel.innerHTML = opts.join('');
+    });
+    try { renderWeekCompare('sched-compare'); } catch {}
+    try { renderEmpTimeline('sched-timeline'); } catch {}
+    try { renderFinder('sched-finder'); } catch {}
+  }
 }
 
 document.querySelectorAll('.nav-item[data-screen]').forEach(item => {
@@ -4886,179 +6144,45 @@ if (document.readyState === 'loading') {
   renderUnionHolidayAlerts();
 }
 
-// ── Weather forecast (NWS — no API key needed) ────────────────
-// Umatilla, OR — served by NWS Pendleton (PDT) office.
-// Grid point resolved from lat 45.92, lon -119.29.
-// Temp thresholds: 90°F caution, 100°F red flag (outdoor work blocked).
-const NWS_ENDPOINT = 'https://api.weather.gov/gridpoints/PDT/128,100/forecast';
-const CAUTION_TEMP = 90;
-const RED_FLAG_TEMP = 100;
-
-// Cache weather for 6 hours — NWS issues new forecasts roughly every
-// 6 hours (midnight, 6am, noon, 6pm local), so this matches their cadence.
-// Cached in localStorage so repeat page loads are instant and we don't
-// re-fetch the same unchanged data. Cost: $0 (NOAA is free, no
-// infrastructure is touched).
-const WEATHER_CACHE_KEY = 'fieldflow-weather-cache-v1';
-const WEATHER_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
-
-function getCachedWeather() {
-  try {
-    const raw = localStorage.getItem(WEATHER_CACHE_KEY);
-    if (!raw) return null;
-    const cached = JSON.parse(raw);
-    if (!cached.timestamp || !cached.data) return null;
-    const age = Date.now() - cached.timestamp;
-    if (age > WEATHER_CACHE_TTL_MS) return null; // expired
-    return cached;
-  } catch { return null; }
-}
-
-function cacheWeather(data) {
-  try {
-    localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
-      timestamp: Date.now(),
-      data,
-    }));
-  } catch { /* quota exceeded — silently skip */ }
-}
-
-async function loadWeather() {
-  const strip   = document.getElementById('weather-strip');
-  const status  = document.getElementById('weather-status');
-  if (!strip) return;
-
-  // Try cache first
-  const cached = getCachedWeather();
-  if (cached) {
-    renderWeatherFromData(cached.data, cached.timestamp, true);
-    return;
-  }
-
-  // Otherwise fetch fresh
-  try {
-    const res  = await fetch(NWS_ENDPOINT, { headers: { 'Accept': 'application/geo+json' } });
-    if (!res.ok) throw new Error('NWS fetch failed: ' + res.status);
-    const data = await res.json();
-    const periods = data?.properties?.periods || [];
-
-    // Collapse to daily highs — keep only daytime ("isDaytime": true) periods
-    const days = periods.filter(p => p.isDaytime).slice(0, 7);
-    if (days.length === 0) throw new Error('No daytime periods');
-
-    cacheWeather(days);
-    renderWeatherFromData(days, Date.now(), false);
-  } catch (err) {
-    status.textContent = 'Unavailable';
-    status.style.color = 'var(--muted)';
-    strip.innerHTML = `<div style="grid-column:1/-1;padding:16px;text-align:center;font-size:12px;color:var(--muted)">Weather forecast unavailable. ${esc(err.message || '')}</div>`;
-  }
-}
-
-// Manual refresh — bypasses cache. Button on the weather panel header.
-async function refreshWeather() {
-  try { localStorage.removeItem(WEATHER_CACHE_KEY); } catch {}
-  const status = document.getElementById('weather-status');
-  if (status) status.textContent = 'Refreshing…';
-  await loadWeather();
-}
-
-function renderWeatherFromData(days, timestamp, fromCache) {
-  const strip  = document.getElementById('weather-strip');
-  const status = document.getElementById('weather-status');
-  if (!strip || !status) return;
-
-  strip.innerHTML = days.map(p => renderWeatherDay(p)).join('');
-
-  const caution = days.filter(p => p.temperature >= CAUTION_TEMP && p.temperature < RED_FLAG_TEMP).length;
-  const redFlag = days.filter(p => p.temperature >= RED_FLAG_TEMP).length;
-  let msg;
-  if (redFlag > 0)      msg = `${redFlag} red-flag day${redFlag>1?'s':''} ahead`;
-  else if (caution > 0) msg = `${caution} caution day${caution>1?'s':''}`;
-  else                  msg = 'All clear · 7 days';
-
-  // Append "updated X ago" so users know the data is current
-  const ageMinutes = Math.floor((Date.now() - timestamp) / 60000);
-  let ageLabel;
-  if (ageMinutes < 60)       ageLabel = `${ageMinutes}m ago`;
-  else if (ageMinutes < 1440) ageLabel = `${Math.floor(ageMinutes / 60)}h ago`;
-  else                       ageLabel = `${Math.floor(ageMinutes / 1440)}d ago`;
-  status.textContent = `${msg} · updated ${ageLabel}`;
-
-  if (redFlag > 0)      status.style.color = 'var(--bad)';
-  else if (caution > 0) status.style.color = 'var(--warn)';
-  else                  status.style.color = 'var(--good)';
-}
-
-function renderWeatherDay(p) {
-  const t      = p.temperature;
-  const d      = new Date(p.startTime);
-  const day    = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const date   = d.getDate() + '/' + (d.getMonth() + 1);
-  const icon   = weatherIcon(p.shortForecast || '');
-  let bg = 'var(--white)', border = 'var(--line)', tempColor = 'var(--ink)', badge = '';
-
-  if (t >= RED_FLAG_TEMP) {
-    bg = '#FEE2E2'; border = '#DC2626'; tempColor = '#B91C1C';
-    badge = `<div style="font-size:9.5px;font-weight:600;color:#B91C1C;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Red flag</div>`;
-  } else if (t >= CAUTION_TEMP) {
-    bg = '#FEF3C7'; border = '#D97706'; tempColor = '#92400E';
-    badge = `<div style="font-size:9.5px;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Caution</div>`;
-  }
-
-  return `<div style="background:${bg};border:1px solid ${border};border-radius:8px;padding:9px 8px;text-align:center">
-    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${esc(day)}</div>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${esc(date)}</div>
-    <div style="font-size:18px;line-height:1;margin-bottom:4px">${icon}</div>
-    <div style="font-family:var(--serif);font-size:22px;font-weight:500;color:${tempColor};line-height:1">${t}°</div>
-    ${badge}
-  </div>`;
-}
-
-function weatherIcon(forecast) {
-  const f = forecast.toLowerCase();
-  if (f.includes('thunder'))              return '⛈';
-  if (f.includes('snow') || f.includes('sleet')) return '❄️';
-  if (f.includes('rain') || f.includes('shower')) return '🌧';
-  if (f.includes('cloudy') && f.includes('partly')) return '⛅';
-  if (f.includes('cloudy'))               return '☁️';
-  if (f.includes('fog') || f.includes('haze')) return '🌫';
-  if (f.includes('sunny') || f.includes('clear')) return '☀️';
-  return '🌤';
-}
-
-// Kick off once DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadWeather);
-} else {
-  loadWeather();
-}
-
 // ── Job data with schedule, lead, and email ───────────────────
 // ── JOBS — number is the SOURCE OF TRUTH (matches Spectrum) ──
 // id is internal only; number is what users see and what Spectrum uses.
 const JOBS = [
   { id:'j1', name:'PDX247 BMS',  number:'PDX247-BMS', location:'Portland, OR',
     status:'active',  days:5, lead:'Porter, Billy',   leadEmail:'bporter@crem.com',
-    notes:'BMS install — Level 3 & 4', color:'#FACC15' },
+    notes:'BMS install — Level 3 & 4', color:'#FACC15',
+    address:'1000 SW Broadway, Portland, OR 97205', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j2', name:'PDX246 SEC',  number:'PDX246-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Olveda, Tanner',  leadEmail:'tolveda@crem.com',
-    notes:'Security system rough-in', color:'#8B5CF6' },
+    notes:'Security system rough-in', color:'#8B5CF6',
+    address:'200 SW Market St, Portland, OR 97201', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j3', name:'PDX247 SEC',  number:'PDX247-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Frison, Brad',    leadEmail:'bfrison@crem.com',
-    notes:'Security panels — west wing', color:'#EC4899' },
+    notes:'Security panels — west wing', color:'#EC4899',
+    address:'1 N Center Ct St, Portland, OR 97227', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j4', name:'CAMPUS WIDE', number:'CW-01',      location:'Portland, OR',
     status:'active',  days:4, lead:'Marsolek, Tyler', leadEmail:'tmarsolek@crem.com',
-    notes:'Campus-wide conduit run', color:'#F59E0B' },
+    notes:'Campus-wide conduit run', color:'#F59E0B',
+    address:'2000 SW 5th Ave, Portland, OR 97201', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j5', name:'Live Work',   number:'LW-OPS',     location:'Various',
     status:'active',  days:5, lead:'Munson, Mike',    leadEmail:'mmunson@crem.com',
-    notes:'On-call live work / outages', color:'#EF4444' },
+    notes:'On-call live work / outages', color:'#EF4444',
+    address:'Portland, OR', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j6', name:'WTB',         number:'WTB-01',     location:'Portland, OR',
     status:'active',  days:5, lead:'Isley, Mike',     leadEmail:'misley@crem.com',
-    notes:'Warehouse to building feeder', color:'#10B981' },
+    notes:'Warehouse to building feeder', color:'#10B981',
+    address:'8800 NE Columbia Blvd, Portland, OR 97220', lat:null, lng:null,
+    doc_path:null, doc_name:null },
   { id:'j7', name:'SERVICE',     number:'SVC-01',     location:'Various',
     status:'active',  days:5, lead:'Clugston, Cody',  leadEmail:'cclugston@crem.com',
-    notes:'Service calls', color:'#6B7280' },
+    notes:'Service calls', color:'#6B7280',
+    address:'Portland, OR', lat:null, lng:null,
+    doc_path:null, doc_name:null },
 ];
 
 // Canonical lookup — job number resolves everything else
@@ -5605,9 +6729,21 @@ function renderJobDetail(id) {
           <input id="je-email" class="form-input" type="email" value="${esc(j.leadEmail)}">
         </div>
         <div class="form-group" style="grid-column:span 2">
+          <label class="form-label">Site address <span style="font-size:9.5px;color:var(--muted);font-weight:400">— used for weather forecasts</span></label>
+          <input id="je-address" class="form-input" placeholder="e.g. 1000 SW Broadway, Portland, OR 97205" value="${esc(j.address || '')}">
+        </div>
+        <div class="form-group" style="grid-column:span 2">
           <label class="form-label">Notes</label>
           <input id="je-notes" class="form-input" value="${esc(j.notes || '')}">
         </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
+        <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+          Site briefing document
+          ${j.doc_name ? `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:var(--good-bg);color:var(--good);font-weight:500">✓ Uploaded</span>` : `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-weight:500">No document</span>`}
+        </div>
+        ${renderJobDocPanel(j.id)}
       </div>
 
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
@@ -5640,6 +6776,239 @@ function renderJobDetail(id) {
     </div>`;
 }
 
+// ══════════════════════════════════════════════════════════════
+// JOB DOCUMENT — upload, display, delete, email on transfer
+// ══════════════════════════════════════════════════════════════
+
+// Render the document upload panel for a job.
+// Shows: drop zone (no doc), existing doc card (has doc), or uploading state.
+function renderJobDocPanel(jobId) {
+  const j = JOBS.find(x => x.id === jobId);
+  if (!j) return '';
+  const panelId = `job-doc-panel-${jobId}`;
+
+  // Use requestAnimationFrame to attach drag events after DOM insertion
+  setTimeout(() => {
+    const drop = document.getElementById(`job-doc-drop-${jobId}`);
+    const inp  = document.getElementById(`job-doc-input-${jobId}`);
+    if (!drop || !inp) return;
+
+    drop.addEventListener('click', () => inp.click());
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault();
+      drop.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleJobDocFile(jobId, file);
+    });
+    inp.addEventListener('change', () => {
+      if (inp.files[0]) handleJobDocFile(jobId, inp.files[0]);
+    });
+  }, 0);
+
+  if (j.doc_name) {
+    // Doc exists — show card
+    const size  = j.doc_size ? `${(j.doc_size / 1024).toFixed(0)} KB` : '';
+    const upBy  = j.doc_uploaded_by ? `Uploaded by ${j.doc_uploaded_by}` : '';
+    const upAt  = j.doc_uploaded_at ? ` · ${new Date(j.doc_uploaded_at).toLocaleDateString()}` : '';
+    return `<div id="${panelId}">
+      <div class="job-doc-existing">
+        <div class="job-doc-icon">📄</div>
+        <div class="job-doc-meta">
+          <div class="job-doc-name" title="${esc(j.doc_name)}">${esc(j.doc_name)}</div>
+          <div class="job-doc-sub">${esc(upBy)}${esc(upAt)}${size ? ` · ${size}` : ''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <a class="btn btn-sm" href="${esc(j.doc_url || '#')}" target="_blank" download="${esc(j.doc_name)}" style="font-size:11px">
+            ↓ Download
+          </a>
+          <button class="btn btn-sm" style="color:var(--bad);border-color:var(--bad)"
+            onclick="removeJobDoc('${esc(jobId)}')">Remove</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5">
+        This document will be emailed to any employee transferred to this job on approval.
+      </div>
+      <div style="margin-top:8px">
+        <label for="job-doc-input-${esc(jobId)}" class="btn btn-sm" style="cursor:pointer">Replace document</label>
+        <input type="file" id="job-doc-input-${esc(jobId)}" accept=".doc,.docx,.pdf" style="display:none">
+      </div>
+    </div>`;
+  }
+
+  // No doc — show drop zone
+  return `<div id="${panelId}">
+    <div class="job-doc-drop" id="job-doc-drop-${esc(jobId)}">
+      <input type="file" id="job-doc-input-${esc(jobId)}" accept=".doc,.docx,.pdf">
+      <div style="font-size:24px;margin-bottom:8px">📎</div>
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px">Upload site briefing document</div>
+      <div style="font-size:11.5px;color:var(--muted)">Drag &amp; drop or click · .docx or .pdf · Max 10 MB</div>
+      <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.5">
+        This document is emailed to any employee transferred to <strong>${esc(j.name)}</strong> when a transfer is approved.
+      </div>
+    </div>
+  </div>`;
+}
+
+// Called when a file is chosen or dropped
+async function handleJobDocFile(jobId, file) {
+  const j = JOBS.find(x => x.id === jobId);
+  if (!j) return;
+  const panel = document.getElementById(`job-doc-panel-${jobId}`);
+
+  // Validate
+  const allowed = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                   'application/msword', 'application/pdf'];
+  const extOk = /\.(docx?|pdf)$/i.test(file.name);
+  if (!extOk && !allowed.includes(file.type)) {
+    showToast('Only .docx or .pdf files are supported', 'error'); return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('File must be under 10 MB', 'error'); return;
+  }
+
+  // Show uploading state
+  if (panel) panel.innerHTML = `
+    <div class="job-doc-uploading">
+      <div class="job-doc-uploading-dot"></div>
+      <span>Uploading <strong>${esc(file.name)}</strong>…</span>
+    </div>`;
+
+  if (typeof _sb === 'undefined' || !_sb) {
+    // Offline / dev mode — store locally only
+    j.doc_name = file.name;
+    j.doc_size = file.size;
+    j.doc_url  = null;
+    j.doc_path = null;
+    j.doc_uploaded_by = (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Admin';
+    j.doc_uploaded_at = new Date().toISOString();
+    showToast(`Document saved (dev mode — not persisted to storage)`, 'success');
+    refreshJobDocPanel(jobId);
+    return;
+  }
+
+  try {
+    const path = `jobs/${jobId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { data, error } = await _sb.storage
+      .from('job-documents')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (error) throw error;
+
+    // Get a public/signed URL
+    const { data: urlData } = _sb.storage
+      .from('job-documents')
+      .getPublicUrl(path);
+
+    // Remove old doc from storage if one existed
+    if (j.doc_path) {
+      await _sb.storage.from('job-documents').remove([j.doc_path]).catch(() => {});
+    }
+
+    // Update job record in DB
+    await _safeWrite('job_documents upsert', () =>
+      _sb.from('job_documents').upsert({
+        job_id:       jobId,
+        file_path:    path,
+        file_name:    file.name,
+        file_size:    file.size,
+        uploaded_by:  (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Admin',
+        uploaded_at:  new Date().toISOString(),
+      }, { onConflict: 'job_id' })
+    );
+
+    // Update in-memory job object
+    j.doc_path        = path;
+    j.doc_name        = file.name;
+    j.doc_size        = file.size;
+    j.doc_url         = urlData?.publicUrl || null;
+    j.doc_uploaded_by = (typeof _currentUser !== 'undefined' ? _currentUser.name : '') || 'Admin';
+    j.doc_uploaded_at = new Date().toISOString();
+
+    showToast(`Document uploaded for ${j.name}`, 'success');
+    refreshJobDocPanel(jobId);
+  } catch (err) {
+    const msg = typeof _errMsg === 'function' ? _errMsg(err) : String(err);
+    showToast(`Upload failed: ${msg}`, 'error');
+    refreshJobDocPanel(jobId);
+  }
+}
+
+// Refresh just the doc panel without re-rendering the whole job detail
+function refreshJobDocPanel(jobId) {
+  const panel = document.getElementById(`job-doc-panel-${jobId}`);
+  if (!panel) return;
+  panel.outerHTML = renderJobDocPanel(jobId);
+  // Re-attach drop events by triggering renderJobDocPanel's setTimeout
+  renderJobDocPanel(jobId);
+}
+
+// Remove the document from this job
+async function removeJobDoc(jobId) {
+  const j = JOBS.find(x => x.id === jobId);
+  if (!j || !j.doc_name) return;
+  if (!confirm(`Remove "${j.doc_name}" from ${j.name}?\n\nTransferred employees will no longer receive it.`)) return;
+
+  if (typeof _sb !== 'undefined' && _sb && j.doc_path) {
+    await _sb.storage.from('job-documents').remove([j.doc_path]).catch(() => {});
+    await _safeWrite('job_documents delete', () =>
+      _sb.from('job_documents').delete().eq('job_id', jobId)
+    );
+  }
+
+  j.doc_path = null; j.doc_name = null; j.doc_url = null;
+  j.doc_size = null; j.doc_uploaded_by = null; j.doc_uploaded_at = null;
+
+  showToast(`Document removed from ${j.name}`, 'success');
+  // Re-render the job detail to reflect new state
+  renderJobDetail(jobId);
+}
+
+// Load existing job documents from Supabase on app init
+async function loadJobDocuments() {
+  if (typeof _sb === 'undefined' || !_sb) return;
+  const rows = await _safeLoad('job_documents', () =>
+    _sb.from('job_documents').select('job_id, file_path, file_name, file_size, uploaded_by, uploaded_at')
+  );
+  if (!rows || !rows.length) return;
+  rows.forEach(r => {
+    const j = JOBS.find(x => x.id === r.job_id);
+    if (!j) return;
+    j.doc_path        = r.file_path;
+    j.doc_name        = r.file_name;
+    j.doc_size        = r.file_size;
+    j.doc_uploaded_by = r.uploaded_by;
+    j.doc_uploaded_at = r.uploaded_at;
+    // Build public URL
+    if (typeof _sb !== 'undefined' && _sb) {
+      const { data } = _sb.storage.from('job-documents').getPublicUrl(r.file_path);
+      j.doc_url = data?.publicUrl || null;
+    }
+  });
+}
+
+// Send job briefing doc to employee when a transfer is approved.
+// Called from decideTransfer(). Logs to console — stub for Resend wire-up.
+function sendJobBriefingEmail(transfer) {
+  const j = JOBS.find(x => x.name === transfer.toJob);
+  if (!j || !j.doc_name || !j.doc_url) return; // no doc on this job, nothing to send
+
+  const [last, first] = (transfer.employee || '').split(', ');
+  const empEmail = `${(first || '').toLowerCase()}.${(last || '').toLowerCase()}@crem-inc.com`;
+
+  console.log(
+    `[Email → ${empEmail}] Transfer approved to ${transfer.toJob}\n` +
+    `Attachment: ${j.doc_name}\n` +
+    `URL: ${j.doc_url}\n\n` +
+    `Hi ${first},\n\n` +
+    `Your transfer to ${transfer.toJob} has been approved, effective ${transfer.effectiveDate}.\n\n` +
+    `Please review the attached site briefing document before your first day.\n\n` +
+    `— ${(typeof _currentUser !== 'undefined' ? _currentUser.name : 'FieldFlow')}`
+  );
+  showToast(`Briefing doc queued: ${j.doc_name} → ${transfer.employee}`, 'success');
+}
+
 function saveJobEdit(id) {
   const j = JOBS.find(x => x.id === id);
   if (!j) return;
@@ -5652,6 +7021,11 @@ function saveJobEdit(id) {
   j.lead      = document.getElementById('je-lead')?.value     || j.lead;
   j.leadEmail = document.getElementById('je-email')?.value    || j.leadEmail;
   j.notes     = document.getElementById('je-notes')?.value    || '';
+  const newAddress = document.getElementById('je-address')?.value?.trim() || '';
+  if (newAddress !== j.address) {
+    j.address = newAddress;
+    j.lat = null; j.lng = null; // clear geocode cache so weather re-fetches
+  }
 
   // If the name changed, rewrite every SCHED cell that referenced it
   if (oldName !== j.name && typeof SCHED !== 'undefined') {
@@ -5809,6 +7183,69 @@ function onOutsideClick(e) {
   }
 }
 
+// ── Conflict detection for schedule day changes ───────────────
+// Returns an array of human-readable conflict messages (empty if no conflicts).
+// Warnings, NOT hard blocks — superintendents can override after confirming.
+function detectDayChangeConflicts(empKey, weekIdx, dayIdx, oldValue, newValue) {
+  const warnings = [];
+  const [last, first, role] = empKey.split(',');
+  const empLabel = `${last}, ${first}`;
+  const jobNames = new Set(JOBS.map(j => j.name));
+  const newIsJob = jobNames.has(newValue);
+  const oldIsJob = jobNames.has(oldValue);
+  const JN_OR_HIGHER = new Set(['SUPER','GF','FM','JN','JW','WLD']);
+  const isApprentice = !!role && /^[0-9]/.test(role);
+  const isJnPlus = JN_OR_HIGHER.has(role);
+
+  // Conflict 1: Moving an apprentice off School when school week is in session
+  // (e.g. user picks a job on a day where the seeded School week says they should be in class)
+  if (oldValue === 'School' && newIsJob) {
+    warnings.push(`${empLabel} was scheduled in School this day — moving to "${newValue}" may conflict with Local 112 attendance.`);
+  }
+
+  // Conflict 2: Overwriting an existing vacation day
+  if (oldValue === 'VACATION' && newValue !== 'VACATION' && newValue !== '') {
+    warnings.push(`${empLabel} was on VACATION this day — overwriting a scheduled vacation.`);
+  }
+
+  // Conflict 3: Ratio check — if moving an apprentice ONTO a job, and that job's
+  // crew for this day would have >1 apprentice per JN+, flag it.
+  if (newIsJob && isApprentice) {
+    let jnPlus = 0, apprentices = 1; // +1 for the person being added
+    Object.entries(SCHED).forEach(([k, weeks]) => {
+      if (k === empKey) return; // skip self, already counted
+      const [, , r] = k.split(',');
+      if (weeks[weekIdx] && weeks[weekIdx][dayIdx] === newValue) {
+        if (JN_OR_HIGHER.has(r)) jnPlus++;
+        else if (/^[0-9]/.test(r)) apprentices++;
+      }
+    });
+    if (apprentices > jnPlus && jnPlus > 0) {
+      warnings.push(`Ratio concern: ${newValue} on this day would have ${jnPlus} JN+ and ${apprentices} apprentice${apprentices>1?'s':''} (Local 112 target is 1:1).`);
+    } else if (jnPlus === 0 && apprentices > 0) {
+      warnings.push(`Ratio concern: ${newValue} on this day would have 0 JN+ supervising ${apprentices} apprentice${apprentices>1?'s':''}.`);
+    }
+  }
+
+  // Conflict 4: Removing a JN+ and leaving apprentices without supervision
+  if (oldIsJob && isJnPlus && (newValue === '' || newValue === 'OFF' || newValue === 'VACATION' || newValue === 'School' || (newIsJob && newValue !== oldValue))) {
+    let remainingJnPlus = 0, remainingApprentices = 0;
+    Object.entries(SCHED).forEach(([k, weeks]) => {
+      if (k === empKey) return;
+      const [, , r] = k.split(',');
+      if (weeks[weekIdx] && weeks[weekIdx][dayIdx] === oldValue) {
+        if (JN_OR_HIGHER.has(r)) remainingJnPlus++;
+        else if (/^[0-9]/.test(r)) remainingApprentices++;
+      }
+    });
+    if (remainingApprentices > 0 && remainingJnPlus === 0) {
+      warnings.push(`Removing ${empLabel} (${role}) from ${oldValue} would leave ${remainingApprentices} apprentice${remainingApprentices>1?'s':''} with no JN+ supervision on this day.`);
+    }
+  }
+
+  return warnings;
+}
+
 function applyDayChange(crid, newValue) {
   const d = get(crid);
   if (!d.empKey) return;
@@ -5829,6 +7266,16 @@ function applyDayChange(crid, newValue) {
   // Compute the before/after so the notification is descriptive
   const oldValue  = d.value || '';
   if (oldValue === newValue) { closeDayPopover(); return; }
+
+  // ── Conflict detection — warn (don't block) before committing ──
+  const conflicts = detectDayChangeConflicts(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
+  if (conflicts.length > 0) {
+    const [last, first] = d.empKey.split(',');
+    const msg = `Heads up — this change has ${conflicts.length} conflict${conflicts.length>1?'s':''}:\n\n` +
+                conflicts.map((c, i) => `${i+1}. ${c}`).join('\n\n') +
+                `\n\nApply anyway?`;
+    if (!confirm(msg)) { closeDayPopover(); return; }
+  }
 
   // Apply to SCHED in memory
   if (SCHED[d.empKey] && SCHED[d.empKey][d.weekIdx]) {
@@ -5852,6 +7299,9 @@ function applyDayChange(crid, newValue) {
   // Send notifications to employee + old FM + new FM
   notifyDayChange(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
 
+  // Log change for diff view
+  logDayChange(d.empKey, d.weekIdx, d.dayIdx, oldValue, newValue);
+
   // Keep the drag-board copy in sync
   if (typeof DS_SCHEDULE !== 'undefined' && DS_SCHEDULE[d.empKey] && DS_SCHEDULE[d.empKey][d.weekIdx]) {
     DS_SCHEDULE[d.empKey][d.weekIdx][d.dayIdx] = newValue;
@@ -5862,6 +7312,10 @@ function applyDayChange(crid, newValue) {
   try { if (typeof renderJobView === 'function')      renderJobView(); } catch {}
   try { if (typeof renderJobManager === 'function')   renderJobManager(); } catch {}
   try { if (typeof renderDragSchedule === 'function' && document.getElementById('admin-pane-reassign')?.style.display !== 'none') renderDragSchedule(); } catch {}
+  // Refresh dashboard mini-grid if change is on the current week
+  if (d.weekIdx === SCHED_CURRENT_WEEK.index && _dashSchedActiveTab === 'snap') {
+    try { renderDashMiniGrid(); } catch {}
+  }
 
   // Toast confirmation for the user making the change
   const [last, first] = d.empKey.split(',');
@@ -6035,6 +7489,46 @@ function closeDayPopover() {
   activeDayPopover = null;
 }
 
+// ── Late/Absent FAB ──────────────────────────────────────────
+let _absentFabOpen = false;
+function toggleAbsentFab() {
+  _absentFabOpen = !_absentFabOpen;
+  const menu = document.getElementById('absent-fab-menu');
+  if (!menu) return;
+  menu.style.display = _absentFabOpen ? 'flex' : 'none';
+  if (_absentFabOpen) {
+    renderAbsencePanel('absent-log-mini');
+    document.getElementById('absent-search')?.focus();
+  }
+}
+function renderAbsentSearch(query) {
+  const res = document.getElementById('absent-search-results');
+  if (!res) return;
+  if (!query.trim()) { res.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const matches = ROSTER.filter(e =>
+    e.last.toLowerCase().startsWith(q) || e.first.toLowerCase().startsWith(q)
+  ).slice(0, 8);
+  if (matches.length === 0) {
+    res.innerHTML = `<div style="padding:8px 12px;font-size:11px;color:var(--muted)">No match</div>`;
+    return;
+  }
+  res.innerHTML = matches.map(e => {
+    const key = Object.keys(SCHED).find(k => k.startsWith(e.last + ',' + e.first + ',')) || `${e.last},${e.first},${e.role}`;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:12px;border-bottom:1px solid var(--line-soft)"
+        onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''">
+      <div style="flex:1">
+        <span style="font-weight:500;color:var(--ink)">${esc(e.last)}, ${esc(e.first)}</span>
+        ${roleBadge(e.role)}
+      </div>
+      <button class="btn btn-sm" style="color:var(--bad);border-color:var(--bad);padding:2px 8px;font-size:10.5px"
+        onclick="logAbsence('${esc(key)}','absent');document.getElementById('absent-search').value='';renderAbsentSearch('')">Absent</button>
+      <button class="btn btn-sm" style="color:var(--warn);border-color:var(--warn);padding:2px 8px;font-size:10.5px"
+        onclick="logAbsence('${esc(key)}','late');document.getElementById('absent-search').value='';renderAbsentSearch('')">Late</button>
+    </div>`;
+  }).join('');
+}
+
 const ROLE_LABELS = {
   superintendent: 'Superintendent',
   foreman:        'GF / Foreman',
@@ -6056,12 +7550,13 @@ const NOTIF_DEFS = [
 ];
 
 function renderAdmin() {
-  // Render all four panes once when admin screen is opened
+  // Render all panes once when admin screen is opened
   renderAdminUserList();
   renderAdminNotifs();
   loadHRContact();
   if (typeof renderJobManager === 'function') renderJobManager();
   if (typeof renderTransfers === 'function')  renderTransfers();
+  if (typeof updateAbsentBadge === 'function') updateAbsentBadge();
   // Update transfer badge
   const pending = (typeof TRANSFERS !== 'undefined')
     ? TRANSFERS.filter(t => t.status === 'pending').length
@@ -6076,7 +7571,7 @@ function renderAdmin() {
 
 // Switch between the 5 admin tabs
 function adminTab(which) {
-  ['users','jobs','reassign','transfers','system'].forEach(name => {
+  ['users','jobs','reassign','transfers','absents','system'].forEach(name => {
     const pane = document.getElementById('admin-pane-' + name);
     const btn  = document.querySelector(`.admin-tab[data-admin-tab="${name}"]`);
     if (pane) pane.style.display = name === which ? '' : 'none';
@@ -6086,7 +7581,124 @@ function adminTab(which) {
   if (which === 'transfers' && typeof renderTransfers === 'function')    renderTransfers();
   if (which === 'jobs'      && typeof renderJobManager === 'function')   renderJobManager();
   if (which === 'reassign'  && typeof renderDragSchedule === 'function') renderDragSchedule();
+  if (which === 'absents')  renderAbsentsAdmin();
+  if (which === 'system') {
+    try { renderHandoffPanel('admin-handoff-panel'); } catch {}
+    try { loadHRContact(); } catch {}
+  }
 }
+
+// ── Employee Absents admin tab ─────────────────────────────────
+function updateAbsentBadge() {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayCount = ABSENT_LOG.filter(e => e.date === today).length;
+  const badge = document.getElementById('admin-absent-badge');
+  if (!badge) return;
+  badge.textContent = todayCount;
+  badge.style.display = todayCount > 0 ? '' : 'none';
+}
+
+function getFilteredAbsents() {
+  const type  = document.getElementById('absent-filter-type')?.value  || 'all';
+  const range = document.getElementById('absent-filter-range')?.value || '90';
+  const emp   = (document.getElementById('absent-filter-emp')?.value  || '').toLowerCase().trim();
+  const cutoff = range === 'all' ? new Date(0) : new Date(Date.now() - parseInt(range) * 86400000);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  return [...ABSENT_LOG]
+    .filter(e => {
+      if (type !== 'all' && e.type !== type) return false;
+      if (range !== 'all' && e.date < cutoffStr) return false;
+      if (emp) {
+        const [last, first] = e.empKey.split(',');
+        if (!`${last} ${first}`.toLowerCase().includes(emp)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
+function renderAbsentsAdmin() {
+  const tbody = document.getElementById('absents-admin-tbody');
+  const empty = document.getElementById('absents-admin-empty');
+  if (!tbody) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const monday = (() => {
+    const d = new Date(); d.setHours(0,0,0,0);
+    const dow = d.getDay(); d.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+    return d.toISOString().slice(0, 10);
+  })();
+  const cutoff90 = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
+
+  const todayCount  = ABSENT_LOG.filter(e => e.date === today).length;
+  const weekCount   = ABSENT_LOG.filter(e => e.date >= monday).length;
+  const absentCount = ABSENT_LOG.filter(e => e.type === 'absent' && e.date >= cutoff90).length;
+  const lateCount   = ABSENT_LOG.filter(e => e.type === 'late'   && e.date >= cutoff90).length;
+
+  const setKpi = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.querySelector('.metric-val').textContent = val;
+  };
+  setKpi('absent-kpi-today',    todayCount);
+  setKpi('absent-kpi-week',     weekCount);
+  setKpi('absent-kpi-absences', absentCount);
+  setKpi('absent-kpi-late',     lateCount);
+
+  const rows = getFilteredAbsents();
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  let lastDate = '';
+  tbody.innerHTML = rows.map(e => {
+    const [last, first] = e.empKey.split(',');
+    const dateSep = e.date !== lastDate
+      ? `<tr><td colspan="6" style="padding:10px 10px 4px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--surface-2);border-top:1px solid var(--line)">${formatDateLabel(e.date)}</td></tr>`
+      : '';
+    lastDate = e.date;
+    const timeStr = new Date(e.at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const typePill = e.type === 'absent'
+      ? `<span class="absent-pill absent">X Absent</span>`
+      : `<span class="absent-pill late">Late</span>`;
+    return dateSep + `<tr style="border-bottom:1px solid var(--line-soft)">
+      <td style="padding:8px 10px;font-weight:500;color:var(--ink)">${e.empKey.split(',').slice(0,2).join(', ')}</td>
+      <td style="padding:8px 10px">${typePill}</td>
+      <td style="padding:8px 10px;font-family:var(--mono);font-size:11.5px;color:var(--ink)">${e.date}</td>
+      <td style="padding:8px 10px;color:var(--muted)">${e.job || '—'}</td>
+      <td style="padding:8px 10px;color:var(--muted)">${e.reportedBy || '—'}</td>
+      <td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--muted)">${timeStr}</td>
+    </tr>`;
+  }).join('');
+  updateAbsentBadge();
+}
+
+function formatDateLabel(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diffDays = Math.floor((today - d) / 86400000);
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  return d.toLocaleDateString([], { weekday:'long', month:'short', day:'numeric', year:'numeric' });
+}
+
+function exportAbsentsCSV() {
+  const rows = getFilteredAbsents();
+  const header = ['Last','First','Role','Type','Date','Job','Reported By','Time'].join(',');
+  const lines = rows.map(e => {
+    const [last, first, role] = e.empKey.split(',');
+    const time = new Date(e.at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    return [last, first, role||'', e.type, e.date, '"'+(e.job||'')+'"', '"'+(e.reportedBy||'')+'"', time].join(',');
+  });
+  const blob = new Blob([[header, ...lines].join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'fieldflow-absents-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
 
 function renderAdminNotifs() {
   const list = document.getElementById('admin-notif-list');
@@ -6156,6 +7768,8 @@ async function renderAdminUserList() {
       const { error } = await _sb.from('allowed_users').delete().eq('id', id);
       if (error) { alert('Failed to remove: ' + error.message); btn.textContent = '×'; return; }
       renderAdminUserList();
+      // A removed user may have been a superintendent, refresh cache unconditionally
+      if (typeof refreshDirectorsCache === 'function') refreshDirectorsCache();
     });
   });
 }
@@ -6180,7 +7794,11 @@ async function adminSaveUser() {
   const btn   = document.querySelector('[onclick="adminSaveUser()"]');
 
   if (!name)  { alert('Please enter a name.'); return; }
-  if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+  // Simple email format check — rejects 'foo', 'foo@', '@bar', 'foo @bar.com', etc.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
 
   if (btn) { btn.textContent = 'Adding…'; btn.disabled = true; }
 
@@ -6198,6 +7816,10 @@ async function adminSaveUser() {
 
   adminCancelAdd();
   renderAdminUserList();
+  // If the new user is a superintendent, the director list changed
+  if (role === 'superintendent' && typeof refreshDirectorsCache === 'function') {
+    refreshDirectorsCache();
+  }
 }
 
 function adminSaveHR() {
@@ -6414,6 +8036,8 @@ function decideTransfer(id, decision) {
   // If approved + it's a crew reassignment, actually move the schedule
   if (decision === 'approved' && t.type === 'reassign' && t.effectiveDate) {
     applyTransferToSchedule(t);
+    // Email employee the site briefing doc for their new job (if one exists)
+    sendJobBriefingEmail(t);
   }
 
   // Log notifications
@@ -6729,20 +8353,11 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
-  // ── Real auth wall ──
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) {
-    const allowed = await ffAllowed(session.user.email);
-    if (allowed) {
-      ffShowApp(session.user.email, allowed.name, allowed.role);
-      loadPersistedData().catch(err => console.warn('[load] failed', err));
-    } else {
-      await _sb.auth.signOut();
-      ffShowLogin();
-    }
-  } else {
-    ffShowLogin();
-  }
+  // ── DEV MODE: bypass login for editing/preview ──
+  ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
+  loadPersistedData().catch(err => console.warn('[load] failed', err));
+  refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+  loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
 })();
 
 // ── Load persisted data from Supabase ──────────────────────
@@ -6830,6 +8445,34 @@ async function loadPersistedData() {
       if (!CERT_EXPIRY[r.emp_last]) CERT_EXPIRY[r.emp_last] = {};
       CERT_EXPIRY[r.emp_last][r.cert_key] = r.expires_on;
     });
+  }
+
+  // 5. Absence log — load last 90 days into ABSENT_LOG
+  const absRows = await _safeLoad('absence_log', () =>
+    _sb.from('absence_log')
+      .select('id, emp_key, type, date, job, reported_by, at')
+      .gte('date', new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10))
+      .order('at', { ascending: false })
+  );
+  if (absRows && absRows.length) {
+    absRows.forEach(r => {
+      // Avoid duplicates (in case logAbsence already added this session)
+      if (!ABSENT_LOG.find(e => e.id === r.id)) {
+        ABSENT_LOG.push({
+          id:          r.id,
+          empKey:      r.emp_key,
+          type:        r.type,
+          date:        r.date,
+          job:         r.job,
+          reportedBy:  r.reported_by,
+          at:          r.at,
+        });
+      }
+    });
+    // Keep sorted newest-first
+    ABSENT_LOG.sort((a, b) => new Date(b.at) - new Date(a.at));
+    // Refresh badge if admin panel is open
+    if (typeof updateAbsentBadge === 'function') setTimeout(updateAbsentBadge, 0);
   }
 }
 
@@ -6960,6 +8603,10 @@ try { if (typeof buildSchedJumpOptions === 'function') buildSchedJumpOptions(); 
 try { if (typeof buildSchedThead === 'function') buildSchedThead(); } catch (e) { console.error('buildSchedThead init failed', e); }
 try { if (typeof buildSchedTbody === 'function') buildSchedTbody(); } catch (e) { console.error('buildSchedTbody init failed', e); }
 try { if (typeof populateDsWeekSel === 'function') populateDsWeekSel(); } catch (e) { console.error('populateDsWeekSel init failed', e); }
+// Dashboard new panels — render on initial load (dashboard is the default active screen)
+try { if (typeof renderDashMiniGrid === 'function') renderDashMiniGrid(); } catch (e) { console.error('renderDashMiniGrid init failed', e); }
+try { if (typeof renderDiffView === 'function') renderDiffView('dash-diff', 168); } catch (e) { console.error('renderDiffView init failed', e); }
+try { if (typeof renderWeatherPanel === 'function') renderWeatherPanel('dash-weather'); } catch (e) { console.error('renderWeatherPanel init failed', e); }
 </script>
 </body>
 </html>
