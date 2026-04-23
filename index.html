@@ -2030,49 +2030,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
           Sign in
         </button>
-        <button onclick="ffShowForgot()"
-          style="font-size:12px;color:#A16207;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:500">
-          Forgot password?
-        </button>
+        <div style="font-size:11px;color:#9B9690;text-align:center;margin-top:4px;line-height:1.4">
+          Passwords are managed by your admin.<br>Contact them if you need access or a password reset.
+        </div>
       </div>
     </div>
-    <!-- Forgot -->
-    <div id="ff-form-forgot" style="display:none">
-      <div style="font-size:13px;color:#6B7280;margin-bottom:16px;line-height:1.5">Enter your email — we'll send a reset link if you're authorized.</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <input id="ff-reset-email" type="email" placeholder="you@crem-inc.com"
-          style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
-        <div id="ff-reset-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
-        <button id="ff-reset-btn" onclick="ffSendReset()"
-          style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
-          Send reset link
-        </button>
-        <button onclick="ffShowSignin()" style="font-size:12px;color:#6B7280;background:none;border:none;cursor:pointer;font-family:inherit">← Back</button>
-      </div>
-    </div>
-    <!-- Sent -->
-    <div id="ff-form-sent" style="display:none;text-align:center">
-      <div style="font-size:36px;margin-bottom:12px">📧</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:8px">Check your email</div>
-      <div style="font-size:13px;color:#6B7280;line-height:1.6">Reset link sent to <strong id="ff-sent-to"></strong>. Click it to set a new password.</div>
-      <button onclick="ffShowSignin()" style="margin-top:16px;font-size:12px;color:#EAB308;background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">← Back to sign in</button>
-    </div>
-    <!-- Set password -->
-    <div id="ff-form-setpw" style="display:none">
-      <div style="font-size:13px;color:#6B7280;margin-bottom:16px">Choose a new password.</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <input id="ff-newpw" type="password" placeholder="At least 8 characters"
-          style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
-        <input id="ff-confirmpw" type="password" placeholder="Confirm password"
-          onkeydown="if(event.key==='Enter')ffSetPassword()"
-          style="padding:10px 12px;border-radius:8px;border:1px solid #D1D5DB;font-size:14px;font-family:inherit;outline:none">
-        <div id="ff-setpw-error" style="display:none;font-size:12px;color:#DC2626;background:#FEF2F2;padding:9px 12px;border-radius:7px"></div>
-        <button id="ff-setpw-btn" onclick="ffSetPassword()"
-          style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
-          Set password &amp; sign in
-        </button>
-      </div>
-    </div>
+    <!-- Forgot / reset flows removed: passwords are admin-managed -->
     <div style="margin-top:24px;padding-top:18px;border-top:1px solid #F3F4F6;text-align:center;font-size:12px;color:#9CA3AF">
       Access requires authorization from a superintendent
     </div>
@@ -6561,18 +6524,17 @@ const _sb = supabase.createClient(_SBURL, _SBKEY, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
   }
 });
 
 function ffShowForm(name) {
-  ['signin','forgot','sent','setpw'].forEach(f => {
-    const el = document.getElementById('ff-form-' + f);
-    if (el) el.style.display = f === name ? 'block' : 'none';
-  });
+  // Only signin form exists now; forgot/reset flows removed since
+  // passwords are admin-managed.
+  const el = document.getElementById('ff-form-signin');
+  if (el) el.style.display = name === 'signin' ? 'block' : 'none';
 }
 function ffShowSignin() { ffShowForm('signin'); }
-function ffShowForgot() { ffShowForm('forgot'); }
 
 function ffShowLogin() {
   const l = document.getElementById('ff-login');
@@ -6658,38 +6620,6 @@ async function ffSignIn() {
   ffShowApp(email, allowed.name, allowed.role);
 }
 
-async function ffSendReset() {
-  const email = (document.getElementById('ff-reset-email')?.value||'').trim().toLowerCase();
-  ffSetErr('ff-reset-error','');
-  if (!email||!email.includes('@')) { ffSetErr('ff-reset-error','Enter a valid email.'); return; }
-  ffSetBtn('ff-reset-btn', true, 'Send reset link');
-  const allowed = await ffAllowed(email);
-  if (allowed) {
-    await _sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
-  }
-  ffSetBtn('ff-reset-btn', false, 'Send reset link');
-  document.getElementById('ff-sent-to').textContent = email;
-  ffShowForm('sent');
-}
-
-async function ffSetPassword() {
-  const pw1 = document.getElementById('ff-newpw')?.value||'';
-  const pw2 = document.getElementById('ff-confirmpw')?.value||'';
-  ffSetErr('ff-setpw-error','');
-  if (pw1.length<8) { ffSetErr('ff-setpw-error','At least 8 characters.'); return; }
-  if (pw1!==pw2)    { ffSetErr('ff-setpw-error','Passwords do not match.'); return; }
-  ffSetBtn('ff-setpw-btn', true, 'Set password & sign in');
-  const { error } = await _sb.auth.updateUser({ password: pw1 });
-  ffSetBtn('ff-setpw-btn', false, 'Set password & sign in');
-  if (error) { ffSetErr('ff-setpw-error','Could not set password. Try the reset link again.'); return; }
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) {
-    const allowed = await ffAllowed(session.user.email);
-    if (allowed) ffShowApp(session.user.email, allowed.name, allowed.role);
-    else { await _sb.auth.signOut(); ffShowLogin(); }
-  }
-}
-
 async function ffSignOut() {
   _currentUser = { email: '', name: '', role: '' };
   await _sb.auth.signOut();
@@ -6697,15 +6627,7 @@ async function ffSignOut() {
 }
 
 _sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'PASSWORD_RECOVERY') {
-    ffShowForm('setpw');
-    const l = document.getElementById('ff-login');
-    const t = document.getElementById('ff-topbar');
-    const a = document.getElementById('ff-app');
-    if (l) l.style.display = 'flex';
-    if (t) t.style.display = 'none';
-    if (a) a.style.display = 'none';
-  } else if (event === 'SIGNED_OUT') {
+  if (event === 'SIGNED_OUT') {
     ffShowLogin();
   }
 });
