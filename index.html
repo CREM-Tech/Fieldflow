@@ -277,6 +277,11 @@ html.dark [style*="color: #000"] {
 }
 
 /* Role badge backgrounds are all pale in light mode — darken in dark mode */
+html.dark .role-exec    { background: rgba(79, 70, 229, 0.35);  color: #C7D2FE; }
+html.dark .role-dir     { background: rgba(139, 92, 246, 0.3);  color: #DDD6FE; }
+html.dark .role-senior  { background: rgba(99, 102, 241, 0.3);  color: #C7D2FE; }
+html.dark .role-office  { background: rgba(6, 182, 212, 0.2);   color: #67E8F9; }
+html.dark .role-support { background: rgba(132, 204, 22, 0.2);  color: #BEF264; }
 html.dark .role-super { background: rgba(139, 92, 246, 0.2); color: #DDD6FE; }
 html.dark .role-gf    { background: rgba(245, 158, 11, 0.2); color: #FDE68A; }
 html.dark .role-fm    { background: rgba(59, 130, 246, 0.2); color: #93C5FD; }
@@ -1199,18 +1204,23 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
    MH     → slate            (support role)
 */
 .role-badge { display: inline-flex; padding: 2px 7px; border-radius: 4px; font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; }
-.role-super { background: #EDE9FE; color: #4C1D95; }
-.role-gf    { background: #FEF3C7; color: #78350F; }
-.role-fm    { background: #DBEAFE; color: #1E40AF; }
-.role-wld   { background: #FFE4E6; color: #9F1239; }
-.role-jn    { background: #D1FAE5; color: #065F46; }
-.role-ap5   { background: #CCFBF1; color: #115E59; }
-.role-ap4   { background: #CFFAFE; color: #155E75; }
-.role-ap3   { background: #E0F2FE; color: #0C4A6E; }
-.role-ap2   { background: #E0E7FF; color: #3730A3; }
-.role-ap1   { background: #EDE9FE; color: #5B21B6; }
-.role-mh    { background: #F1F5F9; color: #334155; }
-.role-ap    { background: #FFF7ED; color: #7C2D12; }
+.role-exec    { background: #1E1B4B; color: #E0E7FF; }
+.role-dir     { background: #5B21B6; color: #EDE9FE; }
+.role-senior  { background: #3730A3; color: #E0E7FF; }
+.role-office  { background: #CFFAFE; color: #155E75; }
+.role-support { background: #ECFCCB; color: #3F6212; }
+.role-super   { background: #EDE9FE; color: #4C1D95; }
+.role-gf      { background: #FEF3C7; color: #78350F; }
+.role-fm      { background: #DBEAFE; color: #1E40AF; }
+.role-wld     { background: #FFE4E6; color: #9F1239; }
+.role-jn      { background: #D1FAE5; color: #065F46; }
+.role-ap5     { background: #CCFBF1; color: #115E59; }
+.role-ap4     { background: #CFFAFE; color: #155E75; }
+.role-ap3     { background: #E0F2FE; color: #0C4A6E; }
+.role-ap2     { background: #E0E7FF; color: #3730A3; }
+.role-ap1     { background: #EDE9FE; color: #5B21B6; }
+.role-mh      { background: #F1F5F9; color: #334155; }
+.role-ap      { background: #FFF7ED; color: #7C2D12; }
 .ck  { color: var(--ff-green); font-size: 11px; }
 .dash { color: var(--ff-tx4); font-size: 11px; }
 
@@ -2995,10 +3005,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <div class="metric-sub">Kegel · Robins</div>
           <div class="metric-hint">View sessions →</div>
         </div>
-        <div class="metric metric-btn" id="mc-conflicts" onclick="openPanel('conflicts')">
+        <div class="metric metric-btn" id="mc-conflicts" onclick="openPanel('conflicts')" data-tip="Scheduling conflicts — same employee assigned to multiple places or flagged as '???'. Click for full list.">
           <div class="metric-label">Conflicts</div>
-          <div class="metric-value warn" id="mv-conflicts">37</div>
-          <div class="metric-sub warn">needs review</div>
+          <div class="metric-value" id="mv-conflicts">0</div>
+          <div class="metric-sub" id="mv-conflicts-sub">all resolved</div>
           <div class="metric-hint">Resolve conflicts →</div>
         </div>
         <div class="metric metric-btn" id="mc-requests" onclick="openPanel('requests')">
@@ -4239,15 +4249,48 @@ function roleBadge(role) {
   const r = String(role).trim();
   // Top-level roles
   const topMap = {
-    SUPER: 'role-super',
-    GF:    'role-gf',
-    FM:    'role-fm',
-    WLD:   'role-wld',
-    JN:    'role-jn',
-    JW:    'role-jn',
-    MH:    'role-mh',
+    // Executive — deep purple
+    PRES:       'role-exec',
+    COO:        'role-exec',
+    CFO:        'role-exec',
+    EA:         'role-exec',
+    // Directors — purple
+    DIR_OPS:    'role-dir',
+    DIR_FIELD:  'role-dir',
+    DIR_FIN:    'role-dir',
+    DIR_ADMIN:  'role-dir',
+    // Senior office — indigo
+    SR_PM:      'role-senior',
+    CONTROLLER: 'role-senior',
+    // Office roles — teal/blue
+    PM:         'role-office',
+    PE:         'role-office',
+    ESTIMATOR:  'role-office',
+    BIM:        'role-office',
+    PRECON:     'role-office',
+    BD:         'role-office',
+    HR:         'role-office',
+    IT:         'role-office',
+    OFFICE_MGR: 'role-office',
+    MARKETING:  'role-office',
+    PURCHASING: 'role-office',
+    AR_AP:      'role-office',
+    PAYROLL:    'role-office',
+    // Field support — olive
+    SAFETY:     'role-support',
+    WAREHOUSE:  'role-support',
+    MECHANIC:   'role-support',
+    PREFAB:     'role-support',
+    // Field leadership / craft
+    SUPER:      'role-super',
+    GF:         'role-gf',
+    FM:         'role-fm',
+    WLD:        'role-wld',
+    JN:         'role-jn',
+    JW:         'role-jn',
+    MH:         'role-mh',
   };
-  if (topMap[r]) return `<span class="role-badge ${topMap[r]}">${esc(r)}</span>`;
+  if (topMap[r]) return `<span class="role-badge ${topMap[r]}" data-tip="${esc(roleLabel(r))}">${esc(r.replace('_', ' '))}</span>`;
   // Apprentice — classify by leading digit
   const firstChar = r.charAt(0);
   if (firstChar === '5') return `<span class="role-badge role-ap5">${esc(r)}</span>`;
@@ -4825,17 +4868,132 @@ function certDaysUntil(expiryDate) {
 // ── Roster sort state ─────────────────────────────────────────
 let _rosterSort = { key: null, dir: 'asc' }; // 'asc' | 'desc'
 
-// Role ranking for sorting by seniority (GF > FM > JN > apprentices by year)
+// Role ranking for sorting by seniority
+// Tier 0: C-suite (President, COO, CFO, EA)
+// Tier 1: Directors
+// Tier 2: Senior leadership (Sr. PM, Controller)
+// Tier 3: Field mgmt (Super, GF)
+// Tier 4: Office/support staff (PM, Estimator, BIM, Safety, etc.)
+// Tier 5-11: Craft hierarchy (FM → apprentices → MH)
 const ROLE_RANK = {
-  'SUPER': 0, 'GF': 1, 'FM': 2, 'JN': 3, 'JW': 3, 'WLD': 4,
-  '5A': 5, '5B': 5,
-  '4A': 6, '4B': 6, '4C': 6,
-  '3A': 7, '3B': 7, '3C': 7,
-  '2A': 8, '2B': 8, '2C': 8, '2D': 8, '2E': 8, '2LE': 8,
-  '1A': 9, '1B': 9, '1C': 9, '1D': 9, '1E': 9, '1': 9, '1A(LE)': 9, '1B(LE)': 9,
-  '0': 10, '0A': 10, '0B': 10, '0C': 10, '0D': 10, '0E': 10,
-  'MH': 11,
+  // Executive
+  'PRES': -10, 'COO': -9, 'CFO': -9, 'EA': -8,
+  // Directors
+  'DIR_OPS': -5, 'DIR_FIELD': -5, 'DIR_FIN': -5, 'DIR_ADMIN': -5,
+  // Senior office
+  'SR_PM': -2, 'CONTROLLER': -2,
+  // Field leadership
+  'SUPER': 0,
+  // Office/support
+  'PM': 1, 'PE': 1, 'ESTIMATOR': 1, 'BIM': 1, 'PRECON': 1, 'BD': 1,
+  'SAFETY': 1, 'HR': 1, 'IT': 1, 'OFFICE_MGR': 1, 'MARKETING': 1,
+  'PURCHASING': 1, 'AR_AP': 1, 'PAYROLL': 1,
+  'WAREHOUSE': 1, 'MECHANIC': 1, 'PREFAB': 1,
+  // Field craft
+  'GF': 2, 'FM': 3, 'JN': 4, 'JW': 4, 'WLD': 5,
+  '5A': 6, '5B': 6,
+  '4A': 7, '4B': 7, '4C': 7,
+  '3A': 8, '3B': 8, '3C': 8,
+  '2A': 9, '2B': 9, '2C': 9, '2D': 9, '2E': 9, '2LE': 9,
+  '1A': 10, '1B': 10, '1C': 10, '1D': 10, '1E': 10, '1': 10, '1A(LE)': 10, '1B(LE)': 10,
+  '0': 11, '0A': 11, '0B': 11, '0C': 11, '0D': 11, '0E': 11,
+  'MH': 12,
 };
+
+// Authoritative list of role options for dropdowns — grouped by category.
+// Any new role added here automatically appears in Add/Edit employee forms.
+const ROLE_OPTIONS = [
+  { group: 'Executive', options: [
+    { value: 'PRES',       label: 'President' },
+    { value: 'COO',        label: 'COO' },
+    { value: 'CFO',        label: 'CFO' },
+    { value: 'EA',         label: 'Executive Assistant' },
+  ]},
+  { group: 'Directors', options: [
+    { value: 'DIR_OPS',    label: 'Director of Operations' },
+    { value: 'DIR_FIELD',  label: 'Director of Field Support' },
+    { value: 'DIR_FIN',    label: 'Director of Finance' },
+    { value: 'DIR_ADMIN',  label: 'Director of Admin Support' },
+  ]},
+  { group: 'Operations / Office', options: [
+    { value: 'SR_PM',      label: 'Senior Project Manager' },
+    { value: 'PM',         label: 'Project Manager' },
+    { value: 'PE',         label: 'Project Engineer' },
+    { value: 'PRECON',     label: 'Precon Design Lead' },
+    { value: 'ESTIMATOR',  label: 'Estimator' },
+    { value: 'BIM',        label: 'BIM' },
+    { value: 'BD',         label: 'Business Development' },
+  ]},
+  { group: 'Field Support', options: [
+    { value: 'SAFETY',     label: 'Safety' },
+    { value: 'WAREHOUSE',  label: 'Warehouse / Logistics' },
+    { value: 'MECHANIC',   label: 'Fleet / Facilities Maintenance (Mechanic)' },
+    { value: 'PREFAB',     label: 'Prefab' },
+  ]},
+  { group: 'Finance', options: [
+    { value: 'CONTROLLER', label: 'Controller' },
+    { value: 'PURCHASING', label: 'Purchasing' },
+    { value: 'AR_AP',      label: 'AR / Cost Accounting' },
+    { value: 'PAYROLL',    label: 'Payroll / AP' },
+  ]},
+  { group: 'Admin Support', options: [
+    { value: 'HR',         label: 'HR' },
+    { value: 'OFFICE_MGR', label: 'Office Manager' },
+    { value: 'IT',         label: 'IT' },
+    { value: 'MARKETING',  label: 'Marketing / PR' },
+  ]},
+  { group: 'Field Leadership', options: [
+    { value: 'SUPER',      label: 'Superintendent' },
+    { value: 'GF',         label: 'General Foreman (GF)' },
+    { value: 'FM',         label: 'Foreman (FM)' },
+  ]},
+  { group: 'Craft', options: [
+    { value: 'JN',         label: 'Journeyman (JN)' },
+    { value: 'JW',         label: 'Journey Wireman (JW)' },
+    { value: 'WLD',        label: 'Welder (WLD)' },
+    { value: 'MH',         label: 'Material Handler (MH)' },
+  ]},
+  { group: 'Apprentices', options: [
+    { value: '5A',         label: '5th-year Apprentice (5A)' },
+    { value: '5B',         label: '5th-year Apprentice (5B)' },
+    { value: '4A',         label: '4th-year Apprentice (4A)' },
+    { value: '4B',         label: '4th-year Apprentice (4B)' },
+    { value: '4C',         label: '4th-year Apprentice (4C)' },
+    { value: '3A',         label: '3rd-year Apprentice (3A)' },
+    { value: '3B',         label: '3rd-year Apprentice (3B)' },
+    { value: '3C',         label: '3rd-year Apprentice (3C)' },
+    { value: '2A',         label: '2nd-year Apprentice (2A)' },
+    { value: '2B',         label: '2nd-year Apprentice (2B)' },
+    { value: '2C',         label: '2nd-year Apprentice (2C)' },
+    { value: '2D',         label: '2nd-year Apprentice (2D)' },
+    { value: '2E',         label: '2nd-year Apprentice (2E)' },
+    { value: '1A',         label: '1st-year Apprentice (1A)' },
+    { value: '1B',         label: '1st-year Apprentice (1B)' },
+    { value: '1C',         label: '1st-year Apprentice (1C)' },
+    { value: '1D',         label: '1st-year Apprentice (1D)' },
+    { value: '1E',         label: '1st-year Apprentice (1E)' },
+    { value: '0',          label: 'New hire — unassigned class (0)' },
+  ]},
+];
+
+// Helper: build grouped <optgroup> HTML for any role <select>
+function roleOptionsHTML(selected) {
+  return ROLE_OPTIONS.map(g => `
+    <optgroup label="${g.group}">
+      ${g.options.map(o => `<option value="${o.value}" ${o.value === selected ? 'selected' : ''}>${o.label}</option>`).join('')}
+    </optgroup>`).join('');
+}
+
+// Human-readable label for a role value (for badges, tooltips)
+function roleLabel(value) {
+  for (const g of ROLE_OPTIONS) {
+    const match = g.options.find(o => o.value === value);
+    if (match) return match.label;
+  }
+  // Apprentice-code fallback
+  if (/^[1-5][A-E]?$/.test(value || '')) return `Apprentice ${value}`;
+  return value || '';
+}
 function roleRank(r) {
   if (r in ROLE_RANK) return ROLE_RANK[r];
   if (/^\d/.test(r)) return 10; // any unknown apprentice code
@@ -4987,7 +5145,7 @@ function openAddEmployeeModal() {
         <div class="form-group">
           <label class="form-label">Role *</label>
           <select id="emp-new-role" class="form-input">
-            ${roles.map(r => `<option value="${r}">${r}</option>`).join('')}
+            ${roleOptionsHTML('JN')}
           </select>
         </div>
         <div class="form-group">
@@ -6693,7 +6851,6 @@ function openEditEmployeeModal(last, first) {
     display:flex;align-items:center;justify-content:center;padding:16px;
   `;
 
-  const roles = ['GF','FM','JN','JW','WLD','5A','5B','4A','4B','3A','3B','2A','2B','2C','2D','2E','1A','1B','1C','1D','1E','MH','0'];
   const ci = CONTACT_INFO[last] || {};
 
   modal.innerHTML = `
@@ -6715,7 +6872,7 @@ function openEditEmployeeModal(last, first) {
         <div class="form-group">
           <label class="form-label">Role</label>
           <select id="emp-edit-role" class="form-input">
-            ${roles.map(r => `<option value="${r}" ${r===emp.role?'selected':''}>${r}</option>`).join('')}
+            ${roleOptionsHTML(emp.role)}
           </select>
         </div>
         <div class="form-group">
@@ -9440,16 +9597,9 @@ function computeScheduleHealth() {
   const issues = { conflicts: 0, ratio: 0, expiredCerts: 0, fatigue: 0 };
   const breakdown = [];
 
-  // 1. Conflicts — cells flagged as t-conf
-  Object.values(SCHED).forEach(weeks => {
-    const wk = weeks[SCHED_CURRENT_WEEK.index] || [];
-    wk.forEach(d => {
-      if (d && typeof primaryJob === 'function') {
-        const { cls } = primaryJob([d]);
-        if (cls === 't-conf') issues.conflicts++;
-      }
-    });
-  });
+  // 1. Conflicts — match the dashboard conflicts metric exactly.
+  // Uses the same computeConflictCount() so the numbers always line up.
+  issues.conflicts = (typeof computeConflictCount === 'function') ? computeConflictCount() : 0;
 
   // 2. Ratio violations — count jobs failing JW ratio
   if (typeof getJobCrew === 'function' && typeof getRatioStatus === 'function') {
@@ -9550,7 +9700,35 @@ function denyById(id) {
 
 // ── Dashboard metric panels ───────────────────────────────────
 let activePanel = null;
-let conflictCount = 37;
+// Conflict count is computed live from the schedule data (not hardcoded).
+// Anything flagged as '???' / 'CONFLICT' or primaryJob cls === 't-conf' counts.
+function computeConflictCount() {
+  let total = 0;
+  const seenWeeks = new Set();
+  Object.values(SCHED).forEach(weeks => {
+    (weeks || []).forEach((wk, wkIdx) => {
+      if (!wk) return;
+      wk.forEach(d => {
+        if (!d) return;
+        if (d === '???' || d === 'CONFLICT') { total++; return; }
+        if (typeof primaryJob === 'function') {
+          const { cls } = primaryJob([d]);
+          if (cls === 't-conf') total++;
+        }
+      });
+    });
+  });
+  return total;
+}
+let conflictCount = 0; // gets set by updateConflictCountFromData() once ROSTER/SCHED are loaded
+function updateConflictCountFromData() {
+  conflictCount = computeConflictCount();
+  if (typeof updateMetric === 'function') {
+    updateMetric('conflicts', conflictCount,
+      conflictCount > 0 ? 'needs review' : 'all resolved',
+      conflictCount > 0 ? 'warn' : 'up');
+  }
+}
 let pendingCount = 3;
 
 const CONFLICTS = [
@@ -11402,6 +11580,7 @@ function _refreshAllEmpViews() {
   try { if (typeof renderDashMiniGrid === 'function') renderDashMiniGrid(); } catch (e) { console.warn('[refresh] dash', e); }
   try { if (typeof renderHealthScorePanel === 'function') renderHealthScorePanel('dash-health'); } catch (e) { console.warn('[refresh] health', e); }
   try { if (typeof updateCertsBadge === 'function') updateCertsBadge(); } catch (e) { console.warn('[refresh] certs', e); }
+  try { if (typeof updateConflictCountFromData === 'function') updateConflictCountFromData(); } catch (e) { console.warn('[refresh] conflicts', e); }
   try { if (typeof renderCertsAdmin === 'function' && document.getElementById('admin-pane-certs')?.style.display !== 'none') renderCertsAdmin(); } catch (e) { console.warn('[refresh] certs-admin', e); }
 }
 
