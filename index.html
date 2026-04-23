@@ -2615,6 +2615,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             <div id="dash-act-alerts" style="margin-top:10px">
               <div class="alert-item"><div class="alert-pip" style="background:#EF4444"></div><div><div class="alert-text">1 school conflict to resolve</div><div class="alert-sub">Apprentice scheduled during a school week</div></div></div>
               <div class="alert-item"><div class="alert-pip" style="background:#F59E0B"></div><div><div class="alert-text">Weaver returns from vacation Apr 20</div><div class="alert-sub">Assignment to LW crew confirmed</div></div></div>
+              <div id="alert-fatigue"></div>
               <div id="alert-union-holidays"></div>
             </div>
 
@@ -2693,6 +2694,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="unassigned">Unassigned first</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="openCopyWeekModal()" title="Copy this week's schedule to another week">📋 Copy week</button>
           <button class="btn btn-sm" onclick="exportScheduleCSV()">Export CSV</button>
           <button class="btn btn-sm" onclick="printSchedule()" title="Print schedule">🖨 Print</button>
         </div>
@@ -4106,8 +4108,16 @@ function renderJobView() {
     const violationBadge = hasViolation
       ? ' <span style="background:var(--bad);color:#fff;font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:.04em">⚠ RATIO</span>'
       : '';
+    // Progress bar for named jobs
+    const jobObj = JOBS.find(x => x.name === job);
+    const progressHtml = jobObj
+      ? `<div style="margin-top:4px">${renderJobProgressBar(jobObj, { compact: true })}</div>`
+      : '';
     return `<tr style="${bg}">
-      <td><div class="jv-job">${esc(job)}${violationBadge}</div></td>
+      <td>
+        <div class="jv-job">${esc(job)}${violationBadge}</div>
+        ${progressHtml}
+      </td>
       <td><div class="jv-count">${thisWeekCount}</div></td>
       ${data.weeks.slice(0, COLS).map(names =>
         !names.length
@@ -6470,6 +6480,7 @@ function goScreen(id) {
     try { renderDashMiniGrid(); } catch {}
     try { renderDiffView('dash-diff', parseInt(document.getElementById('diff-range')?.value || '168')); } catch {}
     try { renderWeatherPanel('dash-weather'); } catch {}
+    try { renderFatigueAlerts(); } catch {}
   }
   if (id === 'schedule') {
     // Populate compare week selects with all 105 weeks
@@ -6489,6 +6500,8 @@ function goScreen(id) {
     try { renderWeekCompare('sched-compare'); } catch {}
     try { renderEmpTimeline('sched-timeline'); } catch {}
     try { renderFinder('sched-finder'); } catch {}
+  } // end if (id === 'schedule')
+} // end goScreen
 
 // ══════════════════════════════════════════════════════════════
 // #15 GLOBAL ⌘K SEARCH
@@ -6820,6 +6833,7 @@ function sendCertExpiryAlert(last, first, certLabel, expiresOn, tier) {
     `[Also notify: ${last}, ${first} · ${first.toLowerCase()}.${last.toLowerCase()}@crem-inc.com]`
   );
   // TODO: replace console.log with Resend API call when email is live:
+  // TODO: replace console.log with Resend API call when email is live:
   // await fetch('/api/send-email', { method:'POST', body: JSON.stringify({ to: hrEmail, subject, body }) })
 }
 
@@ -6836,7 +6850,221 @@ function printSchedule() {
   window.print();
 }
 
-  } // end if (id === 'schedule') block — this closes the goScreen function
+// ══════════════════════════════════════════════════════════════
+// #1 COPY WEEK — duplicate current week's schedule to another week
+// ══════════════════════════════════════════════════════════════
+
+function openCopyWeekModal() {
+  document.getElementById('copy-week-modal')?.remove();
+  const currentIdx = SCHED_CURRENT_WEEK.index;
+  const currentLabel = schedWeekLabel(currentIdx);
+
+  // Build target options — next 12 weeks
+  const opts = [];
+  for (let w = currentIdx + 1; w < Math.min(currentIdx + 13, SCHED_WEEKS_TOTAL); w++) {
+    opts.push(`<option value="${w}">${schedWeekLabel(w)}${w === currentIdx + 1 ? ' (next week)' : ''}</option>`);
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'copy-week-modal';
+  modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px`;
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:14px;padding:24px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:var(--serif);font-size:17px;font-weight:500">Copy week schedule</div>
+        <button onclick="document.getElementById('copy-week-modal').remove()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted)">×</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.5">
+        Duplicates <strong style="color:var(--ink)">${esc(currentLabel)}</strong> — every employee's 5-day assignments — to the target week. Existing assignments in the target week will be overwritten. School, vacation, and holiday cells are preserved.
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Target week</label>
+        <select id="copy-week-target" class="form-input">${opts}</select>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="copy-week-preserve-special" checked style="accent-color:var(--accent);width:14px;height:14px">
+        Preserve School / Vacation / Holiday in target week
+      </label>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="document.getElementById('copy-week-modal').remove()">Cancel</button>
+        <button class="btn btn-sm btn-primary" onclick="doCopyWeek(${currentIdx})">Copy week</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function doCopyWeek(sourceIdx) {
+  const target = parseInt(document.getElementById('copy-week-target')?.value || '0');
+  const preserveSpecial = document.getElementById('copy-week-preserve-special')?.checked !== false;
+  if (!target) return;
+  document.getElementById('copy-week-modal')?.remove();
+
+  const SPECIAL = new Set(['School','VACATION','HOLIDAY']);
+  let copiedCount = 0;
+  const pendingWrites = [];
+
+  Object.keys(SCHED).forEach(empKey => {
+    const sourceWeek = SCHED[empKey][sourceIdx];
+    const targetWeek = SCHED[empKey][target];
+    if (!sourceWeek || !targetWeek) return;
+
+    for (let d = 0; d < 5; d++) {
+      // If preserving special cells, skip where target already has School/Vacation/Holiday
+      if (preserveSpecial && SPECIAL.has(targetWeek[d])) continue;
+      if (targetWeek[d] !== sourceWeek[d]) {
+        targetWeek[d] = sourceWeek[d];
+        pendingWrites.push({ empKey, weekIdx: target, dayIdx: d, value: sourceWeek[d] });
+        copiedCount++;
+      }
+    }
+  });
+
+  // Persist all changes to Supabase
+  if (typeof _sb !== 'undefined' && _sb && pendingWrites.length) {
+    for (const w of pendingWrites) {
+      persistScheduleOverride(w.empKey, w.weekIdx, w.dayIdx, w.value);
+    }
+  }
+
+  // Sync drag board
+  if (typeof DS_SCHEDULE !== 'undefined') {
+    Object.keys(SCHED).forEach(k => {
+      if (DS_SCHEDULE[k]) DS_SCHEDULE[k] = SCHED[k].map(wk => [...wk]);
+    });
+  }
+
+  buildSchedTbody();
+  if (typeof renderJobView === 'function') renderJobView();
+  showToast(`✓ ${copiedCount} cells copied to ${schedWeekLabel(target)}`, 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// #4 FATIGUE FLAGGING — consecutive work days across weeks
+// ══════════════════════════════════════════════════════════════
+
+// A "work day" = cell has a value that isn't '', 'OFF', 'VACATION', 'HOLIDAY'
+const NON_WORK_VALUES = new Set(['', 'OFF', 'VACATION', 'HOLIDAY']);
+
+function consecutiveWorkDays(empKey, upToWeekIdx) {
+  // Count back from upToWeekIdx/day 4 (Friday) to find how many consecutive days
+  // this employee has been working, crossing week boundaries. Days off reset counter.
+  let count = 0;
+  let weekIdx = upToWeekIdx;
+  let dayIdx = 4; // Friday of the target week
+
+  while (weekIdx >= 0 && count < 30) {
+    const wk = SCHED[empKey]?.[weekIdx] || [];
+    const val = wk[dayIdx] || '';
+    if (NON_WORK_VALUES.has(val)) break;
+    count++;
+    dayIdx--;
+    if (dayIdx < 0) { dayIdx = 4; weekIdx--; }
+  }
+  return count;
+}
+
+function detectFatigueAlerts() {
+  // Returns array of { empKey, last, first, consecutiveDays, severity }
+  const alerts = [];
+  const currentIdx = SCHED_CURRENT_WEEK.index;
+
+  ROSTER.forEach(emp => {
+    const empKey = Object.keys(SCHED).find(k => k.startsWith(`${emp.last},${emp.first},`));
+    if (!empKey) return;
+    const days = consecutiveWorkDays(empKey, currentIdx);
+    if (days >= 7) {
+      alerts.push({
+        empKey, last: emp.last, first: emp.first,
+        consecutiveDays: days,
+        severity: days >= 10 ? 'high' : 'med',
+        estHours: days * 10, // assume 10hr days
+      });
+    }
+  });
+  return alerts.sort((a, b) => b.consecutiveDays - a.consecutiveDays);
+}
+
+function renderFatigueAlerts() {
+  const el = document.getElementById('alert-fatigue');
+  if (!el) return;
+  const alerts = detectFatigueAlerts();
+  if (alerts.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = alerts.slice(0, 6).map(a => {
+    const pipColor = a.severity === 'high' ? '#DC2626' : '#D97706';
+    const badgeText = a.severity === 'high' ? '⚠ Overtime risk' : '⏱ Long stretch';
+    return `
+      <div class="alert-item" onclick="goScreen('roster');setTimeout(()=>{const e=ROSTER.find(r=>r.last==='${esc(a.last)}');if(e)openCertPanel('${esc(a.last)}','${esc(a.first)}',e.role)},150)"
+        style="cursor:pointer">
+        <div class="alert-pip" style="background:${pipColor}"></div>
+        <div>
+          <div class="alert-text">${esc(a.last)}, ${esc(a.first)} — ${a.consecutiveDays} days straight · ~${a.estHours}h</div>
+          <div class="alert-sub" style="color:${pipColor};font-weight:500">${badgeText}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// #15 JOB PROGRESS TRACKER — % complete + days remaining
+// ══════════════════════════════════════════════════════════════
+
+function jobProgress(j) {
+  // Returns { progress: 0-100 | null, daysLeft: number | null, status: 'ontrack'|'atrisk'|'overdue'|'planning'|'nodata' }
+  if (!j.startDate || !j.endDate) {
+    return { progress: j.percentComplete ?? null, daysLeft: null, status: 'nodata' };
+  }
+
+  const today = new Date();
+  const start = new Date(j.startDate + 'T00:00:00');
+  const end   = new Date(j.endDate + 'T23:59:59');
+  const totalMs = end - start;
+  const elapsedMs = today - start;
+  const expectedPct = totalMs > 0 ? Math.max(0, Math.min(100, Math.round((elapsedMs / totalMs) * 100))) : 0;
+  const actualPct = j.percentComplete ?? expectedPct;
+  const daysLeft = Math.ceil((end - today) / 86400000);
+
+  let status;
+  if (daysLeft < 0 && actualPct < 100) status = 'overdue';
+  else if (actualPct < expectedPct - 10) status = 'atrisk';
+  else if (today < start) status = 'planning';
+  else status = 'ontrack';
+
+  return { progress: actualPct, expected: expectedPct, daysLeft, status };
+}
+
+function renderJobProgressBar(j, opts = {}) {
+  const { width = '100%', showText = true, compact = false } = opts;
+  const p = jobProgress(j);
+  if (p.progress === null) {
+    return compact ? '' : `<div style="font-size:10.5px;color:var(--muted);font-style:italic">No timeline set</div>`;
+  }
+  const statusColors = {
+    ontrack:  { bar: 'var(--good)',  text: 'var(--good)',  label: 'On track' },
+    atrisk:   { bar: 'var(--warn)',  text: 'var(--warn)',  label: 'At risk'  },
+    overdue:  { bar: 'var(--bad)',   text: 'var(--bad)',   label: 'Overdue'  },
+    planning: { bar: 'var(--muted)', text: 'var(--muted)', label: 'Planning' },
+    nodata:   { bar: 'var(--muted)', text: 'var(--muted)', label: ''         },
+  };
+  const s = statusColors[p.status] || statusColors.nodata;
+  const daysText = p.daysLeft === null ? '' :
+    p.daysLeft < 0 ? `${Math.abs(p.daysLeft)}d overdue` :
+    p.daysLeft < 30 ? `${p.daysLeft}d left` :
+    `${Math.round(p.daysLeft / 7)}w left`;
+
+  return `
+    <div style="width:${width}">
+      ${showText ? `
+        <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-bottom:3px">
+          <span style="color:${s.text};font-weight:600">${p.progress}% · ${s.label}</span>
+          <span style="color:var(--muted)">${esc(daysText)}</span>
+        </div>` : ''}
+      <div style="height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${p.progress}%;background:${s.bar};transition:width .3s ease"></div>
+      </div>
+    </div>`;
 }
 
 document.querySelectorAll('.nav-item[data-screen]').forEach(item => {
@@ -7237,36 +7465,43 @@ const JOBS = [
     status:'active',  days:5, lead:'Porter, Billy',   leadEmail:'bporter@crem.com',
     notes:'BMS install — Level 3 & 4', color:'#FACC15',
     address:'1000 SW Broadway, Portland, OR 97205', lat:null, lng:null,
+    startDate:'2025-08-01', endDate:'2026-09-30', percentComplete:62,
     doc_path:null, doc_name:null },
   { id:'j2', name:'PDX246 SEC',  number:'PDX246-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Olveda, Tanner',  leadEmail:'tolveda@crem.com',
     notes:'Security system rough-in', color:'#8B5CF6',
     address:'200 SW Market St, Portland, OR 97201', lat:null, lng:null,
+    startDate:'2026-01-15', endDate:'2026-11-30', percentComplete:28,
     doc_path:null, doc_name:null },
   { id:'j3', name:'PDX247 SEC',  number:'PDX247-SEC', location:'Portland, OR',
     status:'active',  days:5, lead:'Frison, Brad',    leadEmail:'bfrison@crem.com',
     notes:'Security panels — west wing', color:'#EC4899',
     address:'1 N Center Ct St, Portland, OR 97227', lat:null, lng:null,
+    startDate:'2025-10-01', endDate:'2026-08-15', percentComplete:55,
     doc_path:null, doc_name:null },
   { id:'j4', name:'CAMPUS WIDE', number:'CW-01',      location:'Portland, OR',
     status:'active',  days:4, lead:'Marsolek, Tyler', leadEmail:'tmarsolek@crem.com',
     notes:'Campus-wide conduit run', color:'#F59E0B',
     address:'2000 SW 5th Ave, Portland, OR 97201', lat:null, lng:null,
+    startDate:'2025-06-01', endDate:'2026-12-31', percentComplete:71,
     doc_path:null, doc_name:null },
   { id:'j5', name:'Live Work',   number:'LW-OPS',     location:'Various',
     status:'active',  days:5, lead:'Munson, Mike',    leadEmail:'mmunson@crem.com',
     notes:'On-call live work / outages', color:'#EF4444',
     address:'Portland, OR', lat:null, lng:null,
+    startDate:null, endDate:null, percentComplete:null,
     doc_path:null, doc_name:null },
   { id:'j6', name:'WTB',         number:'WTB-01',     location:'Portland, OR',
     status:'active',  days:5, lead:'Isley, Mike',     leadEmail:'misley@crem.com',
     notes:'Warehouse to building feeder', color:'#10B981',
     address:'8800 NE Columbia Blvd, Portland, OR 97220', lat:null, lng:null,
+    startDate:'2026-02-01', endDate:'2026-07-31', percentComplete:18,
     doc_path:null, doc_name:null },
   { id:'j7', name:'SERVICE',     number:'SVC-01',     location:'Various',
     status:'active',  days:5, lead:'Clugston, Cody',  leadEmail:'cclugston@crem.com',
     notes:'Service calls', color:'#6B7280',
     address:'Portland, OR', lat:null, lng:null,
+    startDate:null, endDate:null, percentComplete:null,
     doc_path:null, doc_name:null },
 ];
 
@@ -7817,6 +8052,22 @@ function renderJobDetail(id) {
           <label class="form-label">Site address <span style="font-size:9.5px;color:var(--muted);font-weight:400">— used for weather forecasts</span></label>
           <input id="je-address" class="form-input" placeholder="e.g. 1000 SW Broadway, Portland, OR 97205" value="${esc(j.address || '')}">
         </div>
+        <div class="form-group">
+          <label class="form-label">Start date</label>
+          <input id="je-start-date" class="form-input" type="date" value="${esc(j.startDate || '')}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Planned end date</label>
+          <input id="je-end-date" class="form-input" type="date" value="${esc(j.endDate || '')}">
+        </div>
+        <div class="form-group" style="grid-column:span 2">
+          <label class="form-label">Progress <span style="font-size:9.5px;color:var(--muted);font-weight:400">— % complete (0–100, leave blank to use time-based estimate)</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input id="je-progress" class="form-input" type="number" min="0" max="100" step="1" value="${j.percentComplete ?? ''}" placeholder="—" style="width:90px">
+            <span style="font-size:12px;color:var(--muted)">%</span>
+            <div style="flex:1;margin-left:8px">${renderJobProgressBar(j, { compact: false })}</div>
+          </div>
+        </div>
         <div class="form-group" style="grid-column:span 2">
           <label class="form-label">Notes</label>
           <input id="je-notes" class="form-input" value="${esc(j.notes || '')}">
@@ -8111,6 +8362,12 @@ function saveJobEdit(id) {
     j.address = newAddress;
     j.lat = null; j.lng = null; // clear geocode cache so weather re-fetches
   }
+
+  // #15 Progress tracking fields
+  j.startDate = document.getElementById('je-start-date')?.value || null;
+  j.endDate   = document.getElementById('je-end-date')?.value   || null;
+  const progressVal = document.getElementById('je-progress')?.value;
+  j.percentComplete = (progressVal === '' || progressVal == null) ? null : Math.max(0, Math.min(100, parseInt(progressVal, 10)));
 
   // If the name changed, rewrite every SCHED cell that referenced it
   if (oldName !== j.name && typeof SCHED !== 'undefined') {
@@ -9450,6 +9707,20 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
+  // ── DEV MODE ──────────────────────────────────────────────
+  // Set to false to enable full auth wall. When true, skips login
+  // and auto-signs in as Cameron for iteration/preview.
+  const DEV_MODE = true;
+
+  if (DEV_MODE) {
+    ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
+    loadPersistedData().catch(err => console.warn('[load] failed', err));
+    refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+    loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+    console.warn('⚠ DEV MODE — auth bypassed. Set DEV_MODE = false before deploying to real users.');
+    return;
+  }
+
   const { data: { session } } = await _sb.auth.getSession();
   if (session) {
     const allowed = await ffAllowed(session.user.email);
