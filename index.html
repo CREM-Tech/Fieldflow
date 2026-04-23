@@ -1522,11 +1522,7 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
    Keeps existing layout but retints every surface, font, and detail
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Login screen decorative theme (FieldFlow — workforce/manpower) ── */
-@keyframes ffLoginGlow {
-  0%   { opacity: 0.85; transform: translate(0, 0); }
-  100% { opacity: 1; transform: translate(-10px, 6px); }
-}
+/* ── Login screen decorative theme (FieldFlow — field ops / crew dispatch) ── */
 @keyframes ffLoginBreath {
   0%, 100% { opacity: 0.6; transform: scale(1); }
   50%      { opacity: 0.85; transform: scale(1.04); }
@@ -1539,6 +1535,33 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   0%   { transform: translateY(0); }
   100% { transform: translateY(-50%); }
 }
+/* Drafting-paper grid drifts slowly — feels like blueprint being pulled across table */
+@keyframes ffGridDrift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 80px 80px, 80px 80px; }
+}
+/* Slow compass-style rotation for the big circle */
+@keyframes ffDecoRotateSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* Counter-rotation for inner rings */
+@keyframes ffDecoRotateReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+/* Horizontal sweep line — like a surveyor's laser passing through */
+@keyframes ffLoginSweep {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 0.6; }
+  85%  { opacity: 0.6; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}
+/* Tape-measure tick row reveal */
+@keyframes ffTapeMeasure {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-40px); }
+}
 
 .ff-login-deco {
   position: absolute;
@@ -1546,35 +1569,48 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   z-index: 0;
 }
 
-/* Large dashed circle — top right */
+/* Large rotating surveyor's wheel — top right */
 .ff-deco-circle {
   top: 8%; right: 10%;
-  width: 180px; height: 180px;
-  border: 1.5px solid rgba(161, 98, 7, 0.22);
+  width: 220px; height: 220px;
+  border: 1.5px solid rgba(161, 98, 7, 0.2);
   border-radius: 50%;
+  animation: ffDecoRotateSlow 90s linear infinite;
 }
 .ff-deco-circle::before {
   content: '';
   position: absolute;
-  inset: 20px;
-  border: 1px dashed rgba(161, 98, 7, 0.28);
+  inset: 25px;
+  border: 1px dashed rgba(161, 98, 7, 0.3);
   border-radius: 50%;
+  animation: ffDecoRotateReverse 60s linear infinite;
 }
 .ff-deco-circle::after {
   content: '';
   position: absolute;
-  inset: 40px;
+  inset: 48px;
   border: 1px solid rgba(161, 98, 7, 0.15);
   border-radius: 50%;
+  /* Compass hash marks at N/E/S/W */
+  background-image:
+    linear-gradient(to bottom, rgba(161,98,7,0.4) 0 8px, transparent 8px),
+    linear-gradient(to top,    rgba(161,98,7,0.4) 0 8px, transparent 8px),
+    linear-gradient(to right,  rgba(161,98,7,0.4) 0 8px, transparent 8px),
+    linear-gradient(to left,   rgba(161,98,7,0.4) 0 8px, transparent 8px);
+  background-size: 2px 100%, 2px 100%, 100% 2px, 100% 2px;
+  background-position: 50% 0, 50% 100%, 0 50%, 100% 50%;
+  background-repeat: no-repeat;
 }
 
-/* Rotated square — bottom left (like a job-site marker) */
+/* Rotated square — bottom left (blueprint area marker) */
 .ff-deco-square {
-  bottom: 10%; left: 7%;
-  width: 120px; height: 120px;
+  bottom: 12%; left: 7%;
+  width: 130px; height: 130px;
   border: 1.5px solid rgba(161, 98, 7, 0.18);
   transform: rotate(15deg);
   border-radius: 6px;
+  animation: ffLoginBreath 9s ease-in-out infinite;
+  animation-delay: -3s;
 }
 .ff-deco-square::before {
   content: '';
@@ -1584,55 +1620,73 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   border-radius: 3px;
 }
 
-/* Vertical text on the right */
-.ff-deco-vtext {
-  top: 55%; right: 14%;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: rgba(69, 26, 3, 0.45);
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  writing-mode: vertical-rl;
-  font-weight: 500;
+/* Blueprint corner mark — top-left (architect's crop mark) */
+.ff-deco-cropmark-tl {
+  top: 6%; left: 5%;
+  width: 40px; height: 40px;
+  border-top: 2px solid rgba(161, 98, 7, 0.4);
+  border-left: 2px solid rgba(161, 98, 7, 0.4);
+}
+.ff-deco-cropmark-br {
+  bottom: 6%; right: 5%;
+  width: 40px; height: 40px;
+  border-bottom: 2px solid rgba(161, 98, 7, 0.4);
+  border-right: 2px solid rgba(161, 98, 7, 0.4);
 }
 
-/* Top-left italic tagline with rule */
-.ff-deco-tagline {
-  top: 12%; left: 8%;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 14px;
-  color: rgba(69, 26, 3, 0.55);
+/* Tape-measure strip across the top — ticks drift right-to-left */
+.ff-deco-tape {
+  top: 0; left: 0; right: 0;
+  height: 18px;
+  overflow: hidden;
+  opacity: 0.35;
+}
+.ff-deco-tape-inner {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 400;
-}
-.ff-deco-tagline::before {
-  content: '';
-  width: 32px; height: 1px;
-  background: rgba(161, 98, 7, 0.45);
+  width: calc(100% + 80px);
+  height: 100%;
+  background-image: linear-gradient(90deg,
+    rgba(69,26,3,0.55) 0 1px, transparent 1px 10px,
+    rgba(69,26,3,0.35) 10px 11px, transparent 11px 20px,
+    rgba(69,26,3,0.55) 20px 21px, transparent 21px 30px,
+    rgba(69,26,3,0.35) 30px 31px, transparent 31px 40px);
+  background-size: 40px 100%;
+  animation: ffTapeMeasure 4s linear infinite;
 }
 
-/* Bottom-right crew-ticker (vertical stack of role codes) */
+/* Surveyor's sweep line — full-width horizontal pass */
+.ff-deco-sweep {
+  position: absolute;
+  top: 42%;
+  left: 0;
+  width: 200px;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(234, 179, 8, 0.85) 50%, transparent 100%);
+  animation: ffLoginSweep 14s ease-in-out infinite;
+  animation-delay: 2s;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+}
+
+/* Bottom-right ticker — condensed field log */
 .ff-deco-ticker {
-  bottom: 14%; right: 8%;
+  bottom: 10%; right: 6%;
   font-family: var(--mono);
-  font-size: 10px;
-  color: rgba(69, 26, 3, 0.4);
-  letter-spacing: 0.08em;
-  line-height: 1.9;
+  font-size: 9.5px;
+  color: rgba(69, 26, 3, 0.38);
+  letter-spacing: 0.1em;
+  line-height: 2;
   text-align: right;
   overflow: hidden;
-  height: 120px;
+  height: 90px;
+  opacity: 0.75;
 }
 .ff-deco-ticker-inner {
-  animation: ffLoginMarquee 18s linear infinite;
+  animation: ffLoginMarquee 22s linear infinite;
 }
 
-/* Bottom-left hard-hat counter */
+/* Large watermark Fieldflow — bottom-left */
 .ff-deco-counter {
-  bottom: 8%; left: 10%;
+  bottom: 6%; left: 8%;
   font-family: var(--serif);
   font-style: italic;
   color: rgba(69, 26, 3, 0.5);
@@ -1640,9 +1694,10 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  opacity: 0.8;
 }
 .ff-deco-counter .big {
-  font-size: 34px;
+  font-size: 38px;
   font-weight: 500;
   color: rgba(69, 26, 3, 0.7);
   font-style: italic;
@@ -1652,20 +1707,21 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   font-family: var(--mono);
   font-style: normal;
   font-size: 10px;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(69, 26, 3, 0.55);
 }
 
-/* Grid texture — drafting paper feel */
+/* Grid texture — drafting paper feel, drifts slowly */
 .ff-login-grid {
   position: absolute;
   inset: 0;
   background-image:
     linear-gradient(rgba(69, 26, 3, 0.055) 1px, transparent 1px),
     linear-gradient(90deg, rgba(69, 26, 3, 0.055) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 80px 80px;
   pointer-events: none;
+  animation: ffGridDrift 60s linear infinite;
 }
 
 /* Breathing glow orbs */
@@ -1693,11 +1749,28 @@ html.dark .ff-deco-circle,
 html.dark .ff-deco-square { border-color: rgba(253, 224, 71, 0.22); }
 html.dark .ff-deco-circle::before,
 html.dark .ff-deco-square::before { border-color: rgba(253, 224, 71, 0.28); }
-html.dark .ff-deco-circle::after { border-color: rgba(253, 224, 71, 0.15); }
-html.dark .ff-deco-tagline,
+html.dark .ff-deco-circle::after {
+  border-color: rgba(253, 224, 71, 0.15);
+  background-image:
+    linear-gradient(to bottom, rgba(253,224,71,0.45) 0 8px, transparent 8px),
+    linear-gradient(to top,    rgba(253,224,71,0.45) 0 8px, transparent 8px),
+    linear-gradient(to right,  rgba(253,224,71,0.45) 0 8px, transparent 8px),
+    linear-gradient(to left,   rgba(253,224,71,0.45) 0 8px, transparent 8px);
+}
+html.dark .ff-deco-cropmark-tl,
+html.dark .ff-deco-cropmark-br { border-color: rgba(253, 224, 71, 0.45); }
+html.dark .ff-deco-tape-inner {
+  background-image: linear-gradient(90deg,
+    rgba(253,224,71,0.5) 0 1px, transparent 1px 10px,
+    rgba(253,224,71,0.32) 10px 11px, transparent 11px 20px,
+    rgba(253,224,71,0.5) 20px 21px, transparent 21px 30px,
+    rgba(253,224,71,0.32) 30px 31px, transparent 31px 40px);
+}
+html.dark .ff-deco-sweep {
+  background: linear-gradient(90deg, transparent 0%, rgba(253,224,71,0.9) 50%, transparent 100%);
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
+}
 html.dark .ff-deco-counter { color: rgba(253, 224, 71, 0.5); }
-html.dark .ff-deco-tagline::before { background: rgba(253, 224, 71, 0.4); }
-html.dark .ff-deco-vtext,
 html.dark .ff-deco-ticker { color: rgba(253, 224, 71, 0.4); }
 html.dark .ff-deco-counter .big { color: rgba(253, 224, 71, 0.7); }
 html.dark .ff-deco-counter .small { color: rgba(253, 224, 71, 0.55); }
@@ -1713,6 +1786,21 @@ html.dark .ff-login-card {
     0 30px 80px rgba(0,0,0,0.5),
     0 10px 30px rgba(0,0,0,0.35),
     0 0 0 1px rgba(250, 204, 21, 0.15) inset !important;
+}
+
+/* Respect users who prefer reduced motion — no sweep, no drift, no spin */
+@media (prefers-reduced-motion: reduce) {
+  .ff-login-grid,
+  .ff-deco-circle,
+  .ff-deco-circle::before,
+  .ff-deco-square,
+  .ff-deco-sweep,
+  .ff-deco-tape-inner,
+  .ff-deco-ticker-inner,
+  .ff-login-orb,
+  .ff-login-card {
+    animation: none !important;
+  }
 }
 
 /* ── Typography layer ──────────────────────────────────────── */
@@ -1963,43 +2051,52 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 <!-- ── LOGIN SCREEN ─────────────────────────────────── -->
 <div id="ff-login" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9999;font-family:inherit;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 15% 20%, rgba(234,179,8,.28), transparent 60%),radial-gradient(ellipse 70% 55% at 85% 85%, rgba(161,98,7,.3), transparent 55%),radial-gradient(ellipse 60% 50% at 70% 15%, rgba(253,224,71,.28), transparent 60%),linear-gradient(135deg, #FEF9C3 0%, #FDE68A 50%, #FACC15 100%)">
 
-  <!-- Grid texture (drafting paper feel) -->
+  <!-- Drifting drafting-paper grid -->
   <div class="ff-login-grid"></div>
+
+  <!-- Tape-measure strip along top edge -->
+  <div class="ff-login-deco ff-deco-tape">
+    <div class="ff-deco-tape-inner"></div>
+  </div>
+
+  <!-- Surveyor's sweep line — passes horizontally every 14s -->
+  <div class="ff-login-deco ff-deco-sweep"></div>
 
   <!-- Breathing glow orbs -->
   <div class="ff-login-orb" style="top:-80px;right:-80px;width:380px;height:380px;background:radial-gradient(circle,#FFFBEA 0%,rgba(255,251,234,0) 70%);opacity:.7"></div>
   <div class="ff-login-orb" style="bottom:-120px;left:-60px;width:420px;height:420px;background:radial-gradient(circle,#FEF3C7 0%,rgba(254,243,199,0) 70%);opacity:.55;animation-delay:-4s"></div>
   <div class="ff-login-orb" style="top:38%;left:55%;width:260px;height:260px;background:radial-gradient(circle,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 70%);animation-delay:-2s"></div>
 
-  <!-- Decorative accents -->
+  <!-- Blueprint corner marks -->
+  <div class="ff-login-deco ff-deco-cropmark-tl"></div>
+  <div class="ff-login-deco ff-deco-cropmark-br"></div>
+
+  <!-- Rotating surveyor's wheel (top-right) -->
   <div class="ff-login-deco ff-deco-circle"></div>
+
+  <!-- Blueprint area marker (bottom-left) -->
   <div class="ff-login-deco ff-deco-square"></div>
-  <div class="ff-login-deco ff-deco-tagline">Workforce · Crew Dispatch · Field Ops</div>
-  <div class="ff-login-deco ff-deco-vtext">Manpower Command</div>
+
+  <!-- Condensed field log ticker (bottom-right) -->
   <div class="ff-login-deco ff-deco-ticker">
     <div class="ff-deco-ticker-inner">
       ROSTER · ACTIVE<br>
-      DISPATCH · OPEN<br>
-      SCHEDULE · SYNCED<br>
-      CREW · ASSIGNED<br>
-      LABOR · TRACKING<br>
-      FORECAST · READY<br>
-      COSTING · LIVE<br>
-      HANDOFF · CLEAR<br>
+      CREW · DISPATCHED<br>
+      TOOLS · STAGED<br>
+      HANDOFF · READY<br>
       ROSTER · ACTIVE<br>
-      DISPATCH · OPEN<br>
-      SCHEDULE · SYNCED<br>
-      CREW · ASSIGNED<br>
-      LABOR · TRACKING<br>
-      FORECAST · READY<br>
-      COSTING · LIVE<br>
-      HANDOFF · CLEAR
+      CREW · DISPATCHED<br>
+      TOOLS · STAGED<br>
+      HANDOFF · READY
     </div>
   </div>
+
+  <!-- Watermark Fieldflow (bottom-left) -->
   <div class="ff-login-deco ff-deco-counter">
     <span class="big">Field<em style="color:inherit">flow</em></span>
-    <span class="small">workforce · command</span>
+    <span class="small">crew · dispatch</span>
   </div>
+
   <div class="ff-login-card" style="position:relative;z-index:1;background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:420px;border:1px solid rgba(234,179,8,.15);box-shadow:0 30px 80px rgba(161,98,7,.25),0 10px 30px rgba(161,98,7,.12),0 0 0 1px rgba(255,255,255,.5) inset">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
       <div style="width:40px;height:40px;border-radius:10px;background:#1A1625;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',Georgia,serif;font-style:italic;font-weight:500;font-size:21px;position:relative;flex-shrink:0">F
@@ -2007,10 +2104,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       </div>
       <div>
         <div style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:500;letter-spacing:-0.025em;color:#1A1625;line-height:1">Field<em style="color:#A16207;font-weight:600">flow</em></div>
-        <div style="font-size:11px;color:#7C7491;margin-top:3px;letter-spacing:0.02em">Workforce · CremFlow</div>
+        <div style="font-size:11px;color:#7C7491;margin-top:3px;letter-spacing:0.02em">Crew dispatch · CremFlow</div>
       </div>
     </div>
-    <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Sign in to your account</div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:28px">Sign in to manage your crews</div>
     <!-- Sign in -->
     <div id="ff-form-signin">
       <div style="display:flex;flex-direction:column;gap:10px">
@@ -2030,14 +2127,13 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           style="padding:11px;border-radius:10px;background:#1A1625;color:#fff;border:none;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all 0.15s;letter-spacing:0.01em" onmouseover="this.style.background='#EAB308'" onmouseout="this.style.background='#1A1625'">
           Sign in
         </button>
-        <div style="font-size:11px;color:#9B9690;text-align:center;margin-top:4px;line-height:1.4">
+        <div style="font-size:11px;color:#9B9690;text-align:center;margin-top:4px;line-height:1.5">
           Passwords are managed by your admin.<br>Contact them if you need access or a password reset.
         </div>
       </div>
     </div>
-    <!-- Forgot / reset flows removed: passwords are admin-managed -->
-    <div style="margin-top:24px;padding-top:18px;border-top:1px solid #F3F4F6;text-align:center;font-size:12px;color:#9CA3AF">
-      Access requires authorization from a superintendent
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid #F3F4F6;text-align:center;font-size:12px;color:#9CA3AF;font-style:italic">
+      Access restricted to CREM team members
     </div>
   </div>
 </div>
