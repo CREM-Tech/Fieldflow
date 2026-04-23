@@ -8338,6 +8338,9 @@ async function ffSignIn() {
   const allowed = await ffAllowed(email);
   if (!allowed) { await _sb.auth.signOut(); ffSetErr('ff-error','Your email is not authorized. Contact your superintendent.'); return; }
   ffShowApp(email, allowed.name, allowed.role);
+  loadPersistedData().catch(err => console.warn('[load] failed', err));
+  refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+  loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
 }
 
 async function ffSignOut() {
@@ -8353,11 +8356,21 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async () => {
-  // ── DEV MODE: bypass login for editing/preview ──
-  ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
-  loadPersistedData().catch(err => console.warn('[load] failed', err));
-  refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
-  loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) {
+    const allowed = await ffAllowed(session.user.email);
+    if (allowed) {
+      ffShowApp(session.user.email, allowed.name, allowed.role);
+      loadPersistedData().catch(err => console.warn('[load] failed', err));
+      refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+      loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+    } else {
+      await _sb.auth.signOut();
+      ffShowLogin();
+    }
+  } else {
+    ffShowLogin();
+  }
 })();
 
 // ── Load persisted data from Supabase ──────────────────────
