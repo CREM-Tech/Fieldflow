@@ -3199,17 +3199,18 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </div>
       </div>
 
-      <!-- Weather: per-jobsite current conditions -->
+      <!-- Weather + crew quick-look: per-jobsite snapshot -->
       <div class="panel" style="margin-top:13px;margin-bottom:0">
         <div class="panel-header">
-          <div class="panel-title">Job site <em>weather</em></div>
+          <div class="panel-title">Job site <em>quick look</em></div>
           <button onclick="renderWeatherPanel('dash-weather')" title="Refresh"
             style="background:none;border:none;cursor:pointer;color:var(--muted);padding:2px 6px;border-radius:4px;font-size:13px;line-height:1"
             onmouseover="this.style.background='var(--surface-2)';this.style.color='var(--accent-dark)'"
             onmouseout="this.style.background='none';this.style.color='var(--muted)'">↻</button>
         </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-bottom:4px">Crew size · ratio compliance · 5-day forecast — for every active job this week.</div>
         <div id="dash-weather">
-          <div style="font-size:11px;color:var(--muted);padding:4px 0">Click ↻ to load job site forecasts.</div>
+          <div style="font-size:11px;color:var(--muted);padding:4px 0">Click ↻ to load.</div>
         </div>
       </div>
 
@@ -6771,13 +6772,38 @@ async function renderWeatherPanel(containerId) {
   const results = await Promise.all(activeJobs.map(async j => ({ j, days: await fetchJobForecast(j) })));
 
   el.innerHTML = results.map(({ j, days }) => {
+    // Crew metrics for the quick-look — current week
+    const crew = getJobCrew(j);
+    const ratioInfo = getRatioStatus(crew);
+    const sectorBadge = j.sector
+      ? `<span style="display:inline-block;font-size:9px;font-weight:600;padding:1px 6px;border-radius:6px;background:var(--accent-ghost);color:var(--accent-dark);text-transform:uppercase;letter-spacing:.04em;margin-left:6px;vertical-align:middle">${esc(j.sector)}</span>`
+      : '';
+
+    const ratioColor = ratioInfo.ok ? 'var(--good)' : 'var(--bad)';
+    const ratioIcon  = ratioInfo.ok ? '✓' : '⚠';
+    // Display "1.5:1" or "—:1" if no apprentices
+    const ratioDisplay = ratioInfo.app === 0
+      ? (ratioInfo.jn > 0 ? `${ratioInfo.jn}:0` : '—')
+      : `${(ratioInfo.jn / ratioInfo.app).toFixed(1)}:1`;
+    const ratioTip = ratioInfo.app === 0
+      ? `${ratioInfo.jn} journey${ratioInfo.jn===1?'man':'men'} on this job, no apprentices — ratio not enforced`
+      : `${ratioInfo.jn} journey${ratioInfo.jn===1?'man':'men'} : ${ratioInfo.app} apprentice${ratioInfo.app===1?'':'s'}. ${ratioInfo.ok ? 'Compliant — ratio is at or above 1:1.' : 'Violation — must be at least 1:1.'}`;
+
+    // Quick-look stat row: crew size, ratio, hot/cold weather alert
+    const quickStats = `<div style="display:flex;gap:12px;font-size:10.5px;color:var(--muted);margin-top:5px;flex-wrap:wrap">
+      <span data-tip="Total people scheduled on this job for the current week"><strong style="color:var(--ink)">${crew.length}</strong> on crew</span>
+      <span data-tip="${esc(ratioTip)}" style="color:${ratioColor};font-weight:600">${ratioIcon} Ratio ${ratioDisplay}</span>
+      ${ratioInfo.other > 0 ? `<span data-tip="Material handlers and unlabeled roles that don't count toward the ratio"><strong style="color:var(--ink)">${ratioInfo.other}</strong> support</span>` : ''}
+    </div>`;
+
     if (!days || !days.length) {
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:12px">
-        <div style="width:130px;flex-shrink:0">
-          <div style="font-weight:600;color:var(--ink)">${esc(j.name)}</div>
-          <div style="font-size:10.5px;color:var(--muted)">${esc(j.address || j.location || '')}</div>
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--line-soft)">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(j.name)}${sectorBadge}</div>
+          <div style="font-size:10.5px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.address || j.location || '')}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted)">Forecast unavailable${!j.address ? ' — add address' : ''}</div>
+        ${quickStats}
+        <div style="font-size:11px;color:var(--muted);margin-top:5px">Forecast unavailable${!j.address ? ' — add address' : ''}</div>
       </div>`;
     }
 
@@ -6799,12 +6825,13 @@ async function renderWeatherPanel(containerId) {
     const anyAlert = days.some(d => d.alert);
 
     return `<div style="padding:10px 0;border-bottom:1px solid var(--line-soft)${anyAlert ? ';background:rgba(248,113,113,.04);margin:0 -16px;padding-left:16px;padding-right:16px' : ''}">
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
-        <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(j.name)}</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+        <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(j.name)}${sectorBadge}</div>
         <div style="font-size:10.5px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(j.address || j.location || '')}</div>
         ${anyAlert ? `<span style="font-size:10px;color:var(--bad);font-weight:600;flex-shrink:0">⚠ Extreme conditions</span>` : ''}
       </div>
-      <div style="display:flex;gap:6px">${dayCells}</div>
+      ${quickStats}
+      <div style="display:flex;gap:6px;margin-top:8px">${dayCells}</div>
     </div>`;
   }).join('');
 }
