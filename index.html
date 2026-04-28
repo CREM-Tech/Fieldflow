@@ -11874,6 +11874,28 @@ function applyDayChange(crid, newValue) {
   if (cell) {
     cell.className = `tag ${tagCls(newValue)}`;
     cell.textContent = tagVal(newValue);
+    // Also update the sector chip — when clearing, remove it; when changing
+    // jobs, swap the label. Without this, the old sector lingers visually.
+    const wrap = cell.parentElement; // .sched-cell-wrap
+    if (wrap) {
+      const newSector = newValue ? (jobByName(newValue)?.sector || '') : '';
+      let chip = wrap.querySelector('.sector-chip');
+      if (newSector) {
+        if (chip) {
+          chip.textContent = newSector;
+          chip.setAttribute('data-tip', `${newSector} sector`);
+        } else {
+          // Insert chip after the tag
+          chip = document.createElement('span');
+          chip.className = 'sector-chip';
+          chip.textContent = newSector;
+          chip.setAttribute('data-tip', `${newSector} sector`);
+          cell.insertAdjacentElement('afterend', chip);
+        }
+      } else if (chip) {
+        chip.remove();
+      }
+    }
   } else {
     // Fallback: full re-render. Always shows the user the change.
     if (typeof buildSchedTbody === 'function') buildSchedTbody();
