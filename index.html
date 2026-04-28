@@ -1035,9 +1035,50 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
 .sched-tbl tr:hover td { background: #FFFDF5; }
 .sched-tbl tr:hover td.stick { background: #FFFDF5; }
 
+/* Group separator rows shown when sorting by sector / job / role */
+.sched-group-row td.sched-group-cell {
+  background: linear-gradient(90deg, var(--accent-ghost) 0%, var(--surface-2) 18%, var(--surface-2) 100%);
+  border-top: 2px solid var(--accent);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 16px !important;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-dark);
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+.sched-group-icon {
+  display: inline-block;
+  margin-right: 7px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.sched-group-label {
+  vertical-align: middle;
+}
+html.dark .sched-group-row td.sched-group-cell {
+  background: linear-gradient(90deg, rgba(234,179,8,0.12) 0%, var(--surface-2) 18%, var(--surface-2) 100%);
+  color: #FCD34D;
+}
+
 /* ── Day-edit popover ───────────────────────────────────────── */
 .sched-cell-wrap {
   position: relative; display: inline-block; width: 100%;
+}
+.sector-chip {
+  display: block;
+  font-size: 8.5px; font-weight: 500;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sched-cell-wrap:hover .sched-edit-hint {
   opacity: 1;
@@ -3223,6 +3264,16 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="apprentice">Apprentices</option>
           <option value="mh">Material Handlers</option>
         </select>
+        <span class="ctrl-lbl">Search</span>
+        <input type="text" id="sched-search" class="ctrl-sel"
+          placeholder="name · role · job · sector"
+          oninput="buildSchedTbody()"
+          data-tip="Excel-style filter: type any text to filter the rows. Searches name, role, job assignments and sectors."
+          style="width:220px;padding:5px 9px;font-size:11.5px"
+          autocomplete="off">
+        <button class="btn btn-sm" onclick="document.getElementById('sched-search').value='';buildSchedTbody()"
+          data-tip="Clear search filter"
+          style="padding:3px 8px;font-size:10.5px">Clear</button>
         <span class="ctrl-lbl">Sort</span>
         <select class="ctrl-sel" id="sched-sort" onchange="buildSchedTbody()">
           <option value="name-asc">Name · A → Z</option>
@@ -3230,6 +3281,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="role-sen">Role · seniority</option>
           <option value="role-jr">Role · apprentice first</option>
           <option value="job">Current job</option>
+          <option value="sector">Sector (groups jobs)</option>
           <option value="conflict">Conflicts first</option>
           <option value="unassigned">Unassigned first</option>
         </select>
@@ -3437,6 +3489,10 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <button class="admin-tab"        data-admin-tab="certs"     onclick="adminTab('certs')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M4 2h6l2 2v10H4V2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 6h4M6 9h4M6 12h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           Certs <span id="admin-certs-badge" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:10px;background:rgba(217,119,6,.15);color:#D97706;font-size:10px;font-weight:600">0</span>
+        </button>
+        <button class="admin-tab"        data-admin-tab="sectors"   onclick="adminTab('sectors')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+          Sectors
         </button>
         <button class="admin-tab"        data-admin-tab="system"    onclick="adminTab('system')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -3754,6 +3810,36 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </div>
           <div id="certs-admin-empty" style="display:none;padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">
             No cert expiries match the current filter.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTORS PANE ── -->
+      <div id="admin-pane-sectors" class="admin-pane" style="display:none">
+        <div style="max-width:680px">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Sectors</div>
+              <div style="font-size:11px;color:var(--muted)">Group jobs by category — these show up in the job edit dropdown and on schedule cells.</div>
+            </div>
+
+            <div style="background:var(--surface-2);padding:12px 14px;border-radius:9px;margin-bottom:14px;display:flex;gap:8px;align-items:center">
+              <input id="new-sector-name" class="form-input" placeholder="Sector name (e.g. Industrial, Federal, Hospitality)"
+                style="flex:1;font-size:12.5px"
+                onkeydown="if(event.key==='Enter') addSector()"
+                data-tip="Type a name and press Enter or click Add. Sectors are saved to the database and shared across all users.">
+              <button class="btn btn-sm btn-primary" onclick="addSector()" data-tip="Add this sector — it'll appear in the job edit dropdown immediately">+ Add sector</button>
+            </div>
+
+            <div id="sectors-admin-list" style="display:flex;flex-direction:column;gap:6px"></div>
+
+            <div id="sectors-admin-empty" style="display:none;padding:30px 20px;text-align:center;color:var(--muted);font-size:13px">
+              No sectors defined yet — add your first one above.
+            </div>
+
+            <div style="margin-top:14px;padding:11px 14px;background:var(--accent-ghost);border-left:3px solid var(--accent);border-radius:8px;font-size:11.5px;color:var(--ink);line-height:1.55">
+              💡 <strong>Tip:</strong> Removing a sector will not delete any jobs — those jobs will just show no sector chip until you reassign them. Renaming preserves all assignments.
+            </div>
           </div>
         </div>
       </div>
@@ -4078,6 +4164,10 @@ const SCHED = {
 // Current schedule data (seeded as indices 0-3) represents weeks starting
 // Apr 13, Apr 20, Apr 27, May 4, 2026. Map these into the larger array.
 const SCHED_WEEKS_TOTAL  = 105;
+const SCHED_DAYS_PER_WEEK = 7; // Mon-Sun (full week — some employees work weekends)
+const SCHED_DAY_NAMES_LONG  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SCHED_DAY_NAMES_SHORT = ['M','T','W','Th','F','Sa','Su'];
+const _newWeekArray = () => new Array(SCHED_DAYS_PER_WEEK).fill('');
 const SCHED_CURRENT_WEEK = (() => {
   // Compute "current Monday" index in the 105-week array.
   // Week 0 = 52 weeks before today's Monday. Week 52 = today's Monday.
@@ -4114,7 +4204,7 @@ function schedWeekLabel(wkIdx, short) {
 function schedDayLabel(wkIdx, dayIdx) {
   const d = schedWeekDate(wkIdx);
   d.setDate(d.getDate() + dayIdx);
-  const dayName = ['M','T','W','Th','F'][dayIdx] || '';
+  const dayName = SCHED_DAY_NAMES_SHORT[dayIdx] || '';
   return `${dayName} ${d.getMonth()+1}/${d.getDate()}`;
 }
 
@@ -4128,11 +4218,17 @@ function schedDayLabel(wkIdx, dayIdx) {
 
   Object.keys(SCHED).forEach(key => {
     const seeded = SCHED[key];
-    const blank = Array.from({ length: SCHED_WEEKS_TOTAL }, () => ['','','','','']);
-    // Place seeded weeks starting at apr13Index, clipping if out of bounds
+    const blank = Array.from({ length: SCHED_WEEKS_TOTAL }, () => _newWeekArray());
+    // Place seeded weeks starting at apr13Index, clipping if out of bounds.
+    // Pad each seeded week to SCHED_DAYS_PER_WEEK so cells always have 7 slots.
     seeded.forEach((wk, i) => {
       const target = apr13Index + i;
-      if (target >= 0 && target < SCHED_WEEKS_TOTAL) blank[target] = wk;
+      if (target >= 0 && target < SCHED_WEEKS_TOTAL) {
+        const padded = Array.isArray(wk) ? [...wk] : _newWeekArray();
+        while (padded.length < SCHED_DAYS_PER_WEEK) padded.push('');
+        if (padded.length > SCHED_DAYS_PER_WEEK) padded.length = SCHED_DAYS_PER_WEEK;
+        blank[target] = padded;
+      }
     });
     SCHED[key] = blank;
   });
@@ -4422,11 +4518,11 @@ function buildSchedThead() {
     const isCurrent = wi === SCHED_CURRENT_WEEK.index;
     const cls = idx % 2 === 0 ? 'wk-hdr' : 'wk-hdr2';
     const bg  = isCurrent ? 'background:var(--accent-ghost);color:var(--accent-dark);font-weight:600' : '';
-    return `<th colspan="5" class="${cls}" style="${bg}">${schedWeekLabel(wi)}${isCurrent?' · THIS WEEK':''}</th>`;
+    return `<th colspan="${SCHED_DAYS_PER_WEEK}" class="${cls}" style="${bg}">${schedWeekLabel(wi)}${isCurrent?' · THIS WEEK':''}</th>`;
   }).join('');
   const dayHdrs = weekRange.map((wi, wkPos) => {
-    return [0,1,2,3,4].map(di => {
-      const sep = (di === 4 && wkPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
+    return Array.from({length: SCHED_DAYS_PER_WEEK}, (_, di) => {
+      const sep = (di === SCHED_DAYS_PER_WEEK - 1 && wkPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
       return `<th${sep}>${schedDayLabel(wi, di)}</th>`;
     }).join('');
   }).join('');
@@ -4439,22 +4535,47 @@ function buildSchedTbody() {
   const tbody = document.getElementById('sched-tbody');
   if (!tbody) return;
 
+  // Clear registry entries from prior renders so stale crids don't accumulate.
+  // Each cell gets a fresh crid via reg() during this render. Old crids in the
+  // registry would just leak memory and could mask "did this fail?" bugs.
+  for (const k in _reg) {
+    if (_reg[k] && _reg[k].empKey !== undefined) delete _reg[k];
+  }
+
   // Read current filter + sort
   const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
   const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
+  const searchQ    = (document.getElementById('sched-search')?.value || '').toLowerCase().trim();
 
   // Viewing window indices
   const viewWeeks = [];
   for (let i = 0; i < SCHED_WINDOW_SIZE; i++) viewWeeks.push(_schedWindowStart + i);
 
-  // Filter by role
-  const filtered = Object.entries(SCHED).filter(([key]) => {
-    const [, , role] = key.split(',');
-    if (roleFilter === 'all')        return true;
-    if (roleFilter === 'gf-fm')      return role === 'GF' || role === 'FM';
-    if (roleFilter === 'journey')    return role === 'JN' || role === 'JW';
-    if (roleFilter === 'apprentice') return /^\d/.test(role);
-    if (roleFilter === 'mh')         return role === 'MH';
+  // Filter by role + search
+  const filtered = Object.entries(SCHED).filter(([key, weeks]) => {
+    const [last, first, role] = key.split(',');
+    // Role filter
+    if (roleFilter === 'gf-fm'      && !(role === 'GF' || role === 'FM')) return false;
+    if (roleFilter === 'journey'    && !(role === 'JN' || role === 'JW')) return false;
+    if (roleFilter === 'apprentice' && !/^\d/.test(role)) return false;
+    if (roleFilter === 'mh'         && role !== 'MH') return false;
+    // Search filter — match against name, role, jobs in current window, sectors
+    if (searchQ) {
+      const fields = [last, first, role, `${last}, ${first}`, `${first} ${last}`];
+      // Add jobs assigned in viewable weeks + their sectors
+      viewWeeks.forEach(wi => {
+        const wk = weeks[wi] || [];
+        wk.forEach(d => {
+          if (d) {
+            fields.push(d);
+            const sec = jobByName(d)?.sector;
+            if (sec) fields.push(sec);
+          }
+        });
+      });
+      const haystack = fields.join(' ').toLowerCase();
+      if (!haystack.includes(searchQ)) return false;
+    }
     return true;
   });
 
@@ -4478,6 +4599,11 @@ function buildSchedTbody() {
       case 'role-sen':    return roleRank(ra) - roleRank(rb) || nameA.localeCompare(nameB);
       case 'role-jr':     return roleRank(rb) - roleRank(ra) || nameA.localeCompare(nameB);
       case 'job':         return jobA.localeCompare(jobB) || nameA.localeCompare(nameB);
+      case 'sector':      {
+        const sa = (jobByName(jobA)?.sector || 'zzz').toLowerCase();
+        const sb = (jobByName(jobB)?.sector || 'zzz').toLowerCase();
+        return sa.localeCompare(sb) || jobA.localeCompare(jobB) || nameA.localeCompare(nameB);
+      }
       case 'conflict':    return conflictsB - conflictsA || nameA.localeCompare(nameB);
       case 'unassigned':  return unassignedB - unassignedA || nameA.localeCompare(nameB);
       case 'name-asc':
@@ -4486,10 +4612,37 @@ function buildSchedTbody() {
   });
 
   if (sorted.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="16" style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">No employees match the current filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="22" style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px">No employees match the current filter.</td></tr>`;
     return;
   }
 
+  // Compute total column count for separator-row colspans
+  const TOTAL_COLS = 1 + (SCHED_WINDOW_SIZE * SCHED_DAYS_PER_WEEK);
+
+  // Determine if current sort produces groups (used to inject delineation rows)
+  const groupKeyOf = (key, weeks) => {
+    const [, , role] = key.split(',');
+    const job = (weeks[firstVisible]?.[0] || '').toString();
+    switch (sortKey) {
+      case 'sector':   return jobByName(job)?.sector || 'No sector';
+      case 'job':      return job || 'Unassigned';
+      case 'role-sen':
+      case 'role-jr': {
+        // Group apprentices together
+        if (/^\d/.test(role)) return 'Apprentices';
+        if (role === 'GF') return 'General Foremen';
+        if (role === 'FM') return 'Foremen';
+        if (role === 'JN' || role === 'JW') return 'Journeymen';
+        if (role === 'WLD') return 'Welders';
+        if (role === 'MH') return 'Material Handlers';
+        if (role === 'SUPER' || role === 'superintendent') return 'Superintendents';
+        return roleLabel(role) || role || 'Other';
+      }
+      default: return null; // no grouping for name/conflict/unassigned
+    }
+  };
+
+  let lastGroup = null;
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
     const photo = CONTACT_INFO[last]?.photo;
@@ -4503,7 +4656,23 @@ function buildSchedTbody() {
       ? `<span data-tip="Expired cert${expired.length>1?'s':''}: ${expired.map(k=>k.toUpperCase()).join(', ')} — renewal required before this employee can be scheduled" style="display:inline-block;background:var(--bad);color:#fff;font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;cursor:help">⚠ EXP</span>`
       : '';
     const rowStyle = expired.length ? 'box-shadow:inset 3px 0 0 var(--bad)' : '';
-    return `<tr data-emp-key="${esc(key)}" style="${rowStyle}">
+
+    // Group separator row — emitted when group changes between consecutive employees
+    const group = groupKeyOf(key, weeks);
+    let separator = '';
+    if (group !== null && group !== lastGroup) {
+      // Build header label (with sector emphasis)
+      const labelPrefix = sortKey === 'sector' ? '🏷' :
+                          sortKey === 'job'    ? '🏗' :
+                                                  '👥';
+      separator = `<tr class="sched-group-row"><td colspan="${TOTAL_COLS}" class="sched-group-cell">
+        <span class="sched-group-icon">${labelPrefix}</span>
+        <span class="sched-group-label">${esc(group)}</span>
+      </td></tr>`;
+      lastGroup = group;
+    }
+
+    return separator + `<tr data-emp-key="${esc(key)}" style="${rowStyle}">
       <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
         <div style="display:flex;align-items:center;gap:7px">
           ${avatarHtml}
@@ -4513,18 +4682,27 @@ function buildSchedTbody() {
           </div>
         </div>
       </td>
-      ${viewWeeks.map((wi, wPos) =>
-        (weeks[wi] || ['','','','','']).map((d, di) => {
-          const sep  = (di === 4 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
+      ${viewWeeks.map((wi, wPos) => {
+        // Ensure the week has SCHED_DAYS_PER_WEEK slots — older 5-day data is padded with empty cells
+        const wkArr = (weeks[wi] && Array.isArray(weeks[wi])) ? weeks[wi] : _newWeekArray();
+        while (wkArr.length < SCHED_DAYS_PER_WEEK) wkArr.push('');
+        if (wkArr.length > SCHED_DAYS_PER_WEEK) wkArr.length = SCHED_DAYS_PER_WEEK;
+        // Persist the patched array back to SCHED so future operations see all 7 slots
+        if (weeks[wi] !== wkArr) weeks[wi] = wkArr;
+        return wkArr.map((d, di) => {
+          const sep  = (di === SCHED_DAYS_PER_WEEK - 1 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
           const crid = reg({ empKey: key, weekIdx: wi, dayIdx: di, value: d });
+          const sector = d ? (jobByName(d)?.sector || '') : '';
+          const sectorChip = sector ? `<span class="sector-chip" data-tip="${esc(sector)} sector">${esc(sector)}</span>` : '';
           return `<td${sep} style="cursor:pointer;position:relative" data-cell-rid="${crid}">
             <div class="sched-cell-wrap">
               <span class="tag ${tagCls(d)}" id="sched-cell-${crid}">${esc(tagVal(d))}</span>
+              ${sectorChip}
               <div class="sched-edit-hint"></div>
             </div>
           </td>`;
-        }).join('')
-      ).join('')}
+        }).join('');
+      }).join('')}
     </tr>`;
   }).join('');
 
@@ -4550,7 +4728,7 @@ function exportScheduleCSV() {
   const rows = [['Last','First','Role', ...days].join(',')];
   filtered.forEach(([key, weeks]) => {
     const [last, first, role] = key.split(',');
-    const flat = viewWeeks.flatMap(wi => weeks[wi] || ['','','','','']);
+    const flat = viewWeeks.flatMap(wi => weeks[wi] || _newWeekArray());
     rows.push([last, first, role, ...flat.map(d => `"${d || ''}"`)].join(','));
   });
   const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
@@ -5264,7 +5442,7 @@ async function saveNewEmployee() {
   // 2. Expand SCHED for this employee
   const empKey = `${last},${first},${role}`;
   if (!SCHED[empKey]) {
-    SCHED[empKey] = Array.from({ length: SCHED_WEEKS_TOTAL }, () => ['','','','','']);
+    SCHED[empKey] = Array.from({ length: SCHED_WEEKS_TOTAL }, () => _newWeekArray());
     applyFederalHolidays(true); // silently fill holidays for this employee too
   }
 
@@ -6013,7 +6191,7 @@ function openDashCellEditor(empKey, weekIdx, dayIdx, currentVal, cellEl) {
   // Remove any existing popover
   document.querySelectorAll('.dash-cell-pop').forEach(p => p.remove());
 
-  const dayName = ['Mon','Tue','Wed','Thu','Fri'][dayIdx];
+  const dayName = SCHED_DAY_NAMES_LONG[dayIdx];
   const [last, first] = empKey.split(',');
 
   const pop = document.createElement('div');
@@ -6079,7 +6257,7 @@ function pushUndo(empKey, weekIdx, dayIdx, oldVal, newVal) {
 
 function showUndoToast(empKey, weekIdx, dayIdx, oldVal, newVal) {
   const [last] = empKey.split(',');
-  const dayName = ['Mon','Tue','Wed','Thu','Fri'][dayIdx] || '';
+  const dayName = SCHED_DAY_NAMES_LONG[dayIdx] || '';
 
   // Clear previous undo toast if any
   if (_undoTimer) { clearTimeout(_undoTimer); _undoTimer = null; }
@@ -6181,7 +6359,7 @@ function renderDashMiniGrid() {
   if (!wrap) return;
 
   const wi = SCHED_CURRENT_WEEK.index;
-  const dayLabels = ['Mon','Tue','Wed','Thu','Fri'];
+  const dayLabels = SCHED_DAY_NAMES_LONG;
 
   // Sort: conflicts first, then unassigned, then alphabetical
   const entries = Object.entries(SCHED).sort(([ka, wa], [kb, wb]) => {
@@ -6209,7 +6387,7 @@ function renderDashMiniGrid() {
 
   const rows = shown.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
-    const wk = weeks[wi] || ['','','','',''];
+    const wk = weeks[wi] || _newWeekArray();
     const { cls } = primaryJob(wk);
     const dotColor = cls === 't-school' ? '#F59E0B'
                    : cls === 't-vac'    ? '#60A5FA'
@@ -6217,7 +6395,7 @@ function renderDashMiniGrid() {
                    : cls === 't-empty'  ? 'var(--line)'
                    : (jobColor[wk.find(d => d && d !== '')] || '#FACC15');
 
-    const cells = wk.slice(0, 5).map((d, di) => {
+    const cells = wk.slice(0, SCHED_DAYS_PER_WEEK).map((d, di) => {
       const label = d === '' ? '—' : d.length > 7 ? d.substring(0, 7) + '…' : d;
       return `<div class="mg-cell ${tagCls(d)}" title="${esc(d || 'Unassigned')} · click to edit" style="cursor:pointer"
         onclick="openDashCellEditor('${esc(key)}',${SCHED_CURRENT_WEEK.index},${di},'${esc(d || '')}',this)"
@@ -6305,7 +6483,7 @@ function renderDiffView(containerId, sinceHours = 168) { // default: last 7 days
   el.innerHTML = recent.map(c => {
     const [last, first] = c.empKey.split(',');
     const wkLbl = schedWeekLabel(c.weekIdx, true);
-    const dayLbl = ['Mon','Tue','Wed','Thu','Fri'][c.dayIdx] || '';
+    const dayLbl = SCHED_DAY_NAMES_LONG[c.dayIdx] || '';
     const relTime = (() => {
       const ms = Date.now() - new Date(c.at).getTime();
       const mins = Math.floor(ms / 60000);
@@ -6553,7 +6731,7 @@ async function fetchJobForecast(j) {
     // Only daytime periods — NWS alternates Day/Night
     const days = periods
       .filter(p => p.isDaytime)
-      .slice(0, 5)
+      .slice(0, SCHED_DAYS_PER_WEEK)
       .map(p => ({
         name:   p.name,         // "Monday", "Tuesday"…
         high:   p.temperature,
@@ -7800,15 +7978,25 @@ async function saveOrgManager(empDbId, newManagerId) {
       .eq('id', empDbId)
       .select('id'); // .select() forces the response so we know if it succeeded
     if (error) {
-      console.error(`[org] saveOrgManager FAILED for ${empDbId} → ${newManagerId}:`, error);
-      showToast(`Save failed: ${error.message}. Check console (F12). Run migration 013 if RLS is blocking.`, 'error');
+      // Filter cosmetic iframe-clone errors — actual DB write usually succeeded
+      const msg = _errMsg(error);
+      if (msg.includes('postMessage') || msg.includes('DataCloneError')) {
+        console.log(`[org] ${empDbId} → ${newManagerId || 'NULL'} (response clone blocked, likely saved)`);
+        return true;
+      }
+      console.error(`[org] saveOrgManager FAILED for ${empDbId} → ${newManagerId}:`, msg);
+      showToast(`Save failed: ${msg}. Check console (F12). Run migration 013 if RLS is blocking.`, 'error');
       return false;
     }
     console.log(`[org] ✓ ${empDbId} → manager_id = ${newManagerId || 'NULL'}`);
     return true;
   } catch (err) {
-    console.error('[org] saveOrgManager threw:', err);
-    showToast(`Save error: ${err.message || err}`, 'error');
+    if (_isCosmeticError(err)) {
+      // Iframe response-clone error, not a real failure
+      return true;
+    }
+    console.error('[org] saveOrgManager threw:', _errMsg(err));
+    showToast(`Save error: ${_errMsg(err)}`, 'error');
     return false;
   }
 }
@@ -9012,7 +9200,7 @@ function generateCrewPacket(fmName) {
       <td style="padding:6px 8px;border:1px solid #bbb">${last}, ${first}</td>
       <td style="padding:6px 8px;border:1px solid #bbb">${role}</td>
       <td style="padding:6px 8px;border:1px solid #bbb">${ci.phone || '—'}</td>
-      ${wk.slice(0,5).map(d => `<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-size:10px">${d || '—'}</td>`).join('')}
+      ${wk.slice(0, SCHED_DAYS_PER_WEEK).map(d => `<td style="padding:6px 8px;border:1px solid #bbb;text-align:center;font-size:10px">${d || '—'}</td>`).join('')}
     </tr>`;
   }).join('');
 
@@ -9154,7 +9342,7 @@ function generateMonthlyReport(monthOffset = 0) {
       const [last] = key.split(',');
       const wk = weeks[wi];
       if (!wk) return;
-      wk.slice(0, 5).forEach(cell => {
+      wk.slice(0, SCHED_DAYS_PER_WEEK).forEach(cell => {
         if (!cell || ['OFF','VACATION','HOLIDAY','School'].includes(cell)) return;
         if (!jobTotals[cell]) jobTotals[cell] = { days: 0, uniqueEmps: new Set() };
         jobTotals[cell].days++;
@@ -9327,7 +9515,7 @@ function generateEmployeeScorecard(last, first) {
       const wkDate = new Date(SCHED_CURRENT_WEEK.monday);
       wkDate.setDate(wkDate.getDate() + (wi - SCHED_CURRENT_WEEK.index) * 7);
       if (wkDate < yearAgo || wkDate > now) return;
-      wk.slice(0, 5).forEach(cell => {
+      wk.slice(0, SCHED_DAYS_PER_WEEK).forEach(cell => {
         if (!cell) return;
         if (cell === 'School')       schoolDays++;
         else if (cell === 'VACATION') vacationDays++;
@@ -9363,7 +9551,7 @@ function generateEmployeeScorecard(last, first) {
     return `<tr><td>${esc(d.label)}</td><td style="color:${statusColor};font-size:10.5px">${esc(statusTxt)}</td></tr>`;
   }).join('');
 
-  const topJobs = Object.entries(jobCounts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+  const topJobs = Object.entries(jobCounts).sort((a,b) => b[1]-a[1]).slice(0, SCHED_DAYS_PER_WEEK);
   const jobsHtml = topJobs.length
     ? topJobs.map(([j, d]) => `<tr><td>${esc(j)}</td><td style="text-align:right;font-family:ui-monospace,monospace">${d} days</td><td style="text-align:right;font-family:ui-monospace,monospace">${((d/daysWorked)*100).toFixed(0)}%</td></tr>`).join('')
     : '<tr><td colspan="3" style="text-align:center;color:#888;font-style:italic">No job assignments in this period.</td></tr>';
@@ -9640,7 +9828,7 @@ function renderJobProgressBar(j, opts = {}) {
 
 function kickoffStatus(j) {
   const hasAddress = !!(j.address && j.address.length > 3);
-  const hasDoc     = !!j.doc_path;
+  const hasReqs    = !!(j.requirements && Object.keys(j.requirements).length > 0);
   const hasLead    = !!(j.lead && j.lead.length > 1);
   const crew = (typeof getJobCrew === 'function') ? getJobCrew(j) : [];
   const hasCrew    = crew.length > 0;
@@ -9652,7 +9840,7 @@ function kickoffStatus(j) {
     { key:'lead',     label:'Foreman assigned',           done: hasLead,     hint: hasLead ? '' : 'Set the lead GF or FM' },
     { key:'email',    label:'Foreman email on file',      done: hasEmail,    hint: hasEmail ? '' : 'Needed for crew hand-off briefings' },
     { key:'timeline', label:'Start + end dates set',      done: hasTimeline, hint: hasTimeline ? '' : 'Enables progress tracking and days-remaining' },
-    { key:'doc',      label:'Site briefing doc uploaded', done: hasDoc,      hint: hasDoc ? '' : 'Upload the kickoff package PDF' },
+    { key:'reqs',     label:'Site requirements reviewed', done: hasReqs,     hint: hasReqs ? '' : 'Set the yes/no requirements (boots, drug test, etc.) — these go out with transfer notifications' },
     { key:'crew',     label:'Crew assigned this week',    done: hasCrew,     hint: hasCrew ? '' : 'Assign at least one employee on the schedule' },
   ];
 }
@@ -10192,50 +10380,84 @@ if (document.readyState === 'loading') {
 // ── Job data with schedule, lead, and email ───────────────────
 // ── JOBS — number is the SOURCE OF TRUTH (matches Spectrum) ──
 // id is internal only; number is what users see and what Spectrum uses.
+// ══════════════════════════════════════════════════════════════
+// JOB SITE REQUIREMENTS — yes/no checklist + free-text fields
+// Replaces the legacy "site briefing document". When an employee
+// is transferred onto a job, these are sent with the notification.
+// ══════════════════════════════════════════════════════════════
+const JOB_REQUIREMENTS = [
+  { key:'steel_toe',        label:'Steel-toed boots required',                     type:'bool', defaultYes:true },
+  { key:'drug_alc_6mo',     label:'Drug/Alcohol test within 6 months required',    type:'bool', defaultYes:true },
+  { key:'license_pref',     label:'License/Certification preference',              type:'bool', defaultYes:true },
+  { key:'background_check', label:'Background check required',                     type:'bool', defaultYes:true },
+  { key:'preferred_training', label:'Preferred training',                          type:'text' },
+  { key:'random_drug',      label:'Random on-site drug/alcohol testing',           type:'bool', defaultYes:true },
+  { key:'smoking',          label:'Smoking/Vaping allowed on company property',    type:'bool', defaultYes:false },
+  { key:'state_elec_lic',   label:'State Electrical License required',             type:'bool', defaultYes:true },
+  { key:'lift_50lb',        label:'Ability to lift 50 lbs required',               type:'bool', defaultYes:true },
+  { key:'fr_clothing',      label:'FR clothing required on site',                  type:'bool', defaultYes:true },
+  { key:'other',            label:'Other special requirements',                    type:'text' },
+];
+
+// Default requirements object — every new job starts with these values
+function defaultJobRequirements() {
+  const out = {};
+  JOB_REQUIREMENTS.forEach(r => {
+    if (r.type === 'bool') out[r.key] = r.defaultYes ? 1 : 0;
+    else out[r.key] = '';
+  });
+  return out;
+}
+
 const JOBS = [
-  { id:'j1', name:'PDX247 BMS',  number:'PDX247-BMS', location:'Portland, OR',
+  { id:'j1', name:'PDX247 BMS',  number:'PDX247-BMS', location:'Portland, OR', sector:'Greenfield',
     status:'active',  days:5, lead:'Porter, Billy',   leadEmail:'bporter@crem.com',
     notes:'BMS install — Level 3 & 4', color:'#FACC15',
     address:'1000 SW Broadway, Portland, OR 97205', lat:null, lng:null,
     startDate:'2025-08-01', endDate:'2026-09-30', percentComplete:62,
-    doc_path:null, doc_name:null },
-  { id:'j2', name:'PDX246 SEC',  number:'PDX246-SEC', location:'Portland, OR',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j2', name:'PDX246 SEC',  number:'PDX246-SEC', location:'Portland, OR', sector:'Greenfield',
     status:'active',  days:5, lead:'Olveda, Tanner',  leadEmail:'tolveda@crem.com',
     notes:'Security system rough-in', color:'#8B5CF6',
     address:'200 SW Market St, Portland, OR 97201', lat:null, lng:null,
     startDate:'2026-01-15', endDate:'2026-11-30', percentComplete:28,
-    doc_path:null, doc_name:null },
-  { id:'j3', name:'PDX247 SEC',  number:'PDX247-SEC', location:'Portland, OR',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j3', name:'PDX247 SEC',  number:'PDX247-SEC', location:'Portland, OR', sector:'Greenfield',
     status:'active',  days:5, lead:'Frison, Brad',    leadEmail:'bfrison@crem.com',
     notes:'Security panels — west wing', color:'#EC4899',
     address:'1 N Center Ct St, Portland, OR 97227', lat:null, lng:null,
     startDate:'2025-10-01', endDate:'2026-08-15', percentComplete:55,
-    doc_path:null, doc_name:null },
-  { id:'j4', name:'CAMPUS WIDE', number:'CW-01',      location:'Portland, OR',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j4', name:'CAMPUS WIDE', number:'CW-01',      location:'Portland, OR', sector:'Greenfield',
     status:'active',  days:4, lead:'Marsolek, Tyler', leadEmail:'tmarsolek@crem.com',
     notes:'Campus-wide conduit run', color:'#F59E0B',
     address:'2000 SW 5th Ave, Portland, OR 97201', lat:null, lng:null,
     startDate:'2025-06-01', endDate:'2026-12-31', percentComplete:71,
-    doc_path:null, doc_name:null },
-  { id:'j5', name:'Live Work',   number:'LW-OPS',     location:'Various',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j5', name:'Live Work',   number:'LW-OPS',     location:'Various', sector:'Live Work',
     status:'active',  days:5, lead:'Munson, Mike',    leadEmail:'mmunson@crem.com',
     notes:'On-call live work / outages', color:'#EF4444',
     address:'Portland, OR', lat:null, lng:null,
     startDate:null, endDate:null, percentComplete:null,
-    doc_path:null, doc_name:null },
-  { id:'j6', name:'WTB',         number:'WTB-01',     location:'Portland, OR',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j6', name:'WTB',         number:'WTB-01',     location:'Portland, OR', sector:'Live Work',
     status:'active',  days:5, lead:'Isley, Mike',     leadEmail:'misley@crem.com',
     notes:'Warehouse to building feeder', color:'#10B981',
     address:'8800 NE Columbia Blvd, Portland, OR 97220', lat:null, lng:null,
     startDate:'2026-02-01', endDate:'2026-07-31', percentComplete:18,
-    doc_path:null, doc_name:null },
-  { id:'j7', name:'SERVICE',     number:'SVC-01',     location:'Various',
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
+  { id:'j7', name:'SERVICE',     number:'SVC-01',     location:'Various', sector:'Service',
     status:'active',  days:5, lead:'Clugston, Cody',  leadEmail:'cclugston@crem.com',
     notes:'Service calls', color:'#6B7280',
     address:'Portland, OR', lat:null, lng:null,
     startDate:null, endDate:null, percentComplete:null,
-    doc_path:null, doc_name:null },
+    doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
 ];
+
+// Sector list — initially seeded with defaults, mutable via admin tab.
+// Persisted to public.sectors table in Supabase. Re-rendered everywhere
+// when changed by calling refreshSectorDropdowns().
+let SECTORS = ['Live Work', 'Greenfield', 'Service', 'Special Projects', 'Other'];
 
 // Canonical lookup — job number resolves everything else
 function jobByNumber(num) {
@@ -10776,6 +10998,13 @@ function renderJobDetail(id) {
           </select>
         </div>
         <div class="form-group">
+          <label class="form-label">Sector <span style="font-size:9.5px;color:var(--muted);font-weight:400">— groups jobs in schedule + job view</span></label>
+          <select id="je-sector" class="form-input" data-tip="Group jobs by category. PDX247 BMS would be 'Greenfield', service calls 'Service', etc.">
+            <option value="">— None —</option>
+            ${SECTORS.map(s => `<option value="${esc(s)}" ${j.sector === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">Lead (GF or FM)</label>
           <input id="je-lead" class="form-input" value="${esc(j.lead)}">
         </div>
@@ -10810,11 +11039,14 @@ function renderJobDetail(id) {
       </div>
 
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
-        <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px">
-          Site briefing document
-          ${j.doc_name ? `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:var(--good-bg);color:var(--good);font-weight:500">✓ Uploaded</span>` : `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-weight:500">No document</span>`}
+        <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px">
+          Site requirements
+          <span style="font-size:10px;font-weight:500;padding:2px 7px;border-radius:8px;background:var(--accent-ghost);color:var(--accent-dark)">sent on transfer</span>
         </div>
-        ${renderJobDocPanel(j.id)}
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+          These yes/no items + free-text notes go out with the notification whenever a person is added to or transferred onto this job.
+        </div>
+        ${renderJobRequirements(j)}
       </div>
 
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--ff-bdr)">
@@ -10845,6 +11077,99 @@ function renderJobDetail(id) {
           onclick="closeJobConfirm('${esc(j.id)}')">Close / deactivate job</button>
       </div>
     </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// JOB REQUIREMENTS UI — yes/no checklist + free text
+// ══════════════════════════════════════════════════════════════
+
+function renderJobRequirements(j) {
+  // Migrate jobs that pre-date this feature
+  if (!j.requirements) j.requirements = defaultJobRequirements();
+  const r = j.requirements;
+  return `<div style="display:flex;flex-direction:column;gap:6px">
+    ${JOB_REQUIREMENTS.map(req => {
+      if (req.type === 'bool') {
+        const val = (r[req.key] === 1 || r[req.key] === true) ? 1 : 0;
+        const yesActive = val === 1;
+        return `<div class="req-row" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface-2);border-radius:8px">
+          <div style="flex:1;font-size:12px;color:var(--ink)">${esc(req.label)}</div>
+          <div class="req-toggle" style="display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden">
+            <button onclick="setJobReq('${esc(j.id)}','${esc(req.key)}',1);return false"
+              data-tip="Mark Yes (required for this job)"
+              style="padding:3px 11px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:${yesActive?'var(--good)':'var(--white)'};color:${yesActive?'#fff':'var(--muted)'}">Yes</button>
+            <button onclick="setJobReq('${esc(j.id)}','${esc(req.key)}',0);return false"
+              data-tip="Mark No (not required for this job)"
+              style="padding:3px 11px;font-size:11px;font-weight:600;border:none;cursor:pointer;border-left:1px solid var(--line);background:${!yesActive?'var(--bad)':'var(--white)'};color:${!yesActive?'#fff':'var(--muted)'}">No</button>
+          </div>
+        </div>`;
+      } else {
+        // Free-text field
+        const val = r[req.key] || '';
+        return `<div class="req-row" style="display:flex;flex-direction:column;gap:5px;padding:8px 12px;background:var(--surface-2);border-radius:8px">
+          <label style="font-size:12px;color:var(--ink);font-weight:500">${esc(req.label)}</label>
+          <input type="text" class="form-input" value="${esc(val)}"
+            placeholder="${req.key === 'preferred_training' ? 'e.g. OSHA 30, NFPA 70E' : 'e.g. Must be able to work with 3” RMC and help pull heavy wire'}"
+            onchange="setJobReq('${esc(j.id)}','${esc(req.key)}',this.value)"
+            style="font-size:12px;padding:6px 10px"
+            data-tip="Free-text notes — included verbatim in transfer notifications">
+        </div>`;
+      }
+    }).join('')}
+  </div>`;
+}
+
+// Update one requirement value on a job; persist async; refresh the modal section
+async function setJobReq(jobId, key, value) {
+  const j = JOBS.find(x => x.id === jobId);
+  if (!j) return;
+  if (!j.requirements) j.requirements = defaultJobRequirements();
+  j.requirements[key] = value;
+  // Re-render only the requirements section (visual feedback for toggle)
+  const reqDef = JOB_REQUIREMENTS.find(r => r.key === key);
+  if (reqDef && reqDef.type === 'bool') {
+    // Find the section inside the open job edit modal and re-render
+    const modal = document.getElementById('jm-detail-pane');
+    if (modal) {
+      // Find requirements section by its specific marker text
+      const sections = modal.querySelectorAll('div');
+      // Simpler: re-render full job detail for this job
+      if (typeof renderJobDetail === 'function' && typeof selectedJobId !== 'undefined') {
+        // Don't re-render — too disruptive while user is clicking. Just toggle the
+        // pressed button styling in place.
+        const row = event?.target?.closest('.req-row');
+        if (row) {
+          const yesBtn = row.querySelector('button:first-of-type');
+          const noBtn  = row.querySelector('button:last-of-type');
+          if (yesBtn && noBtn) {
+            const yes = (value === 1 || value === true);
+            yesBtn.style.background = yes ? 'var(--good)' : 'var(--white)';
+            yesBtn.style.color      = yes ? '#fff' : 'var(--muted)';
+            noBtn.style.background  = yes ? 'var(--white)' : 'var(--bad)';
+            noBtn.style.color       = yes ? 'var(--muted)' : '#fff';
+          }
+        }
+      }
+    }
+  }
+  // Persist to DB
+  await persistJob(j);
+}
+
+// Format requirements as a human-readable summary for transfer notifications
+function formatJobRequirementsForNotice(j) {
+  if (!j || !j.requirements) return '(no requirements set)';
+  const r = j.requirements;
+  const lines = [];
+  JOB_REQUIREMENTS.forEach(req => {
+    const v = r[req.key];
+    if (req.type === 'bool') {
+      lines.push(`  • ${req.label}: ${v === 1 || v === true ? 'YES' : 'NO'}`);
+    } else if (v) {
+      lines.push(`  • ${req.label}: ${v}`);
+    }
+  });
+  return lines.join('\n');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -11080,7 +11405,7 @@ function sendJobBriefingEmail(transfer) {
   showToast(`Briefing doc queued: ${j.doc_name} → ${transfer.employee}`, 'success');
 }
 
-function saveJobEdit(id) {
+async function saveJobEdit(id) {
   const j = JOBS.find(x => x.id === id);
   if (!j) return;
 
@@ -11089,6 +11414,7 @@ function saveJobEdit(id) {
   j.number    = document.getElementById('je-number')?.value   || j.number;
   j.location  = document.getElementById('je-location')?.value || j.location;
   j.status    = document.getElementById('je-status')?.value   || j.status;
+  j.sector    = document.getElementById('je-sector')?.value   || '';
   j.lead      = document.getElementById('je-lead')?.value     || j.lead;
   j.leadEmail = document.getElementById('je-email')?.value    || j.leadEmail;
   j.notes     = document.getElementById('je-notes')?.value    || '';
@@ -11120,16 +11446,70 @@ function saveJobEdit(id) {
     }
   }
 
-  // Show saved flash
+  // ── Persist to Supabase ──
   const btn = document.querySelector('[onclick="saveJobEdit(\'' + CSS.escape(id) + '\')"]');
-  if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => { btn.textContent = 'Save changes'; }, 1800); }
+  if (btn) btn.textContent = 'Saving…';
+  const persisted = await persistJob(j);
+  if (btn) {
+    btn.textContent = persisted ? '✓ Saved to DB' : '⚠ Saved locally only';
+    setTimeout(() => { btn.textContent = 'Save changes'; }, 2000);
+  }
 
   // Refresh dependent views
   renderJobManager();
   try { if (typeof buildSchedTbody === 'function')    buildSchedTbody(); } catch {}
   try { if (typeof renderJobView === 'function')       renderJobView(); } catch {}
   try { if (typeof renderDragSchedule === 'function') renderDragSchedule(); } catch {}
-  if (typeof showToast === 'function') showToast(`Job "${j.name}" saved · schedule updated`, 'success');
+  if (typeof showToast === 'function') {
+    const msg = persisted
+      ? `Job "${j.name}" saved · changes persisted to database`
+      : `Job "${j.name}" saved locally — DB sync failed (check console)`;
+    showToast(msg, persisted ? 'success' : 'warn');
+  }
+}
+
+// Persist a single job to Supabase. Returns true on success, false on failure.
+async function persistJob(j) {
+  if (typeof _sb === 'undefined' || !_sb) return false;
+  try {
+    const payload = {
+      id:           j.id,
+      name:         j.name,
+      number:       j.number,
+      location:     j.location || null,
+      sector:       j.sector || null,
+      status:       j.status || 'active',
+      days:         j.days || 5,
+      lead:         j.lead || null,
+      lead_email:   j.leadEmail || null,
+      notes:        j.notes || null,
+      color:        j.color || null,
+      address:      j.address || null,
+      start_date:   j.startDate || null,
+      end_date:     j.endDate || null,
+      percent_complete: j.percentComplete ?? null,
+      doc_path:     j.doc_path || null,
+      doc_name:     j.doc_name || null,
+      requirements: j.requirements ? JSON.stringify(j.requirements) : null,
+      updated_at:   new Date().toISOString(),
+    };
+    const { error } = await _sb.from('jobs').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      if (_isCosmeticError(error)) {
+        // Likely saved, just couldn't return response across iframe
+        console.log(`[jobs] ${j.name} (response clone blocked, likely saved)`);
+        return true;
+      }
+      console.error('[jobs] save failed:', _errMsg(error));
+      return false;
+    }
+    console.log(`[jobs] ✓ saved ${j.name} (${j.number})`);
+    return true;
+  } catch (err) {
+    if (_isCosmeticError(err)) return true;
+    console.error('[jobs] save threw:', _errMsg(err));
+    return false;
+  }
 }
 
 function closeJobEdit() {
@@ -11142,23 +11522,74 @@ function closeJobEdit() {
     </div>`;
 }
 
-function closeJobConfirm(id) {
+async function closeJobConfirm(id) {
   const j = JOBS.find(x => x.id === id);
   if (!j) return;
-  if (!confirm('Mark ' + j.name + ' as inactive / closed?')) return;
+  if (!confirm('Mark ' + j.name + ' as inactive / closed?\n\nThis will remove it from the day-popover dropdown but preserve any past schedule history.')) return;
   j.status = 'inactive';
+  const ok = await persistJob(j);
   renderJobDetail(id);
   renderJobManager();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  showToast(ok ? `${j.name} marked inactive · saved` : `${j.name} marked inactive locally — DB sync failed`, ok ? 'success' : 'warn');
 }
 
-function openNewJobForm() {
-  const newId = 'j' + (JOBS.length + 1);
-  JOBS.push({
-    id: newId, name: 'New Job', number: '', location: 'Portland, OR',
-    status: 'active', days: 5, lead: '', leadEmail: '', notes: '', color: '#6B7280'
-  });
+async function openNewJobForm() {
+  // Generate a unique ID that won't collide even if jobs were deleted
+  let newId;
+  do {
+    newId = 'j_' + Math.random().toString(36).slice(2, 10);
+  } while (JOBS.some(j => j.id === newId));
+
+  // Build a fresh job with sensible defaults — every field the schedule
+  // grid, requirements UI, and persistence layer expect.
+  const newJob = {
+    id: newId,
+    name: 'New Job',
+    number: '',
+    location: 'Portland, OR',
+    sector: '',
+    status: 'active',
+    days: 7,
+    lead: '',
+    leadEmail: '',
+    notes: '',
+    color: '#6B7280',
+    address: '',
+    lat: null,
+    lng: null,
+    startDate: null,
+    endDate: null,
+    percentComplete: null,
+    doc_path: null,
+    doc_name: null,
+    requirements: defaultJobRequirements(),
+  };
+  JOBS.push(newJob);
   selectedJobId = newId;
+
+  // Persist immediately so the job exists in DB even before the user
+  // edits the auto-generated "New Job" name. Otherwise it'd be a
+  // memory-only ghost until first explicit save.
+  const persisted = await persistJob(newJob);
+
   renderJobManager();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody(); // refresh schedule grid in case it's open
+
+  if (persisted) {
+    showToast(`New job created — edit the name and details, all changes save automatically`, 'success');
+  } else {
+    showToast(`New job created locally — DB sync failed (check console for RLS or schema errors)`, 'warn');
+  }
+
+  // Auto-focus the name field so the user can rename right away
+  setTimeout(() => {
+    const nameInput = document.getElementById('je-name');
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.select();
+    }
+  }, 200);
 }
 
 // ── Schedule grid day-edit popover ───────────────────────────
@@ -11170,15 +11601,20 @@ function openNewJobForm() {
 let activeDayPopover = null;
 
 // All assignable values: active jobs + special statuses
-const DAY_OPTIONS = [
-  ...JOBS.filter(j => j.status === 'active').map(j => ({
-    label: j.name, color: j.color, type: 'job'
-  })),
-  { label: 'School',   color: '#F59E0B', type: 'special' },
-  { label: 'VACATION', color: '#10B981', type: 'special' },
-  { label: 'OFF',      color: '#9CA3AF', type: 'special' },
-  { label: '',         color: '#E4E7EF', type: 'special', display: '— Clear' },
-];
+// DAY_OPTIONS is a function (not a const array) so it always reflects the
+// current state of JOBS — new jobs appear immediately in the popover after
+// being created or activated.
+function getDayOptions() {
+  return [
+    ...JOBS.filter(j => j.status === 'active').map(j => ({
+      label: j.name, color: j.color, type: 'job'
+    })),
+    { label: 'School',   color: '#F59E0B', type: 'special' },
+    { label: 'VACATION', color: '#10B981', type: 'special' },
+    { label: 'OFF',      color: '#9CA3AF', type: 'special' },
+    { label: '',         color: '#E4E7EF', type: 'special', display: '— Clear' },
+  ];
+}
 
 function openDayPopover(td, crid) {
   closeDayPopover();
@@ -11187,7 +11623,7 @@ function openDayPopover(td, crid) {
   if (!d.empKey) return;
 
   const [last, first] = d.empKey.split(',');
-  const dayNames  = ['Mon','Tue','Wed','Thu','Fri'];
+  const dayNames  = SCHED_DAY_NAMES_LONG;
   const wkLabels  = ['Apr 13–17','Apr 20–24','Apr 27–May 1'];
   const dayLabel  = dayNames[d.dayIdx]  || '';
   const wkLabel   = wkLabels[d.weekIdx] || '';
@@ -11211,7 +11647,7 @@ function openDayPopover(td, crid) {
       ${esc(last)}, ${esc(first)} · ${esc(dayLabel)} ${esc(wkLabel)}
       <button onclick="closeDayPopover()" style="float:right;border:none;background:none;cursor:pointer;font-size:13px;color:var(--ff-tx4);line-height:1;padding:0">×</button>
     </div>
-    ${DAY_OPTIONS.map(opt => {
+    ${getDayOptions().map(opt => {
       const isCurrent = (d.value || '') === opt.label;
       const displayLabel = opt.display || opt.label || '— Clear';
       const optRid = reg({ crid, newValue: opt.label });
@@ -11233,6 +11669,25 @@ function openDayPopover(td, crid) {
 
   activeDayPopover = { pop, crid };
 
+  // Ensure popover is visible — adjust if off-screen and scroll into view
+  setTimeout(() => {
+    const popRect = pop.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    // If pop extends off the right edge, shift left
+    if (popRect.right > vw - 8) {
+      const shift = popRect.right - vw + 16;
+      pop.style.left = `${(parseFloat(pop.style.left) || 0) - shift}px`;
+    }
+    // If pop extends below viewport, place above the cell instead
+    if (popRect.bottom > vh - 8) {
+      const newTop = (td.offsetTop - pop.offsetHeight - 2);
+      if (newTop > 0) pop.style.top = `${newTop}px`;
+    }
+    // Scroll into view (smooth)
+    pop.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  }, 10);
+
   // Event delegation inside popover
   pop.addEventListener('click', e => {
     const opt = e.target.closest('[data-opt-rid]');
@@ -11250,10 +11705,21 @@ function openDayPopover(td, crid) {
 
 function onOutsideClick(e) {
   const pop = document.getElementById('day-popover');
-  if (pop && !pop.contains(e.target)) {
+  if (!pop) return;
+  // If the click was on a schedule cell, the tbody handler is opening a new
+  // popover for that cell — don't close. Otherwise close on outside click.
+  if (e.target.closest('td[data-cell-rid]')) {
+    // Re-attach for the next click; the new popover's openDayPopover will
+    // also re-attach, but { once:true } makes both calls safe (later wins).
+    setTimeout(() => {
+      document.addEventListener('click', onOutsideClick, { once: true });
+    }, 50);
+    return;
+  }
+  if (!pop.contains(e.target)) {
     closeDayPopover();
-  } else if (pop) {
-    // Re-attach listener if click was inside
+  } else {
+    // Click inside popover (e.g. on a non-option area) — keep open
     setTimeout(() => {
       document.addEventListener('click', onOutsideClick, { once: true });
     }, 50);
@@ -11359,11 +11825,31 @@ function applyDayChange(crid, newValue) {
     SCHED[d.empKey][d.weekIdx][d.dayIdx] = newValue;
   }
 
-  // Update just that cell without full re-render
-  const cell = document.getElementById(`sched-cell-${crid}`);
+  // Update the cell visually. Use a robust lookup that works even when the
+  // crid is stale (which happens if buildSchedTbody re-rendered between
+  // popover open and option click — common on first interaction during boot).
+  // First try by crid (fastest), then fall back to attribute-based lookup,
+  // then fall back to a full re-render so the user always sees the change.
+  let cell = document.getElementById(`sched-cell-${crid}`);
+  if (!cell) {
+    // Look up by the actual cell coordinates (always correct)
+    const td = document.querySelector(
+      `td[data-cell-rid] .sched-cell-wrap`
+    );
+    // Better: walk all cells and match by registry data
+    document.querySelectorAll('td[data-cell-rid]').forEach(el => {
+      const dd = get(parseInt(el.dataset.cellRid, 10));
+      if (dd && dd.empKey === d.empKey && dd.weekIdx === d.weekIdx && dd.dayIdx === d.dayIdx) {
+        cell = el.querySelector('.tag');
+      }
+    });
+  }
   if (cell) {
     cell.className = `tag ${tagCls(newValue)}`;
     cell.textContent = tagVal(newValue);
+  } else {
+    // Fallback: full re-render. Always shows the user the change.
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
   }
 
   // Update registry so re-open shows correct current
@@ -11401,10 +11887,78 @@ function applyDayChange(crid, newValue) {
   // Toast confirmation for the user making the change
   const [last, first] = d.empKey.split(',');
   const wkLabel = (typeof schedWeekLabel === 'function') ? schedWeekLabel(d.weekIdx, true) : `wk ${d.weekIdx}`;
-  const dayName = ['Mon','Tue','Wed','Thu','Fri'][d.dayIdx] || '';
+  const dayName = SCHED_DAY_NAMES_LONG[d.dayIdx] || '';
   showToast(`${last}, ${first}: ${oldValue || '—'} → ${newValue || '—'} (${dayName} ${wkLabel}) · notifications sent`, 'success');
 
   closeDayPopover();
+
+  // ── Fill-week prompt: if user just set an empty cell to a job, ask if they
+  // want to fill the rest of the work week (Mon-Thu by default — 4×10 schedule).
+  // Speeds up bulk weekly scheduling.
+  if (!oldValue && newValue && !['School','VACATION','OFF','HOLIDAY','???'].includes(newValue)) {
+    const wk = SCHED[d.empKey]?.[d.weekIdx];
+    if (wk && d.dayIdx <= 3) { // Only prompt when assigning Mon-Thu, not Fri/Sat/Sun
+      const emptyMonThu = [0,1,2,3].filter(di => di !== d.dayIdx && !wk[di]);
+      if (emptyMonThu.length > 0) {
+        const days = emptyMonThu.map(i => SCHED_DAY_NAMES_LONG[i]).join(', ');
+        // Use the visible undo toast pattern — inline buttons, no popup blocker issues
+        showFillWeekToast(d.empKey, d.weekIdx, emptyMonThu, newValue, last, first, days);
+      }
+    }
+  }
+}
+
+// Inline Yes/No toast that doesn't depend on confirm() — more reliable than confirm()
+function showFillWeekToast(empKey, weekIdx, dayIndices, newValue, last, first, daysLabel) {
+  // Remove any existing fill-week toast
+  document.getElementById('ff-fill-week-toast')?.remove();
+
+  let host = document.getElementById('ff-toast-host');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'ff-toast-host';
+    host.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none';
+    document.body.appendChild(host);
+  }
+
+  const toast = document.createElement('div');
+  toast.id = 'ff-fill-week-toast';
+  toast.style.cssText = `
+    background:#1F2937;color:#fff;padding:14px 16px;border-radius:10px;
+    font-size:12.5px;font-family:var(--sans);font-weight:500;
+    max-width:420px;box-shadow:0 8px 24px rgba(0,0,0,.32);
+    pointer-events:auto;display:flex;flex-direction:column;gap:10px;
+    border-left:4px solid var(--accent)`;
+  toast.innerHTML = `
+    <div style="line-height:1.4">
+      Fill <strong style="color:#FBBF24">${esc(daysLabel)}</strong> with
+      <strong style="color:#FBBF24">"${esc(newValue)}"</strong>
+      for ${esc(last)}, ${esc(first)}?
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="ff-fill-no" style="padding:5px 12px;border:1px solid #475569;background:transparent;color:#cbd5e1;border-radius:6px;cursor:pointer;font-size:11.5px;font-family:inherit">No, just this day</button>
+      <button id="ff-fill-yes" style="padding:5px 12px;border:none;background:var(--accent);color:#000;border-radius:6px;cursor:pointer;font-weight:600;font-size:11.5px;font-family:inherit">✓ Fill week</button>
+    </div>`;
+  host.appendChild(toast);
+
+  const cleanup = () => { try { toast.remove(); } catch {} };
+
+  document.getElementById('ff-fill-yes').addEventListener('click', () => {
+    const wk = SCHED[empKey]?.[weekIdx];
+    if (wk) {
+      dayIndices.forEach(di => {
+        wk[di] = newValue;
+        persistScheduleOverride(empKey, weekIdx, di, newValue);
+      });
+      buildSchedTbody();
+      showToast(`Filled ${dayIndices.length} day${dayIndices.length===1?'':'s'} for ${last}, ${first}`, 'success');
+    }
+    cleanup();
+  });
+  document.getElementById('ff-fill-no').addEventListener('click', cleanup);
+
+  // Auto-dismiss after 8 seconds
+  setTimeout(cleanup, 8000);
 }
 
 // ── Schedule override persistence ───────────────────────────
@@ -11525,7 +12079,7 @@ function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
   const oldFM = findFM(oldValue);
   const newFM = findFM(newValue);
   const changer = (typeof _currentUser !== 'undefined' && _currentUser.name) || 'A dispatcher';
-  const dayNames = ['Mon','Tue','Wed','Thu','Fri'];
+  const dayNames = SCHED_DAY_NAMES_LONG;
   const wkLabels = ['Apr 13','Apr 20','Apr 27'];
   const when = `${dayNames[dayIdx] || ''} of the week of ${wkLabels[weekIdx] || ''}`;
 
@@ -11534,8 +12088,21 @@ function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
   if (oldFM && oldFM !== employeeName) recipients.push({ to: oldFM, role: 'previous FM' });
   if (newFM && newFM !== employeeName && newFM !== oldFM) recipients.push({ to: newFM, role: 'new FM' });
 
+  // Build site-requirements block for the new job (sent on additions/transfers)
+  let reqBlock = '';
+  if (newValue) {
+    const newJob = jobByName(newValue);
+    if (newJob && typeof formatJobRequirementsForNotice === 'function') {
+      const reqText = formatJobRequirementsForNotice(newJob);
+      if (reqText) {
+        reqBlock = `\nSITE REQUIREMENTS for ${newValue}:\n${reqText}`;
+      }
+    }
+  }
+
   recipients.forEach(r => {
-    console.log(`[Notify · ${r.role}] ${r.to}: ${changer} moved ${employeeName} from ${oldValue || 'unassigned'} to ${newValue || 'unassigned'} (${when})`);
+    const baseMsg = `${changer} moved ${employeeName} from ${oldValue || 'unassigned'} to ${newValue || 'unassigned'} (${when})`;
+    console.log(`[Notify · ${r.role}] ${r.to}: ${baseMsg}${reqBlock}`);
   });
 }
 
@@ -11797,7 +12364,7 @@ function renderAdmin() {
 
 // Switch between the admin tabs
 function adminTab(which) {
-  ['users','jobs','reassign','transfers','absents','certs','system'].forEach(name => {
+  ['users','jobs','reassign','transfers','absents','certs','sectors','system'].forEach(name => {
     const pane = document.getElementById('admin-pane-' + name);
     const btn  = document.querySelector(`.admin-tab[data-admin-tab="${name}"]`);
     if (pane) pane.style.display = name === which ? '' : 'none';
@@ -11809,9 +12376,180 @@ function adminTab(which) {
   if (which === 'reassign'  && typeof renderDragSchedule === 'function') renderDragSchedule();
   if (which === 'absents')  renderAbsentsAdmin();
   if (which === 'certs')    renderCertsAdmin();
+  if (which === 'sectors')  renderSectorsAdmin();
   if (which === 'system') {
     try { renderHandoffPanel('admin-handoff-panel'); } catch {}
     try { loadHRContact(); } catch {}
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SECTORS ADMIN — manage the dropdown list of sectors
+// ══════════════════════════════════════════════════════════════
+function renderSectorsAdmin() {
+  const list  = document.getElementById('sectors-admin-list');
+  const empty = document.getElementById('sectors-admin-empty');
+  if (!list) return;
+  if (SECTORS.length === 0) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = '';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  list.innerHTML = SECTORS.map(s => {
+    // Count how many jobs use this sector
+    const usedBy = JOBS.filter(j => j.sector === s).length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 13px;background:var(--white);border:1px solid var(--line);border-radius:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(s)}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${usedBy} job${usedBy===1?'':'s'} using this sector</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="renameSector('${esc(s).replace(/'/g, '&#39;')}')"
+          data-tip="Rename this sector — all jobs using it will keep the new name automatically"
+          style="padding:3px 9px;font-size:10.5px">Rename</button>
+        <button class="btn btn-sm" onclick="deleteSector('${esc(s).replace(/'/g, '&#39;')}')"
+          data-tip="Delete this sector — jobs using it will lose the sector tag but remain otherwise untouched"
+          style="padding:3px 9px;font-size:10.5px;border-color:var(--bad);color:var(--bad)">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addSector() {
+  const inp = document.getElementById('new-sector-name');
+  if (!inp) return;
+  const name = (inp.value || '').trim();
+  if (!name) { showToast('Sector name required', 'error'); return; }
+  if (SECTORS.some(s => s.toLowerCase() === name.toLowerCase())) {
+    showToast(`"${name}" already exists`, 'error');
+    return;
+  }
+  // Add in-memory + persist
+  SECTORS.push(name);
+  inp.value = '';
+  renderSectorsAdmin();
+  refreshSectorDropdowns();
+  const ok = await persistSectors();
+  showToast(ok ? `Added sector "${name}"` : `Added "${name}" locally — DB sync failed`, ok ? 'success' : 'warn');
+}
+
+async function renameSector(oldName) {
+  const decoded = oldName.replace(/&#39;/g, "'");
+  const newName = prompt(`Rename "${decoded}" to:`, decoded);
+  if (newName == null) return; // cancelled
+  const trimmed = newName.trim();
+  if (!trimmed || trimmed === decoded) return;
+  if (SECTORS.some(s => s.toLowerCase() === trimmed.toLowerCase() && s !== decoded)) {
+    showToast(`"${trimmed}" already exists`, 'error');
+    return;
+  }
+  // Update SECTORS list
+  const idx = SECTORS.findIndex(s => s === decoded);
+  if (idx < 0) return;
+  SECTORS[idx] = trimmed;
+  // Update every job that used the old sector name
+  let touched = 0;
+  for (const j of JOBS) {
+    if (j.sector === decoded) {
+      j.sector = trimmed;
+      await persistJob(j);
+      touched++;
+    }
+  }
+  renderSectorsAdmin();
+  refreshSectorDropdowns();
+  await persistSectors();
+  showToast(`Renamed → "${trimmed}"${touched ? ` · ${touched} job${touched===1?'':'s'} updated` : ''}`, 'success');
+}
+
+async function deleteSector(name) {
+  const decoded = name.replace(/&#39;/g, "'");
+  const usedBy = JOBS.filter(j => j.sector === decoded).length;
+  const msg = usedBy > 0
+    ? `Delete "${decoded}"?\n\n${usedBy} job${usedBy===1?'':'s'} currently use this sector. They'll lose the sector tag but will otherwise be unchanged.`
+    : `Delete "${decoded}"?`;
+  if (!confirm(msg)) return;
+  // Remove from SECTORS
+  SECTORS = SECTORS.filter(s => s !== decoded);
+  // Clear from every affected job
+  for (const j of JOBS) {
+    if (j.sector === decoded) {
+      j.sector = '';
+      await persistJob(j);
+    }
+  }
+  renderSectorsAdmin();
+  refreshSectorDropdowns();
+  await persistSectors();
+  showToast(`Deleted sector "${decoded}"`, 'success');
+}
+
+// Re-render any sector dropdowns currently open in the page (job edit modal)
+function refreshSectorDropdowns() {
+  const sel = document.getElementById('je-sector');
+  if (sel) {
+    const current = sel.value;
+    sel.innerHTML = `<option value="">— None —</option>` +
+      SECTORS.map(s => `<option value="${esc(s)}" ${s === current ? 'selected' : ''}>${esc(s)}</option>`).join('');
+  }
+  // Re-render schedule grid so sector chips update
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  if (typeof renderJobView === 'function')   renderJobView();
+}
+
+// Persist the entire SECTORS list to Supabase. We use a single-row settings
+// approach: one row per sector in the `sectors` table.
+async function persistSectors() {
+  if (typeof _sb === 'undefined' || !_sb) return false;
+  try {
+    // Wipe and rewrite — simplest. The table is tiny.
+    const { error: delErr } = await _sb.from('sectors').delete().neq('name', '__none__');
+    if (delErr && !_isCosmeticError(delErr)) console.warn('[sectors] delete failed:', _errMsg(delErr));
+    if (SECTORS.length === 0) return true;
+    const rows = SECTORS.map((name, i) => ({ name, sort_order: i }));
+    const { error } = await _sb.from('sectors').insert(rows);
+    if (error) {
+      if (_isCosmeticError(error)) return true; // saved, response just couldn't clone
+      console.error('[sectors] save failed:', _errMsg(error));
+      return false;
+    }
+    return true;
+  } catch (err) {
+    if (_isCosmeticError(err)) return true;
+    console.error('[sectors] persist threw:', _errMsg(err));
+    return false;
+  }
+}
+
+// Load the SECTORS list from Supabase on boot. If the table is empty,
+// seed with the defaults already in memory.
+async function loadSectors() {
+  if (typeof _sb === 'undefined' || !_sb) return;
+  try {
+    const { data, error } = await _sb.from('sectors').select('name,sort_order').order('sort_order');
+    if (error) {
+      const msg = (error.message || String(error));
+      // These specific errors are noise from running in iframe contexts where
+      // postMessage can't clone Response Headers. The data still loaded fine.
+      if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+        console.warn('[sectors] load failed (table may not exist yet):', msg);
+      }
+      return;
+    }
+    if (data && data.length > 0) {
+      SECTORS = data.map(r => r.name);
+      console.log(`[sectors] loaded ${SECTORS.length} sectors from DB`);
+    } else {
+      // Seed table with defaults
+      console.log('[sectors] empty — seeding defaults');
+      await persistSectors();
+    }
+  } catch (err) {
+    const msg = (err.message || String(err));
+    if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
+      console.warn('[sectors] load threw:', msg);
+    }
   }
 }
 
@@ -12670,6 +13408,7 @@ function ffShowApp(email, name, role) {
   if (l) l.style.display = 'none';
   if (t) { t.style.display = 'flex'; }
   if (a) a.style.display = 'block';
+
   const te = document.getElementById('ff-topbar-email');
   const tr = document.getElementById('ff-topbar-role');
   if (te) te.textContent = email || '';
@@ -12735,6 +13474,7 @@ async function ffSignIn() {
   if (!allowed) { await _sb.auth.signOut(); ffSetErr('ff-error','Your email is not authorized. Contact your superintendent.'); return; }
   ffShowApp(email, allowed.name, allowed.role);
   loadPersistedData().catch(err => console.warn('[load] failed', err));
+    loadSectors().catch(err => console.warn('[sectors] load failed', err));
   refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
   loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
 }
@@ -12759,6 +13499,7 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     if (allowed) {
       ffShowApp(session.user.email, allowed.name, allowed.role);
       loadPersistedData().catch(err => console.warn('[load] failed', err));
+    loadSectors().catch(err => console.warn('[sectors] load failed', err));
       refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
       loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
     } else {
@@ -12783,6 +13524,14 @@ function _errMsg(err) {
   } catch {
     return '(unreadable error)';
   }
+}
+
+// Some Supabase responses fail to clone across iframe boundaries because the
+// Headers object is non-cloneable. The actual DB operation usually succeeds —
+// it's just the response that can't postMessage back. Filter these silently.
+function _isCosmeticError(err) {
+  const msg = _errMsg(err);
+  return msg.includes('postMessage') || msg.includes('DataCloneError') || msg.includes('Headers object');
 }
 
 // Try a query, catch iframe structured-clone errors silently.
@@ -12946,6 +13695,35 @@ async function loadPersistedData() {
         console.log('[org] First-run already completed — preserving existing manager_id values');
       }
     } catch (e) { console.warn('[org] first-run check failed', e); }
+  }
+
+  // 7. Jobs — load from DB and merge with seed
+  const jobRows = await _safeLoad('jobs', () =>
+    _sb.from('jobs').select('*').order('name')
+  );
+  if (jobRows && jobRows.length) {
+    jobRows.forEach(r => {
+      const idx = JOBS.findIndex(j => j.id === r.id);
+      const entry = {
+        id: r.id, name: r.name, number: r.number, location: r.location || '',
+        sector: r.sector || '', status: r.status || 'active', days: r.days || 5,
+        lead: r.lead || '', leadEmail: r.lead_email || '',
+        notes: r.notes || '', color: r.color || '#6B7280',
+        address: r.address || '', lat: null, lng: null,
+        startDate: r.start_date || null, endDate: r.end_date || null,
+        percentComplete: r.percent_complete ?? null,
+        doc_path: r.doc_path || null, doc_name: r.doc_name || null,
+        requirements: (() => {
+          if (!r.requirements) return defaultJobRequirements();
+          try { return typeof r.requirements === 'string' ? JSON.parse(r.requirements) : r.requirements; }
+          catch { return defaultJobRequirements(); }
+        })(),
+      };
+      if (idx >= 0) Object.assign(JOBS[idx], entry);
+      else JOBS.push(entry);
+    });
+    if (typeof renderJobManager === 'function') renderJobManager();
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
   }
 }
 
