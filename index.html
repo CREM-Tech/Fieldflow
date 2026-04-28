@@ -3692,6 +3692,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
                 <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Job</th>
                 <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Reported by</th>
                 <th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Time</th>
+                <th style="text-align:right;padding:8px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line)">Actions</th>
               </tr>
             </thead>
             <tbody id="absents-admin-tbody"></tbody>
@@ -5634,7 +5635,7 @@ function openEmpProfileOverlay(last, first, role) {
             value="${esc(expiry[cd.key]||'')}"
             data-cert="${esc(cd.key)}"
             data-emp="${esc(last)}"
-            onchange="updateCertExpiry('${esc(last)}',this.dataset.cert,this.value)">` : '<span style="font-size:10px;color:var(--ff-tx4)">N/A</span>'}
+            onchange="saveCertExpiry('${esc(last)}',this.dataset.cert,this.value)">` : '<span style="font-size:10px;color:var(--ff-tx4)">N/A</span>'}
         </div>
       </div>`;
   }).join('');
@@ -7789,10 +7790,27 @@ function _buildOrgAdjacency() {
 
 // Persist new manager_id to Supabase
 async function saveOrgManager(empDbId, newManagerId) {
-  if (typeof _sb === 'undefined' || !_sb) return;
-  await _safeWrite('employees manager_id', () =>
-    _sb.from('employees').update({ manager_id: newManagerId || null }).eq('id', empDbId)
-  );
+  if (typeof _sb === 'undefined' || !_sb) {
+    console.warn('[org] No Supabase client — manager assignment NOT persisted');
+    return false;
+  }
+  try {
+    const { error } = await _sb.from('employees')
+      .update({ manager_id: newManagerId || null })
+      .eq('id', empDbId)
+      .select('id'); // .select() forces the response so we know if it succeeded
+    if (error) {
+      console.error(`[org] saveOrgManager FAILED for ${empDbId} → ${newManagerId}:`, error);
+      showToast(`Save failed: ${error.message}. Check console (F12). Run migration 013 if RLS is blocking.`, 'error');
+      return false;
+    }
+    console.log(`[org] ✓ ${empDbId} → manager_id = ${newManagerId || 'NULL'}`);
+    return true;
+  } catch (err) {
+    console.error('[org] saveOrgManager threw:', err);
+    showToast(`Save error: ${err.message || err}`, 'error');
+    return false;
+  }
 }
 
 // Cycle detection — make sure proposedManager isn't a descendant of emp
@@ -8504,7 +8522,9 @@ function showOrgContextMenu(e, dbId, last, first) {
     items.push({ icon: isCollapsed?'▸':'▾', label: isCollapsed?'Expand children':'Collapse children', action:`toggleOrgNode('${esc(key)}')` });
   }
 
-  items.push({ icon:'📊', label:'View scorecard',        action:`generateEmployeeScorecard('${esc(last)}','${esc(first)}')` });
+  if (isAdmin) {
+    items.push({ icon:'📊', label:'View scorecard',        action:`generateEmployeeScorecard('${esc(last)}','${esc(first)}')` });
+  }
 
   if (isAdmin && hasReports) {
     items.push({ sep: true });
@@ -9048,12 +9068,34 @@ function generateCrewPacket(fmName) {
 
 // Shared report window helper
 function _openReportWindow(html) {
-  const w = window.open('', '_blank');
-  if (!w) { showToast('Popup blocked — please allow popups', 'error'); return; }
-  w.document.open();
-  w.document.documentElement.innerHTML = html.replace(/^<!DOCTYPE html><html>/, '').replace(/<\/html>$/, '');
-  w.document.close();
-  setTimeout(() => { try { w.print(); } catch {} }, 300);
+  // Build a Blob → object URL → open in new tab. This is more reliable than
+  // writing into about:blank (which some browsers/security policies block).
+  try {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!w) {
+      showToast('Popup blocked — please allow popups for this site, then click again', 'error');
+      // Fallback: navigate the current tab to download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'report.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      showToast('Report downloaded — open it from your downloads', 'info');
+      return;
+    }
+    // Auto-trigger print once the window has loaded
+    try {
+      w.addEventListener('load', () => { try { w.print(); } catch {} }, { once: true });
+    } catch {}
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (err) {
+    console.error('[report] failed to open', err);
+    showToast(`Couldn't open report: ${err.message || err}`, 'error');
+  }
 }
 
 const _REPORT_STYLES = `
@@ -9260,6 +9302,13 @@ function generateCertCompliance() {
 // ══════════════════════════════════════════════════════════════
 
 function generateEmployeeScorecard(last, first) {
+  // Admin-only feature — defense-in-depth even if a non-admin reaches the function
+  const isAdmin = typeof _currentUser !== 'undefined' &&
+    ['superintendent','admin'].includes((_currentUser.role||'').toLowerCase());
+  if (!isAdmin) {
+    showToast('Scorecard is admin-only — your account doesn\'t have access', 'error');
+    return;
+  }
   const emp = ROSTER.find(e => e.last === last && e.first === first);
   if (!emp) { showToast('Employee not found', 'error'); return; }
   const ci = CONTACT_INFO[last] || {};
@@ -11795,6 +11844,56 @@ function getFilteredAbsents() {
     .sort((a, b) => new Date(b.at) - new Date(a.at));
 }
 
+// Admin: remove a logged absence/late entry (mistake corrections)
+async function deleteAbsentEntry(absId) {
+  // absId format: "empKey|date|at"
+  const parts = absId.split('|');
+  if (parts.length !== 3) {
+    showToast('Could not parse absence record', 'error');
+    return;
+  }
+  const [empKey, date, at] = parts;
+  const idx = ABSENT_LOG.findIndex(e =>
+    e.empKey === empKey && e.date === date && String(e.at) === at
+  );
+  if (idx === -1) {
+    showToast('Record not found — may have already been removed', 'error');
+    return;
+  }
+  const entry = ABSENT_LOG[idx];
+  const [last, first] = entry.empKey.split(',');
+  const typeLabel = entry.type === 'absent' ? 'absence' : 'late arrival';
+  if (!confirm(`Remove this ${typeLabel} record?\n\n${last}, ${first} on ${entry.date}\n\nThis cannot be undone.`)) return;
+
+  // Remove from local state
+  ABSENT_LOG.splice(idx, 1);
+
+  // Remove from Supabase if connected
+  if (typeof _sb !== 'undefined' && _sb) {
+    try {
+      const { error } = await _sb.from('absence_log')
+        .delete()
+        .eq('emp_key', entry.empKey)
+        .eq('date', entry.date)
+        .eq('at', entry.at);
+      if (error) {
+        console.warn('[absents] DB delete failed', error);
+        showToast(`Removed locally, but DB delete failed: ${error.message}`, 'warn');
+      } else {
+        showToast(`Removed ${typeLabel} for ${last}, ${first} on ${entry.date}`, 'success');
+      }
+    } catch (err) {
+      console.warn('[absents] DB delete threw', err);
+      showToast(`Removed locally, but DB sync failed`, 'warn');
+    }
+  } else {
+    showToast(`Removed ${typeLabel} for ${last}, ${first}`, 'success');
+  }
+
+  renderAbsentsAdmin();
+  if (typeof updateAbsentBadge === 'function') updateAbsentBadge();
+}
+
 function renderAbsentsAdmin() {
   const tbody = document.getElementById('absents-admin-tbody');
   const empty = document.getElementById('absents-admin-empty');
@@ -11831,16 +11930,18 @@ function renderAbsentsAdmin() {
   if (empty) empty.style.display = 'none';
 
   let lastDate = '';
-  tbody.innerHTML = rows.map(e => {
+  tbody.innerHTML = rows.map((e, idx) => {
     const [last, first] = e.empKey.split(',');
     const dateSep = e.date !== lastDate
-      ? `<tr><td colspan="6" style="padding:10px 10px 4px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--surface-2);border-top:1px solid var(--line)">${formatDateLabel(e.date)}</td></tr>`
+      ? `<tr><td colspan="7" style="padding:10px 10px 4px;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--surface-2);border-top:1px solid var(--line)">${formatDateLabel(e.date)}</td></tr>`
       : '';
     lastDate = e.date;
     const timeStr = new Date(e.at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
     const typePill = e.type === 'absent'
       ? `<span class="absent-pill absent">X Absent</span>`
       : `<span class="absent-pill late">Late</span>`;
+    // Use the unique fields together as a stable identifier for delete
+    const absId = `${e.empKey}|${e.date}|${e.at}`;
     return dateSep + `<tr style="border-bottom:1px solid var(--line-soft)">
       <td style="padding:8px 10px;font-weight:500;color:var(--ink)">${e.empKey.split(',').slice(0,2).join(', ')}</td>
       <td style="padding:8px 10px">${typePill}</td>
@@ -11848,6 +11949,11 @@ function renderAbsentsAdmin() {
       <td style="padding:8px 10px;color:var(--muted)">${e.job || '—'}</td>
       <td style="padding:8px 10px;color:var(--muted)">${e.reportedBy || '—'}</td>
       <td style="padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--muted)">${timeStr}</td>
+      <td style="padding:6px 10px;text-align:right">
+        <button class="btn btn-sm" onclick="deleteAbsentEntry('${esc(absId)}')"
+          data-tip="Remove this entry — use to undo a mistakenly logged absence"
+          style="padding:3px 8px;font-size:10.5px;border-color:var(--bad);color:var(--bad)">Remove</button>
+      </td>
     </tr>`;
   }).join('');
   updateAbsentBadge();
@@ -12805,19 +12911,18 @@ async function loadPersistedData() {
     });
     if (typeof filterRoster === 'function') filterRoster('');
 
-    // ── FIRST-RUN CLEAN: if user has never built hierarchy, ignore stale manager_ids
-    // `_rootedSolo` is only populated by makeRootNode(). Empty set = user has never used it.
-    // In that case, we treat any existing manager_id values as stale (from old Auto-assign)
-    // and clear them both in memory AND in the database so next load is truly empty.
+    // ── FIRST-RUN CLEAN: only fires ONCE in the lifetime of this browser/user.
+    // After this runs successfully, the flag is set in localStorage and never
+    // re-runs — even if the user clears the tree, manually rebuilds, etc.
+    // This protects manager_id values from being wiped when the user refreshes.
     try {
-      const rootedSolo = JSON.parse(localStorage.getItem('fieldflow-rooted-solo') || '[]');
-      if (rootedSolo.length === 0) {
+      const ORG_INIT_KEY = 'fieldflow-org-initialized-v1';
+      const alreadyRan = localStorage.getItem(ORG_INIT_KEY) === '1';
+      if (!alreadyRan) {
         const stale = ROSTER.filter(e => e.manager_id);
         if (stale.length > 0) {
-          console.log(`[org] First-run: clearing ${stale.length} stale manager_id values (user has not built hierarchy yet)`);
-          // Clear in-memory immediately so render sees empty tree
+          console.log(`[org] First-run cleanup (one-time): clearing ${stale.length} legacy manager_id values from previous Auto-assign sessions`);
           ROSTER.forEach(e => { e.manager_id = null; });
-          // Fire-and-forget DB cleanup
           (async () => {
             let cleared = 0;
             for (const emp of stale) {
@@ -12829,9 +12934,16 @@ async function loadPersistedData() {
                 if (!error) cleared++;
               } catch {}
             }
-            console.log(`[org] First-run: ${cleared}/${stale.length} DB rows cleared`);
+            console.log(`[org] First-run cleanup: ${cleared}/${stale.length} DB rows cleared`);
+            // Mark as done so this never runs again, regardless of subsequent state
+            try { localStorage.setItem(ORG_INIT_KEY, '1'); } catch {}
           })();
+        } else {
+          // No legacy data to clean — mark done immediately
+          try { localStorage.setItem(ORG_INIT_KEY, '1'); } catch {}
         }
+      } else {
+        console.log('[org] First-run already completed — preserving existing manager_id values');
       }
     } catch (e) { console.warn('[org] first-run check failed', e); }
   }
