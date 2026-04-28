@@ -1659,15 +1659,22 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 .unassigned-name { font-size: 10.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
 .unassigned-meta { font-size: 9px; color: var(--muted); line-height: 1; }
 
-/* Canvas — big white square where the tree lives */
+/* Canvas — soft backdrop with subtle grid so tree lines dominate */
 .org-canvas {
-  background: var(--white);
+  background:
+    radial-gradient(circle, rgba(71,85,105,0.08) 1px, transparent 1px) 0 0 / 18px 18px,
+    var(--surface-2);
   border: 1px solid var(--line);
   border-radius: 10px;
   overflow: auto;
   position: relative;
   cursor: grab;
   min-height: 0;
+}
+html.dark .org-canvas {
+  background:
+    radial-gradient(circle, rgba(148,163,184,0.12) 1px, transparent 1px) 0 0 / 18px 18px,
+    #0f172a;
 }
 .org-canvas:active { cursor: grabbing; }
 .org-empty-state {
@@ -1719,16 +1726,23 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 6px 7px 8px;
   min-width: 96px; max-width: 112px;
   background: var(--white);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(71,85,105,0.15);
   border-top: 3px solid var(--accent);
   border-radius: 7px;
   cursor: pointer;
   user-select: none;
   text-align: center;
-  transition: transform .1s ease, box-shadow .1s ease, border-color .1s ease;
+  box-shadow: 0 2px 5px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+  transition: transform .1s ease, box-shadow .15s ease, border-color .1s ease;
   position: relative;
+  z-index: 1;
 }
-.org-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.1); transform: translateY(-1px); }
+.org-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(15,23,42,.15), 0 2px 4px rgba(15,23,42,.08);
+  transform: translateY(-1px);
+  z-index: 2;
+}
 .org-card[data-role="SUPER"],
 .org-card[data-role="superintendent"] { border-top-color: #8B5CF6; }
 .org-card[data-role="GF"]  { border-top-color: #DC2626; }
@@ -1736,6 +1750,33 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 .org-card[data-role="JN"], .org-card[data-role="JW"],
 .org-card[data-role="WLD"] { border-top-color: #0284C7; }
 .org-card[data-role="MH"]  { border-top-color: #64748B; }
+.org-card[data-role="PRES"],
+.org-card[data-role="COO"],
+.org-card[data-role="CFO"],
+.org-card[data-role="EA"]  { border-top-color: #312E81; border-top-width: 4px; }
+.org-card[data-role="DIR_OPS"],
+.org-card[data-role="DIR_FIELD"],
+.org-card[data-role="DIR_FIN"],
+.org-card[data-role="DIR_ADMIN"] { border-top-color: #7C3AED; }
+.org-card[data-role="SR_PM"],
+.org-card[data-role="CONTROLLER"] { border-top-color: #4F46E5; }
+.org-card[data-role="PM"],
+.org-card[data-role="PE"],
+.org-card[data-role="ESTIMATOR"],
+.org-card[data-role="BIM"],
+.org-card[data-role="PRECON"],
+.org-card[data-role="BD"],
+.org-card[data-role="HR"],
+.org-card[data-role="IT"],
+.org-card[data-role="OFFICE_MGR"],
+.org-card[data-role="MARKETING"],
+.org-card[data-role="PURCHASING"],
+.org-card[data-role="AR_AP"],
+.org-card[data-role="PAYROLL"]     { border-top-color: #0891B2; }
+.org-card[data-role="SAFETY"],
+.org-card[data-role="WAREHOUSE"],
+.org-card[data-role="MECHANIC"],
+.org-card[data-role="PREFAB"]      { border-top-color: #65A30D; }
 
 .org-avatar {
   width: 28px; height: 28px; border-radius: 50%;
@@ -1778,33 +1819,43 @@ input.req-input[type="date"]::-webkit-calendar-picker-indicator {
 .org-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-ghost); }
 .org-toggle.empty { display: none; }
 
+/* Tree connector lines — dark slate, 3px thick, extended reach for clarity */
 .org-children {
-  display: flex; gap: 14px;
-  padding-top: 20px; position: relative;
+  display: flex; gap: 18px;
+  padding-top: 28px; position: relative;
 }
 .org-children::before {
   content: ''; position: absolute;
   top: 0; left: 50%;
-  width: 2px; height: 10px;
-  background: var(--line-strong, #c9cdd4);
-  transform: translateX(-1px);
+  width: 3px; height: 14px;
+  background: #475569;
+  border-radius: 2px;
+  transform: translateX(-1.5px);
 }
-.org-children > .org-node { position: relative; padding-top: 10px; }
+.org-children > .org-node { position: relative; padding-top: 14px; }
+/* Horizontal sibling bar */
 .org-children > .org-node::before {
   content: ''; position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px; background: var(--line-strong, #c9cdd4);
+  height: 3px; background: #475569;
+  border-radius: 2px;
 }
 .org-children > .org-node:only-child::before { left: 50%; right: 50%; }
-.org-children > .org-node:first-child::before { left: 50%; }
-.org-children > .org-node:last-child::before { right: 50%; }
+.org-children > .org-node:first-child::before { left: 50%; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.org-children > .org-node:last-child::before  { right: 50%; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+/* Vertical drop from horizontal bar into each child card */
 .org-children > .org-node::after {
   content: ''; position: absolute;
   top: 0; left: 50%;
-  width: 2px; height: 10px;
-  background: var(--line-strong, #c9cdd4);
-  transform: translateX(-1px);
+  width: 3px; height: 14px;
+  background: #475569;
+  border-radius: 2px;
+  transform: translateX(-1.5px);
 }
+/* Dark-mode lines — visible against dark canvas */
+html.dark .org-children::before,
+html.dark .org-children > .org-node::before,
+html.dark .org-children > .org-node::after { background: #94A3B8; }
 
 .org-drag-hint {
   font-size: 10.5px; color: var(--muted); padding: 7px 12px; background: var(--accent-ghost);
@@ -7163,7 +7214,7 @@ function renderRequestsList() {
       ${showRespondBtns ? `
         <div class="req-card-acts">
           <button class="rbtn rbtn-ok" data-req-yes="${safeId}">Yes, I can spare</button>
-          <button class="rbtn rbtn-no" data-req-no="${safeId}">No, need too</button>
+          <button class="rbtn rbtn-no" data-req-no="${safeId}">No, need them too</button>
         </div>` : ''}
     </div>`;
   }).join('');
