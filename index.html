@@ -1391,6 +1391,12 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
   position: sticky;
   left: 0;
   z-index: 3;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.sched-group-row td.sched-group-cell:hover {
+  filter: brightness(1.04);
 }
 .sched-group-icon {
   display: inline-block;
@@ -1401,10 +1407,68 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
 .sched-group-label {
   vertical-align: middle;
 }
+.sched-group-chevron {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  vertical-align: middle;
+  transition: transform 0.18s;
+  width: 10px;
+  text-align: center;
+  color: var(--accent-dark);
+}
+.sched-group-row.collapsed .sched-group-chevron {
+  transform: rotate(-90deg);
+}
+.sched-group-count {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--accent-faint);
+  color: var(--accent-dark);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  text-transform: none;
+}
+/* Collapsed group hides all employee rows tagged with the same group key */
+tr.sched-emp-row.sched-row-hidden { display: none; }
+
 html.dark .sched-group-row td.sched-group-cell {
   background: linear-gradient(90deg, rgba(234,179,8,0.12) 0%, var(--surface-2) 18%, var(--surface-2) 100%);
   color: #FCD34D;
 }
+html.dark .sched-group-chevron { color: #FCD34D; }
+html.dark .sched-group-count { background: rgba(250,204,21,0.18); color: #FCD34D; }
+
+/* ── Collapsable panel ─────────────────────────────────────── */
+.panel-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  border-radius: 5px;
+  font-size: 9px;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: background 0.15s, transform 0.18s;
+}
+.panel-collapse-btn:hover { background: var(--accent-ghost); border-color: var(--accent); color: var(--accent-dark); }
+.collapsable-panel.collapsed .panel-collapse-btn { transform: rotate(-90deg); }
+.collapsable-panel.collapsed > .panel-header { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
+.collapsable-panel.collapsed .panel-header > *:not(:first-child) { display: none !important; }
+.collapsable-panel.collapsed > :not(.panel-header) { display: none !important; }
+.collapsable-panel.collapsed { padding-bottom: 12px !important; }
+
+html.dark .panel-collapse-btn { background: var(--surface-2); color: var(--ink-soft); border-color: var(--line); }
+html.dark .panel-collapse-btn:hover { background: var(--accent-ghost); color: var(--accent); }
 
 /* ── Day-edit popover ───────────────────────────────────────── */
 .sched-cell-wrap {
@@ -3452,13 +3516,32 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <!-- Inline action panel — swaps in below metrics -->
       <div id="action-panel" style="display:none;margin-bottom:13px"></div>
 
+      <!-- Dashboard filter row: sector filter + collapse-all/expand-all controls.
+           The sector filter applies to every dashboard panel: Crew trend,
+           Upcoming work, Pending requests, and Activity. Filter state persists
+           in localStorage so it survives reloads. -->
+      <div id="dash-filter-row" style="display:flex;align-items:center;gap:10px;margin-bottom:13px;padding:8px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;flex-wrap:wrap">
+        <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Filter</span>
+        <select id="dash-sector-filter" class="ctrl-sel" onchange="setDashSectorFilter(this.value)" data-tip="Filter every dashboard widget by sector. Crew trend, Upcoming work, Pending requests, and Activity all narrow to jobs/employees in this sector." style="font-size:11.5px;min-width:180px">
+          <option value="">All sectors</option>
+        </select>
+        <span id="dash-filter-status" style="font-size:10.5px;color:var(--muted);font-style:italic"></span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="collapseAllDashPanels()" data-tip="Collapse every dashboard panel — useful for a compact overview" style="padding:3px 8px;font-size:10.5px">⊟ Collapse all</button>
+          <button class="btn btn-sm" onclick="expandAllDashPanels()" data-tip="Expand every dashboard panel" style="padding:3px 8px;font-size:10.5px">⊞ Expand all</button>
+        </div>
+      </div>
+
       <div class="grid-2">
         <!-- Crew schedule — Trend (12-week utilization heatmap) -->
-        <div class="panel" style="display:flex;flex-direction:column">
+        <div class="panel collapsable-panel" data-panel="crew-trend" style="display:flex;flex-direction:column">
           <div class="panel-header" style="margin-bottom:0">
-            <div>
-              <div class="panel-title">Crew <em>trend</em></div>
-              <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Unassigned crew shown first — they need scheduling.</div>
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+              <button class="panel-collapse-btn" onclick="togglePanelCollapse('crew-trend')" data-tip="Collapse this panel" aria-label="Collapse Crew trend">▼</button>
+              <div style="flex:1;min-width:0">
+                <div class="panel-title">Crew <em>trend</em></div>
+                <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Unassigned crew shown first — they need scheduling.</div>
+              </div>
             </div>
             <span class="panel-link" onclick="goScreen('schedule')">Full grid →</span>
           </div>
@@ -3478,11 +3561,14 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <div class="col-stack">
 
           <!-- Upcoming work — jobs starting soon or pending start -->
-          <div class="panel">
+          <div class="panel collapsable-panel" data-panel="upcoming-work">
             <div class="panel-header">
-              <div>
-                <div class="panel-title">Upcoming <em>work</em></div>
-                <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Jobs in pending status or starting in the next 30 days.</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <button class="panel-collapse-btn" onclick="togglePanelCollapse('upcoming-work')" data-tip="Collapse this panel" aria-label="Collapse Upcoming work">▼</button>
+                <div style="flex:1;min-width:0">
+                  <div class="panel-title">Upcoming <em>work</em></div>
+                  <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Jobs in pending status or starting in the next 30 days.</div>
+                </div>
               </div>
               <span class="panel-link" onclick="goScreen('admin');adminTab('jobs')">Manage jobs →</span>
             </div>
@@ -3492,9 +3578,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </div>
 
           <!-- Requests — single panel, live from REQUESTS_DATA -->
-          <div class="panel">
+          <div class="panel collapsable-panel" data-panel="pending-requests">
             <div class="panel-header">
-              <div class="panel-title">Pending <em>requests</em></div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <button class="panel-collapse-btn" onclick="togglePanelCollapse('pending-requests')" data-tip="Collapse this panel" aria-label="Collapse Pending requests">▼</button>
+                <div class="panel-title">Pending <em>requests</em></div>
+              </div>
               <span class="panel-link" onclick="goScreen('requests')">All requests →</span>
             </div>
             <div id="dash-req-preview" style="display:flex;flex-direction:column;gap:6px">
@@ -3503,9 +3592,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           </div>
 
           <!-- Alerts + recent changes — tabbed -->
-          <div class="panel">
+          <div class="panel collapsable-panel" data-panel="activity">
             <div class="panel-header" style="margin-bottom:0">
-              <div class="panel-title">Activity</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <button class="panel-collapse-btn" onclick="togglePanelCollapse('activity')" data-tip="Collapse this panel" aria-label="Collapse Activity">▼</button>
+                <div class="panel-title">Activity</div>
+              </div>
               <div style="display:flex;gap:2px;background:var(--surface-2);border-radius:6px;padding:2px">
                 <button id="dash-act-tab-alerts" onclick="dashActTab('alerts')"
                   style="padding:3px 10px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)">
@@ -3626,6 +3718,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="unassigned">Unassigned first</option>
         </select>
         <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="collapseAllSchedGroups()" data-tip="Collapse every group in the current sort. Useful when sorted by Sector or Job to get a high-level view." style="padding:3px 8px;font-size:10.5px">⊟ Collapse all</button>
+          <button class="btn btn-sm" onclick="expandAllSchedGroups()" data-tip="Expand every group" style="padding:3px 8px;font-size:10.5px">⊞ Expand all</button>
           <button class="btn btn-sm" onclick="openTimeOffModal()" data-tip="Request time off (vacation, personal, jury duty, etc.) for any employee. Auto-fills VACATION/OFF across the chosen date range.">🏖 Time off</button>
           <button class="btn btn-sm" onclick="openCopyWeekModal()" data-tip="Duplicate this week's schedule (all employees' Mon-Fri assignments) to another week. Useful when most of next week will look like this one.">📋 Copy week</button>
           <button class="btn btn-sm" onclick="exportScheduleCSV()" data-tip="Download the visible schedule as a CSV file you can open in Excel or import into Spectrum">Export CSV</button>
@@ -5001,6 +5095,22 @@ function buildSchedTbody() {
     }
   };
 
+  // First pass: count employees per group so the separator can show "(N)"
+  const groupCounts = new Map();
+  sorted.forEach(([key, weeks]) => {
+    const g = groupKeyOf(key, weeks);
+    if (g !== null) groupCounts.set(g, (groupCounts.get(g) || 0) + 1);
+  });
+
+  // Persisted collapse state — keyed by sort+group so different sorts have
+  // independent expand/collapse memory. Stored in localStorage.
+  const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
+  let collapsed;
+  try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
+  catch { collapsed = {}; }
+  const sortGroupKey = (g) => `${sortKey}::${g}`;
+  const isCollapsed = (g) => !!collapsed[sortGroupKey(g)];
+
   let lastGroup = null;
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
@@ -5020,18 +5130,25 @@ function buildSchedTbody() {
     const group = groupKeyOf(key, weeks);
     let separator = '';
     if (group !== null && group !== lastGroup) {
-      // Build header label (with sector emphasis)
       const labelPrefix = sortKey === 'sector' ? '🏷' :
                           sortKey === 'job'    ? '🏗' :
                                                   '👥';
-      separator = `<tr class="sched-group-row"><td colspan="${TOTAL_COLS}" class="sched-group-cell">
+      const cnt = groupCounts.get(group) || 0;
+      const collapsedCls = isCollapsed(group) ? ' collapsed' : '';
+      const groupSafe = esc(group);
+      separator = `<tr class="sched-group-row${collapsedCls}" data-group-key="${groupSafe}"><td colspan="${TOTAL_COLS}" class="sched-group-cell" onclick="toggleSchedGroup('${groupSafe.replace(/'/g, '&#39;')}', '${esc(sortKey)}')" data-tip="Click to ${isCollapsed(group) ? 'expand' : 'collapse'} this group. State is saved per sort.">
+        <span class="sched-group-chevron">▼</span>
         <span class="sched-group-icon">${labelPrefix}</span>
-        <span class="sched-group-label">${esc(group)}</span>
+        <span class="sched-group-label">${groupSafe}</span>
+        <span class="sched-group-count">${cnt}</span>
       </td></tr>`;
       lastGroup = group;
     }
 
-    return separator + `<tr data-emp-key="${esc(key)}" style="${rowStyle}">
+    const empRowGroup = group !== null ? ` data-group-key="${esc(group)}"` : '';
+    const empRowHidden = (group !== null && isCollapsed(group)) ? ' sched-row-hidden' : '';
+
+    return separator + `<tr class="sched-emp-row${empRowHidden}" data-emp-key="${esc(key)}"${empRowGroup} style="${rowStyle}">
       <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
         <div style="display:flex;align-items:center;gap:7px">
           ${avatarHtml}
@@ -5067,6 +5184,71 @@ function buildSchedTbody() {
 
   // Attach long-press / right-click for transfer requests
   if (typeof attachScheduleRowEvents === 'function') attachScheduleRowEvents();
+}
+
+// Toggle a single group's collapsed state. Persists to localStorage so the
+// preference survives reloads. The whole table doesn't re-render — we just
+// toggle the .sched-row-hidden class on every row that shares the group key.
+function _ffCssEsc(s) {
+  // Defensive: prefer CSS.escape but fall back so this works in JSDOM too.
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') return CSS.escape(s);
+  return String(s).replace(/[^a-zA-Z0-9_-]/g, ch => '\\' + ch);
+}
+function toggleSchedGroup(groupRaw, sortKey) {
+  // Decode the entity-escaped apostrophe back so it matches data-group-key
+  const group = String(groupRaw).replace(/&#39;/g, "'");
+  const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
+  let state;
+  try { state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
+  catch { state = {}; }
+  const stateKey = `${sortKey}::${group}`;
+  const newCollapsed = !state[stateKey];
+  if (newCollapsed) state[stateKey] = true;
+  else delete state[stateKey]; // keep storage clean
+  try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state)); } catch {}
+
+  // Apply visually — toggle .collapsed on header + .sched-row-hidden on members
+  const headerRow = document.querySelector(`tr.sched-group-row[data-group-key="${_ffCssEsc(group)}"]`);
+  if (headerRow) headerRow.classList.toggle('collapsed', newCollapsed);
+  document.querySelectorAll(`tr.sched-emp-row[data-group-key="${_ffCssEsc(group)}"]`).forEach(tr => {
+    tr.classList.toggle('sched-row-hidden', newCollapsed);
+  });
+}
+
+// Collapse ALL groups in the current sort. Called from the schedule toolbar.
+function collapseAllSchedGroups() {
+  const sortSel = document.getElementById('sched-sort');
+  const sortKey = sortSel?.value || 'name-asc';
+  const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
+  let state;
+  try { state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
+  catch { state = {}; }
+  document.querySelectorAll('tr.sched-group-row[data-group-key]').forEach(tr => {
+    const g = tr.getAttribute('data-group-key');
+    state[`${sortKey}::${g}`] = true;
+    tr.classList.add('collapsed');
+  });
+  document.querySelectorAll('tr.sched-emp-row[data-group-key]').forEach(tr => {
+    tr.classList.add('sched-row-hidden');
+  });
+  try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state)); } catch {}
+}
+function expandAllSchedGroups() {
+  const sortSel = document.getElementById('sched-sort');
+  const sortKey = sortSel?.value || 'name-asc';
+  const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
+  let state;
+  try { state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
+  catch { state = {}; }
+  document.querySelectorAll('tr.sched-group-row[data-group-key]').forEach(tr => {
+    const g = tr.getAttribute('data-group-key');
+    delete state[`${sortKey}::${g}`];
+    tr.classList.remove('collapsed');
+  });
+  document.querySelectorAll('tr.sched-emp-row.sched-row-hidden').forEach(tr => {
+    tr.classList.remove('sched-row-hidden');
+  });
+  try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state)); } catch {}
 }
 
 // Export current filtered schedule as CSV — only the visible 3-week window
@@ -6092,50 +6274,102 @@ function renderFullProfile(last, first, role, emp) {
 }
 
 function renderOrgSection(last, first) {
-  const node = ORG[last];
+  // Walks the live org chart (manager_id pointers in ROSTER) instead of the
+  // legacy hardcoded ORG object. The chain reflects whatever superintendents
+  // have set in the Org Chart screen via drag-and-drop. Falls back to the
+  // legacy ORG object only when an employee has no manager_id assigned.
   const initials = f => (f && f.length ? f[0] : '');
+  const me = (typeof _empByName === 'function') ? _empByName(last, first) : null;
 
-  // Build chain: who they manage (below) · themselves (middle) · who they report to (above)
-  // ORG keys use last-name only — we need to resolve full names from ROSTER
-  function nodeFor(lastKey, tag) {
+  function nodeFromEmp(e, tag) {
+    if (!e) return '';
+    return `<div class="org-node ${tag}">
+      <div class="org-node-av">${esc(initials(e.first))}${esc(initials(e.last))}</div>
+      <div>
+        <div class="org-node-name">${esc(e.last)}, ${esc(e.first)}</div>
+        <div class="org-node-role">${typeof roleLabel === 'function' ? esc(roleLabel(e.role) || e.role) : esc(e.role)}</div>
+      </div>
+    </div>`;
+  }
+  function nodeForLegacy(lastKey, tag) {
     const e = ROSTER.find(r => r.last === lastKey);
     if (!e) {
-      // Placeholder (superintendent or external)
       return `<div class="org-node ${tag}">
         <div class="org-node-av">${esc(lastKey.slice(0,2).toUpperCase())}</div>
         <div><div class="org-node-name">${esc(lastKey)}</div><div class="org-node-role">${esc(ORG[lastKey]?.title || 'Leadership')}</div></div>
       </div>`;
     }
-    return `<div class="org-node ${tag}">
-      <div class="org-node-av">${esc(initials(e.first))}${esc(initials(e.last))}</div>
-      <div>
-        <div class="org-node-name">${esc(e.last)}, ${esc(e.first)}</div>
-        <div class="org-node-role">${esc(ORG[lastKey]?.title || e.role)}</div>
-      </div>
-    </div>`;
+    return nodeFromEmp(e, tag);
   }
 
   let html = '';
 
-  // Who they report to (above)
-  if (node?.reportsTo) {
-    // reportsTo is formatted like "Munson, Mike" or "Super — Zech S."
-    const reportKey = node.reportsTo.split(',')[0].replace('Super — ','').trim();
-    html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Reports to</div>`;
-    html += nodeFor(reportKey, 'manager');
-    html += `<div class="org-connector"></div>`;
-  }
+  // ── Live chain via manager_id (preferred) ──
+  if (me) {
+    // Walk UP the chain — show every level (immediate manager → grandmanager → super)
+    const chainAbove = [];
+    let cur = me;
+    const seen = new Set([me.db_id]);
+    let depth = 0;
+    while (depth < 4) {
+      const mgr = (typeof _managerOf === 'function') ? _managerOf(cur) : null;
+      if (!mgr || seen.has(mgr.db_id)) break;
+      seen.add(mgr.db_id);
+      chainAbove.push(mgr);
+      cur = mgr;
+      depth++;
+    }
 
-  // Current person
-  html += nodeFor(last, 'current');
+    // Direct reports of this employee
+    const directReports = ROSTER.filter(r => r.manager_id && r.manager_id === me.db_id);
 
-  // Who they manage (below)
-  if (node?.manages && node.manages.length) {
-    html += `<div class="org-connector"></div>`;
-    html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">Manages (${node.manages.length})</div>`;
-    html += node.manages.map(m => nodeFor(m, '')).join('');
-  } else if (!node?.reportsTo) {
-    html += `<div style="margin-top:12px;font-size:11px;color:var(--muted);font-style:italic;text-align:center">No reporting chain on file.</div>`;
+    // Render upward chain (top-down so user sees super → ... → manager → me)
+    if (chainAbove.length > 0) {
+      html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Reports to</div>`;
+      // Render top of chain first, work down
+      for (let i = chainAbove.length - 1; i >= 0; i--) {
+        const tag = (i === 0) ? 'manager' : '';
+        html += nodeFromEmp(chainAbove[i], tag);
+        html += `<div class="org-connector"></div>`;
+      }
+    }
+
+    // Current person
+    html += nodeFromEmp(me, 'current');
+
+    // Direct reports
+    if (directReports.length > 0) {
+      html += `<div class="org-connector"></div>`;
+      html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">Direct reports (${directReports.length})</div>`;
+      html += directReports
+        .sort((a, b) => a.last.localeCompare(b.last))
+        .map(r => nodeFromEmp(r, ''))
+        .join('');
+    }
+
+    // If neither up nor down resolved AND the legacy ORG has data, fall back
+    const hasLiveChain = chainAbove.length > 0 || directReports.length > 0;
+    if (!hasLiveChain) {
+      const node = ORG[last];
+      if (node?.reportsTo || node?.manages?.length) {
+        html += `<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line);font-size:10px;color:var(--muted);font-style:italic">No org chart assignment yet — showing legacy hierarchy. Set this employee's manager in the Org Chart screen for a live chain.</div>`;
+        if (node.reportsTo) {
+          const reportKey = node.reportsTo.split(',')[0].replace('Super — ','').trim();
+          html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 8px">Reports to (legacy)</div>`;
+          html += nodeForLegacy(reportKey, 'manager');
+          html += `<div class="org-connector"></div>`;
+        }
+        if (node.manages?.length) {
+          html += `<div class="org-connector"></div>`;
+          html += `<div style="font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px">Manages (legacy, ${node.manages.length})</div>`;
+          html += node.manages.map(m => nodeForLegacy(m, '')).join('');
+        }
+      } else {
+        html += `<div style="margin-top:12px;font-size:11px;color:var(--muted);font-style:italic;text-align:center">No reporting chain on file.<br><span style="font-size:10px">Open the Org Chart screen to assign this employee under a manager.</span></div>`;
+      }
+    }
+  } else {
+    html += `<div style="margin-top:12px;font-size:11px;color:var(--muted);font-style:italic;text-align:center">Employee not found in roster.</div>`;
   }
 
   return html;
@@ -6790,6 +7024,11 @@ function renderUtilHeatmap(containerId) {
 
   // Determine each employee's status THIS week (current week only) for sorting.
   // Unassigned this week = empty/blank Mon-Thu, AND not on vacation/school/off.
+  // If a dashboard sector filter is active, restrict to employees whose
+  // current-week primary job is in that sector. Unassigned and on-school
+  // employees with no current job are filtered out by sector since they
+  // don't belong to any sector this week.
+  const sectorFilter = (typeof _dashSectorFilter !== 'undefined') ? _dashSectorFilter : '';
   const empData = ROSTER.map(emp => {
     const key = Object.keys(SCHED).find(k => k.startsWith(emp.last + ',' + emp.first + ','));
     const thisWk = key ? SCHED[key]?.[SCHED_CURRENT_WEEK.index] || [] : [];
@@ -6800,7 +7039,13 @@ function renderUtilHeatmap(containerId) {
     const hasVac    = workDays.some(d => d === 'VACATION' || d === 'Vacation');
     const hasOff    = workDays.some(d => d === 'OFF' || d === 'HOLIDAY');
     const isUnassigned = !hasJob && !hasSchool && !hasVac && !hasOff;
-    return { emp, key, isUnassigned, hasJob, hasSchool, hasVac };
+    // Capture this week's primary job sector for filter check
+    const primaryJob = workDays.find(d => d && !['School','VACATION','OFF','HOLIDAY','Vacation'].includes(d));
+    const empSector = primaryJob ? (jobByName(primaryJob)?.sector || '') : '';
+    return { emp, key, isUnassigned, hasJob, hasSchool, hasVac, empSector };
+  }).filter(d => {
+    if (!sectorFilter) return true;
+    return d.empSector === sectorFilter;
   });
 
   // Sort: unassigned first (alphabetical), then everyone else (alphabetical)
@@ -8021,6 +8266,116 @@ let _directorsCache = null; // null = not yet loaded; [] = loaded + empty; [...]
 // Renders the structured request list with director responses,
 // 48-hour countdown, and union-call trigger when all directors decline.
 // ── Upcoming Work — pending jobs + jobs starting in next 30 days ──
+// ── Dashboard sector filter + panel collapse ──────────────────
+// Both pieces of state persist to localStorage so the user's preferences
+// survive reloads. Sector filter is read by every dashboard renderer
+// (heatmap, upcoming jobs, pending requests, activity).
+let _dashSectorFilter = '';
+const DASH_FILTER_KEY = 'fieldflow-dash-sector-filter';
+const DASH_PANEL_KEY  = 'fieldflow-dash-panel-collapse';
+
+// Restore filter preference on script load
+try {
+  const saved = localStorage.getItem(DASH_FILTER_KEY);
+  if (saved) _dashSectorFilter = saved;
+} catch {}
+
+// Set sector filter and re-render every dashboard widget that respects it.
+function setDashSectorFilter(value) {
+  _dashSectorFilter = value || '';
+  try {
+    if (_dashSectorFilter) localStorage.setItem(DASH_FILTER_KEY, _dashSectorFilter);
+    else localStorage.removeItem(DASH_FILTER_KEY);
+  } catch {}
+  // Update status pill
+  const status = document.getElementById('dash-filter-status');
+  if (status) {
+    const total = (typeof JOBS !== 'undefined') ? JOBS.length : 0;
+    const matching = _dashSectorFilter && typeof JOBS !== 'undefined'
+      ? JOBS.filter(j => j.sector === _dashSectorFilter).length : total;
+    status.textContent = _dashSectorFilter
+      ? `· ${matching} of ${total} job${total === 1 ? '' : 's'} match`
+      : '';
+  }
+  // Re-render every widget that reads the filter
+  if (typeof renderUtilHeatmap === 'function')   renderUtilHeatmap('dash-util-heatmap');
+  if (typeof renderUpcomingJobs === 'function')  renderUpcomingJobs();
+  if (typeof renderRequestsList === 'function')  renderRequestsList();
+  if (typeof renderDiffView === 'function') {
+    const range = parseInt(document.getElementById('diff-range')?.value || '168', 10);
+    renderDiffView('dash-diff', range);
+  }
+}
+
+// Populate the sector filter dropdown from current SECTORS list. Called
+// when the dashboard activates and after sector edits.
+function populateDashSectorFilter() {
+  const sel = document.getElementById('dash-sector-filter');
+  if (!sel) return;
+  const current = _dashSectorFilter;
+  const opts = ['<option value="">All sectors</option>'];
+  // Be tolerant — SECTORS may be string array or object array
+  (typeof SECTORS !== 'undefined' ? SECTORS : []).forEach(s => {
+    const name = (typeof s === 'string') ? s : (s?.name || '');
+    if (name) opts.push(`<option value="${esc(name)}"${name === current ? ' selected' : ''}>${esc(name)}</option>`);
+  });
+  sel.innerHTML = opts.join('');
+  if (current) sel.value = current;
+  // Update status counts
+  const status = document.getElementById('dash-filter-status');
+  if (status) {
+    const total = (typeof JOBS !== 'undefined') ? JOBS.length : 0;
+    const matching = current && typeof JOBS !== 'undefined'
+      ? JOBS.filter(j => j.sector === current).length : total;
+    status.textContent = current ? `· ${matching} of ${total} job${total === 1 ? '' : 's'} match` : '';
+  }
+}
+
+// Toggle one dashboard panel's collapsed state. Persists.
+function togglePanelCollapse(panelKey) {
+  const panel = document.querySelector(`.collapsable-panel[data-panel="${_ffCssEsc(panelKey)}"]`);
+  if (!panel) return;
+  const newCollapsed = !panel.classList.contains('collapsed');
+  panel.classList.toggle('collapsed', newCollapsed);
+  let state;
+  try { state = JSON.parse(localStorage.getItem(DASH_PANEL_KEY) || '{}'); }
+  catch { state = {}; }
+  if (newCollapsed) state[panelKey] = true;
+  else delete state[panelKey];
+  try { localStorage.setItem(DASH_PANEL_KEY, JSON.stringify(state)); } catch {}
+  // Update aria + tooltip on the toggle button
+  const btn = panel.querySelector('.panel-collapse-btn');
+  if (btn) {
+    btn.setAttribute('aria-label', newCollapsed ? 'Expand panel' : 'Collapse panel');
+    btn.setAttribute('data-tip', newCollapsed ? 'Expand this panel' : 'Collapse this panel');
+  }
+}
+function collapseAllDashPanels() {
+  document.querySelectorAll('.collapsable-panel').forEach(p => p.classList.add('collapsed'));
+  let state;
+  try { state = JSON.parse(localStorage.getItem(DASH_PANEL_KEY) || '{}'); }
+  catch { state = {}; }
+  document.querySelectorAll('.collapsable-panel[data-panel]').forEach(p => {
+    state[p.getAttribute('data-panel')] = true;
+  });
+  try { localStorage.setItem(DASH_PANEL_KEY, JSON.stringify(state)); } catch {}
+}
+function expandAllDashPanels() {
+  document.querySelectorAll('.collapsable-panel').forEach(p => p.classList.remove('collapsed'));
+  try { localStorage.removeItem(DASH_PANEL_KEY); } catch {}
+}
+
+// Restore collapse states on page load
+function restoreDashPanelStates() {
+  let state;
+  try { state = JSON.parse(localStorage.getItem(DASH_PANEL_KEY) || '{}'); }
+  catch { state = {}; }
+  Object.keys(state).forEach(key => {
+    const p = document.querySelector(`.collapsable-panel[data-panel="${CSS.escape(key)}"]`);
+    if (p) p.classList.add('collapsed');
+  });
+}
+
 function renderUpcomingJobs() {
   const host = document.getElementById('dash-upcoming-jobs');
   if (!host) return;
@@ -8031,8 +8386,11 @@ function renderUpcomingJobs() {
 
   const today = new Date(); today.setHours(0,0,0,0);
   const in30 = new Date(today.getTime() + 30 * 86400000);
+  const sectorFilter = (typeof _dashSectorFilter !== 'undefined') ? _dashSectorFilter : '';
 
   const upcoming = JOBS.filter(j => {
+    // Apply dashboard-level sector filter
+    if (sectorFilter && j.sector !== sectorFilter) return false;
     if (j.status === 'pending') return true;
     if (j.startDate) {
       const sd = new Date(j.startDate + 'T00:00:00');
@@ -8043,10 +8401,10 @@ function renderUpcomingJobs() {
   });
 
   if (upcoming.length === 0) {
-    host.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">
-      No jobs are pending or starting in the next 30 days.<br>
-      <span style="font-size:10.5px">Set a job's status to <em>Pending start</em> or fill in a start date to see it here.</span>
-    </div>`;
+    const emptyMsg = sectorFilter
+      ? `No upcoming work in the <strong>${esc(sectorFilter)}</strong> sector right now.<br><span style="font-size:10.5px">Clear the dashboard filter to see all sectors.</span>`
+      : `No jobs are pending or starting in the next 30 days.<br><span style="font-size:10.5px">Set a job's status to <em>Pending start</em> or fill in a start date to see it here.</span>`;
+    host.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">${emptyMsg}</div>`;
     return;
   }
 
@@ -8114,12 +8472,25 @@ function renderUpcomingJobs() {
 }
 
 function renderRequestsList() {
-  // Dashboard preview: top 3 pending requests (short list)
+  // Dashboard preview: top 3 pending requests (short list).
+  // Honor the dashboard sector filter — only show requests whose tied job
+  // is in the chosen sector.
   const preview = document.getElementById('dash-req-preview');
   if (preview) {
-    const pending = REQUESTS_DATA.filter(r => r.status === 'pending').slice(0, 3);
+    const sectorFilter = (typeof _dashSectorFilter !== 'undefined') ? _dashSectorFilter : '';
+    const matchesSector = (r) => {
+      if (!sectorFilter) return true;
+      // Try to resolve the job — request.job may be a number or name
+      const job = r.jobNumber ? jobByNumber(r.jobNumber)
+                : r.job        ? (jobByName(r.job) || jobByNumber(r.job))
+                                : null;
+      return !!job && job.sector === sectorFilter;
+    };
+    const pending = REQUESTS_DATA.filter(r => r.status === 'pending' && matchesSector(r)).slice(0, 3);
     if (pending.length === 0) {
-      preview.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">No pending requests</div>`;
+      preview.innerHTML = sectorFilter
+        ? `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">No pending requests in <strong>${esc(sectorFilter)}</strong> sector</div>`
+        : `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">No pending requests</div>`;
     } else {
       preview.innerHTML = pending.map(r => `
         <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-soft);font-size:11.5px">
@@ -8460,12 +8831,16 @@ function goScreen(id) {
   document.getElementById('screen-sub').textContent   = meta.sub;
   if (id === 'admin')     renderAdmin();
   if (id === 'dashboard') {
+    try { populateDashSectorFilter(); } catch {}
+    try { restoreDashPanelStates(); } catch {}
     try { renderDashMiniGrid(); } catch {}
     try { renderDiffView('dash-diff', parseInt(document.getElementById('diff-range')?.value || '168')); } catch {}
     try { renderWeatherPanel('dash-weather'); } catch {}
     try { renderFatigueAlerts(); } catch {}
     try { renderHealthScorePanel('dash-health'); } catch {}
     try { renderUpcomingJobs(); } catch {}
+    // Re-render heatmap after restoring filter so the visible window matches
+    try { renderUtilHeatmap('dash-util-heatmap'); } catch {}
   }
   if (id === 'schedule') {
     // Populate finder week select with all 105 weeks (compare selects are gone now)
@@ -15330,41 +15705,24 @@ async function loadPersistedData() {
     });
     if (typeof filterRoster === 'function') filterRoster('');
 
-    // ── FIRST-RUN CLEAN: only fires ONCE in the lifetime of this browser/user.
-    // After this runs successfully, the flag is set in localStorage and never
-    // re-runs — even if the user clears the tree, manually rebuilds, etc.
-    // This protects manager_id values from being wiped when the user refreshes.
-    try {
-      const ORG_INIT_KEY = 'fieldflow-org-initialized-v1';
-      const alreadyRan = localStorage.getItem(ORG_INIT_KEY) === '1';
-      if (!alreadyRan) {
-        const stale = ROSTER.filter(e => e.manager_id);
-        if (stale.length > 0) {
-          console.log(`[org] First-run cleanup (one-time): clearing ${stale.length} legacy manager_id values from previous Auto-assign sessions`);
-          ROSTER.forEach(e => { e.manager_id = null; });
-          (async () => {
-            let cleared = 0;
-            for (const emp of stale) {
-              if (!emp.db_id) continue;
-              try {
-                const { error } = await _sb.from('employees')
-                  .update({ manager_id: null })
-                  .eq('id', emp.db_id);
-                if (!error) cleared++;
-              } catch {}
-            }
-            console.log(`[org] First-run cleanup: ${cleared}/${stale.length} DB rows cleared`);
-            // Mark as done so this never runs again, regardless of subsequent state
-            try { localStorage.setItem(ORG_INIT_KEY, '1'); } catch {}
-          })();
-        } else {
-          // No legacy data to clean — mark done immediately
-          try { localStorage.setItem(ORG_INIT_KEY, '1'); } catch {}
-        }
-      } else {
-        console.log('[org] First-run already completed — preserving existing manager_id values');
-      }
-    } catch (e) { console.warn('[org] first-run check failed', e); }
+    // Diagnostic: log how many employees came back with manager_id assigned.
+    // If you see this number stay stable across reloads, the org chart is
+    // persisting correctly. If it drops to zero unexpectedly, something
+    // wrote null somewhere and we need to investigate immediately.
+    const withMgr = ROSTER.filter(e => e.manager_id).length;
+    console.log(`[org] Loaded ${empRows.length} employees from DB · ${withMgr} have a manager assigned`);
+
+    // NOTE: A previous version of this file contained a "first-run cleanup"
+    // block that nulled every employee's manager_id on the first load per
+    // browser/session, gated by a localStorage flag. That logic was the
+    // source of the org-chart-resets-on-deploy bug — any user signing in
+    // from a fresh browser, incognito window, or new device would have the
+    // entire org tree wiped. It has been REMOVED. Manager_id values now
+    // persist exactly as the user set them via drag-and-drop in the org
+    // chart screen. The Supabase `employees` table is the single source
+    // of truth for org structure; nothing else writes to manager_id
+    // except the explicit `_persistManagerId()` call in the org-chart UI
+    // and the cascade null-out when an employee is deleted.
   }
 
   // 7. Jobs — load from DB and merge with seed
