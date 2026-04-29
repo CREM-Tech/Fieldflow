@@ -1544,6 +1544,9 @@ html.dark .panel-collapse-btn:hover { background: var(--accent-ghost); color: va
 .wk-hdr2 { background: #A16207 !important; color: rgba(255,255,255,.92) !important; }
 .emp-name { font-size: 11px; font-weight: 500; white-space: nowrap; }
 .emp-role { font-size: 9px; color: var(--ff-tx3); }
+/* Role color is delivered via inline style="color:#XXX" on .emp-name —
+   ensure no future dark-mode rule blanket-overrides it. */
+html.dark .emp-name[style*="color:"] { /* no-op — inline wins */ }
 .wsep { border-right: 2px solid var(--ff-bdr-m) !important; }
 
 /* ── Roster table ───────────────────────────────────────── */
@@ -5161,11 +5164,36 @@ function buildSchedTbody() {
       const cnt = groupCounts.get(group) || 0;
       const collapsedCls = isCollapsed(group) ? ' collapsed' : '';
       const groupSafe = esc(group);
-      separator = `<tr class="sched-group-row${collapsedCls}" data-group-key="${groupSafe}"><td colspan="${TOTAL_COLS}" class="sched-group-cell" onclick="toggleSchedGroup('${groupSafe.replace(/'/g, '&#39;')}', '${esc(sortKey)}')" data-tip="Click to ${isCollapsed(group) ? 'expand' : 'collapse'} this group. State is saved per sort.">
-        <span class="sched-group-chevron">▼</span>
+
+      // When grouping by sector, dynamically tint the entire header row
+      // with that sector's color — chevron, label text, count chip, top
+      // border, and gradient background. When grouping by job/role, fall
+      // through to the default gold accent styling from CSS.
+      let cellStyle = '', chevStyle = '', countStyle = '';
+      if (sortKey === 'sector') {
+        const sc = (group === 'No sector') ? null : getSectorColor(group);
+        if (sc) {
+          // The cell gets a sector-tinted gradient + sector-colored top border
+          // and label text. Inline styles win over the CSS class defaults.
+          cellStyle = ` style="background:linear-gradient(90deg, ${sc}26 0%, var(--surface-2) 18%, var(--surface-2) 100%);border-top:2px solid ${sc};color:${sc}"`;
+          chevStyle = ` style="color:${sc}"`;
+          countStyle = ` style="background:${sc}26;color:${sc}"`;
+        }
+      } else if (sortKey === 'job') {
+        // Sector of THIS job — tint the job-header with its sector color
+        const sc = getSectorColorByJobName(group);
+        if (sc) {
+          cellStyle = ` style="background:linear-gradient(90deg, ${sc}26 0%, var(--surface-2) 18%, var(--surface-2) 100%);border-top:2px solid ${sc};color:${sc}"`;
+          chevStyle = ` style="color:${sc}"`;
+          countStyle = ` style="background:${sc}26;color:${sc}"`;
+        }
+      }
+
+      separator = `<tr class="sched-group-row${collapsedCls}" data-group-key="${groupSafe}"><td colspan="${TOTAL_COLS}" class="sched-group-cell"${cellStyle} onclick="toggleSchedGroup('${groupSafe.replace(/'/g, '&#39;')}', '${esc(sortKey)}')" data-tip="Click to ${isCollapsed(group) ? 'expand' : 'collapse'} this group. State is saved per sort.">
+        <span class="sched-group-chevron"${chevStyle}>▼</span>
         <span class="sched-group-icon">${labelPrefix}</span>
         <span class="sched-group-label">${groupSafe}</span>
-        <span class="sched-group-count">${cnt}</span>
+        <span class="sched-group-count"${countStyle}>${cnt}</span>
       </td></tr>`;
       lastGroup = group;
     }
@@ -5173,12 +5201,15 @@ function buildSchedTbody() {
     const empRowGroup = group !== null ? ` data-group-key="${esc(group)}"` : '';
     const empRowHidden = (group !== null && isCollapsed(group)) ? ' sched-row-hidden' : '';
 
+    const roleColor = getRoleColor(role);
+    const nameStyle = roleColor ? ` style="color:${roleColor}"` : '';
+
     return separator + `<tr class="sched-emp-row${empRowHidden}" data-emp-key="${esc(key)}"${empRowGroup} style="${rowStyle}">
       <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
         <div style="display:flex;align-items:center;gap:7px">
           ${avatarHtml}
           <div>
-            <div class="emp-name">${esc(last)}, ${esc(first)}${expiredBadge}</div>
+            <div class="emp-name"${nameStyle}>${esc(last)}, ${esc(first)}${expiredBadge}</div>
             <div class="emp-role">${roleBadge(role)}</div>
           </div>
         </div>
@@ -12080,6 +12111,40 @@ function getSectorColorByJobName(jobName) {
   const j = JOBS.find(x => x.name === jobName);
   if (!j || !j.sector) return null;
   return getSectorColor(j.sector);
+}
+
+// ── Crew role colors ─────────────────────────────────────────
+// Per superintendent's spec: Journeymen green, Apprentices red, Material
+// Handlers blue. Other roles get distinct hues that don't collide with the
+// sector colors. Keep these slightly DEEPER than the sector palette so
+// names stay readable on sector-tinted backgrounds.
+const CREW_ROLE_COLORS = {
+  // Journeyman / Journey Worker — green (deeper than Greenfield #10B981)
+  JN:  '#16A34A',
+  JW:  '#16A34A',
+  // Apprentices — every tier is red. Tags 1A–5E plus generic AP.
+  AP:  '#DC2626',
+  '1A':'#DC2626','1B':'#DC2626','1C':'#DC2626','1D':'#DC2626','1E':'#DC2626',
+  '2A':'#DC2626','2B':'#DC2626','2C':'#DC2626','2D':'#DC2626','2E':'#DC2626',
+  '3A':'#DC2626','3B':'#DC2626','3C':'#DC2626','3D':'#DC2626','3E':'#DC2626',
+  '4A':'#DC2626','4B':'#DC2626','4C':'#DC2626','4D':'#DC2626','4E':'#DC2626',
+  '5A':'#DC2626','5B':'#DC2626','5C':'#DC2626','5D':'#DC2626','5E':'#DC2626',
+  // Material Handler — blue (deeper than Live Work #3B82F6)
+  MH:  '#2563EB',
+  // Other roles — distinct hues so names scan even when names cluster
+  SUPER:          '#7C3AED', // purple — Superintendent stands out
+  superintendent: '#7C3AED',
+  GF:             '#B45309', // dark amber — General Foreman
+  FM:             '#0D9488', // teal — Foreman
+  WLD:            '#EA580C', // orange — Welder
+};
+function getRoleColor(role) {
+  if (!role) return null;
+  const direct = CREW_ROLE_COLORS[role];
+  if (direct) return direct;
+  // First-character fallback: any role starting with a digit is an apprentice
+  if (/^\d/.test(role)) return '#DC2626';
+  return null;
 }
 
 // Canonical lookup — job number resolves everything else
