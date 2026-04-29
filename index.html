@@ -1097,6 +1097,23 @@ html.dark .tag.t-holiday { background:rgba(139,92,246,.25); color:#C4B5FD; }
 .nav-item.active svg { color: var(--accent-light); opacity: 1; }
 .nav-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.7; }
 
+/* Dark mode: --ink flips to cream, so the default "ink-on-white" active
+   style would render cream-on-cream — invisible. Override with a clearly
+   contrasting amber treatment that pops in both modes. */
+html.dark .nav-item.active {
+  background: var(--accent) !important;
+  color: var(--surface) !important;
+  box-shadow: 0 0 0 1px var(--accent-dark);
+}
+html.dark .nav-item.active svg {
+  color: var(--surface) !important;
+  opacity: 1;
+}
+html.dark .nav-item:hover:not(.active) {
+  background: rgba(250, 204, 21, 0.12);
+  color: var(--ink);
+}
+
 .nav-badge {
   margin-left: auto;
   background: #EF4444; color: #fff;
@@ -3525,6 +3542,14 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <select id="dash-sector-filter" class="ctrl-sel" onchange="setDashSectorFilter(this.value)" data-tip="Filter every dashboard widget by sector. Crew trend, Upcoming work, Pending requests, and Activity all narrow to jobs/employees in this sector." style="font-size:11.5px;min-width:180px">
           <option value="">All sectors</option>
         </select>
+        <span style="width:1px;height:18px;background:var(--line)"></span>
+        <span style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Sort</span>
+        <select id="dash-sort" class="ctrl-sel" onchange="setDashSort(this.value)" data-tip="Sort the Crew trend heatmap and Upcoming work list. 'By sector' groups all employees/jobs in the same sector together." style="font-size:11.5px;min-width:160px">
+          <option value="default">Default</option>
+          <option value="sector">By sector</option>
+          <option value="name">By name (A → Z)</option>
+          <option value="unassigned">Unassigned first</option>
+        </select>
         <span id="dash-filter-status" style="font-size:10.5px;color:var(--muted);font-style:italic"></span>
         <div style="margin-left:auto;display:flex;gap:6px">
           <button class="btn btn-sm" onclick="collapseAllDashPanels()" data-tip="Collapse every dashboard panel — useful for a compact overview" style="padding:3px 8px;font-size:10.5px">⊟ Collapse all</button>
@@ -5168,11 +5193,19 @@ function buildSchedTbody() {
         return wkArr.map((d, di) => {
           const sep  = (di === SCHED_DAYS_PER_WEEK - 1 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
           const crid = reg({ empKey: key, weekIdx: wi, dayIdx: di, value: d });
-          const sector = d ? (jobByName(d)?.sector || '') : '';
-          const sectorChip = sector ? `<span class="sector-chip" data-tip="${esc(sector)} sector">${esc(sector)}</span>` : '';
+          const sector    = d ? (jobByName(d)?.sector || '') : '';
+          const sectorCol = (d && sector) ? getSectorColor(sector) : null;
+          // Tint the tag using the sector color when present. Background uses
+          // ~15% alpha so day text stays readable; border + foreground use the
+          // full sector color. Falls back to the default tag class styling.
+          const chipStyle = sectorCol ? ` style="background:${sectorCol};color:#fff"` : '';
+          const sectorChip = sector ? `<span class="sector-chip"${chipStyle} data-tip="${esc(sector)} sector">${esc(sector)}</span>` : '';
+          const tagStyle = sectorCol
+            ? ` style="background:${sectorCol}26;border:1px solid ${sectorCol}66;color:${sectorCol}"`
+            : '';
           return `<td${sep} style="cursor:pointer;position:relative" data-cell-rid="${crid}">
             <div class="sched-cell-wrap">
-              <span class="tag ${tagCls(d)}" id="sched-cell-${crid}">${esc(tagVal(d))}</span>
+              <span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}>${esc(tagVal(d))}</span>
               ${sectorChip}
               <div class="sched-edit-hint"></div>
             </div>
@@ -7048,10 +7081,27 @@ function renderUtilHeatmap(containerId) {
     return d.empSector === sectorFilter;
   });
 
-  // Sort: unassigned first (alphabetical), then everyone else (alphabetical)
+  // Sort modes:
+  //   'default' / 'unassigned' → unassigned first, then alphabetical (legacy)
+  //   'sector'  → group by primary sector (alphabetical), unassigned at the end
+  //   'name'    → strict alphabetical (no unassigned-first preference)
+  const sortMode = (typeof _dashSort !== 'undefined') ? _dashSort : 'default';
+  const nameOf = e => `${e.emp.last}, ${e.emp.first}`;
   empData.sort((a, b) => {
+    if (sortMode === 'name') {
+      return nameOf(a).localeCompare(nameOf(b));
+    }
+    if (sortMode === 'sector') {
+      // Sector group, but unassigned employees sink to the bottom so the
+      // "needs scheduling" group is visible at the end of each list.
+      const sa = a.empSector || '\uFFFF'; // sentinel sorts last
+      const sb = b.empSector || '\uFFFF';
+      if (sa !== sb) return sa.localeCompare(sb);
+      return nameOf(a).localeCompare(nameOf(b));
+    }
+    // Default + 'unassigned': unassigned first
     if (a.isUnassigned !== b.isUnassigned) return a.isUnassigned ? -1 : 1;
-    return `${a.emp.last}, ${a.emp.first}`.localeCompare(`${b.emp.last}, ${b.emp.first}`);
+    return nameOf(a).localeCompare(nameOf(b));
   });
 
   const unassignedCount = empData.filter(e => e.isUnassigned).length;
@@ -8271,14 +8321,29 @@ let _directorsCache = null; // null = not yet loaded; [] = loaded + empty; [...]
 // survive reloads. Sector filter is read by every dashboard renderer
 // (heatmap, upcoming jobs, pending requests, activity).
 let _dashSectorFilter = '';
+let _dashSort = 'default';
 const DASH_FILTER_KEY = 'fieldflow-dash-sector-filter';
+const DASH_SORT_KEY   = 'fieldflow-dash-sort';
 const DASH_PANEL_KEY  = 'fieldflow-dash-panel-collapse';
 
-// Restore filter preference on script load
+// Restore filter + sort preferences on script load
 try {
-  const saved = localStorage.getItem(DASH_FILTER_KEY);
-  if (saved) _dashSectorFilter = saved;
+  const savedFilter = localStorage.getItem(DASH_FILTER_KEY);
+  if (savedFilter) _dashSectorFilter = savedFilter;
+  const savedSort = localStorage.getItem(DASH_SORT_KEY);
+  if (savedSort) _dashSort = savedSort;
 } catch {}
+
+// Set sort preference + re-render every widget that respects it.
+function setDashSort(value) {
+  _dashSort = value || 'default';
+  try {
+    if (_dashSort === 'default') localStorage.removeItem(DASH_SORT_KEY);
+    else localStorage.setItem(DASH_SORT_KEY, _dashSort);
+  } catch {}
+  if (typeof renderUtilHeatmap === 'function')  renderUtilHeatmap('dash-util-heatmap');
+  if (typeof renderUpcomingJobs === 'function') renderUpcomingJobs();
+}
 
 // Set sector filter and re-render every dashboard widget that respects it.
 function setDashSectorFilter(value) {
@@ -8311,23 +8376,31 @@ function setDashSectorFilter(value) {
 // when the dashboard activates and after sector edits.
 function populateDashSectorFilter() {
   const sel = document.getElementById('dash-sector-filter');
-  if (!sel) return;
-  const current = _dashSectorFilter;
-  const opts = ['<option value="">All sectors</option>'];
-  // Be tolerant — SECTORS may be string array or object array
-  (typeof SECTORS !== 'undefined' ? SECTORS : []).forEach(s => {
-    const name = (typeof s === 'string') ? s : (s?.name || '');
-    if (name) opts.push(`<option value="${esc(name)}"${name === current ? ' selected' : ''}>${esc(name)}</option>`);
-  });
-  sel.innerHTML = opts.join('');
-  if (current) sel.value = current;
+  if (sel) {
+    const current = _dashSectorFilter;
+    // Each option gets a colored emoji-ish dot prefix so the user can see
+    // which color belongs to which sector inline.
+    const opts = ['<option value="">All sectors</option>'];
+    (typeof SECTORS !== 'undefined' ? SECTORS : []).forEach(s => {
+      const e = (typeof _sectorEntry === 'function') ? _sectorEntry(s) : { name: s, color: '#6B7280' };
+      if (!e.name) return;
+      // Native <select> can't render colored swatches inline, but ● tinted via
+      // text color shows up in most browsers' option lists.
+      opts.push(`<option value="${esc(e.name)}"${e.name === current ? ' selected' : ''} style="color:${esc(e.color || '#6B7280')}">● ${esc(e.name)}</option>`);
+    });
+    sel.innerHTML = opts.join('');
+    if (current) sel.value = current;
+  }
+  // Sync sort dropdown with current state
+  const sortSel = document.getElementById('dash-sort');
+  if (sortSel) sortSel.value = _dashSort || 'default';
   // Update status counts
   const status = document.getElementById('dash-filter-status');
   if (status) {
     const total = (typeof JOBS !== 'undefined') ? JOBS.length : 0;
-    const matching = current && typeof JOBS !== 'undefined'
-      ? JOBS.filter(j => j.sector === current).length : total;
-    status.textContent = current ? `· ${matching} of ${total} job${total === 1 ? '' : 's'} match` : '';
+    const matching = _dashSectorFilter && typeof JOBS !== 'undefined'
+      ? JOBS.filter(j => j.sector === _dashSectorFilter).length : total;
+    status.textContent = _dashSectorFilter ? `· ${matching} of ${total} job${total === 1 ? '' : 's'} match` : '';
   }
 }
 
@@ -8408,8 +8481,26 @@ function renderUpcomingJobs() {
     return;
   }
 
-  // Sort: pending first, then by start date ascending
+  // Sort according to the dashboard sort dropdown
+  const sortMode = (typeof _dashSort !== 'undefined') ? _dashSort : 'default';
   upcoming.sort((a, b) => {
+    if (sortMode === 'name') {
+      return (a.name || '').localeCompare(b.name || '');
+    }
+    if (sortMode === 'sector') {
+      const sa = a.sector || '\uFFFF';
+      const sb = b.sector || '\uFFFF';
+      if (sa !== sb) return sa.localeCompare(sb);
+      // Within a sector, pending first then by start date
+      if (a.status !== b.status) {
+        if (a.status === 'pending') return -1;
+        if (b.status === 'pending') return 1;
+      }
+      if (!a.startDate) return 1;
+      if (!b.startDate) return -1;
+      return a.startDate.localeCompare(b.startDate);
+    }
+    // 'default' / 'unassigned' — pending first, then by start date ascending
     if (a.status !== b.status) {
       if (a.status === 'pending') return -1;
       if (b.status === 'pending') return 1;
@@ -11958,7 +12049,38 @@ const JOBS = [
 // Sector list — initially seeded with defaults, mutable via admin tab.
 // Persisted to public.sectors table in Supabase. Re-rendered everywhere
 // when changed by calling refreshSectorDropdowns().
-let SECTORS = ['Live Work', 'Greenfield', 'Service', 'Special Projects', 'Other'];
+// Each sector has a `color` used to tint job cells in schedules and grids.
+let SECTORS = [
+  { name:'Live Work',        color:'#3B82F6' }, // blue
+  { name:'Greenfield',       color:'#10B981' }, // green
+  { name:'Service',          color:'#F59E0B' }, // amber
+  { name:'Special Projects', color:'#8B5CF6' }, // purple
+  { name:'Other',            color:'#6B7280' }, // gray
+];
+
+// Helpers — every render path uses these instead of touching SECTORS directly.
+// Tolerant of legacy string-array form: a raw string entry is treated as
+// { name: <string>, color: gray } so old localStorage / DB rows still work.
+const SECTOR_DEFAULT_COLOR = '#6B7280';
+function _sectorEntry(s) {
+  return (typeof s === 'string') ? { name: s, color: SECTOR_DEFAULT_COLOR } : s;
+}
+function sectorNames() {
+  return SECTORS.map(s => _sectorEntry(s).name).filter(Boolean);
+}
+function getSectorColor(sectorName) {
+  if (!sectorName) return null;
+  const s = SECTORS.find(x => _sectorEntry(x).name === sectorName);
+  return s ? (_sectorEntry(s).color || SECTOR_DEFAULT_COLOR) : null;
+}
+function getSectorColorByJobName(jobName) {
+  if (!jobName) return null;
+  // Defensive: JOBS may not be initialized yet during early script-level renders.
+  if (typeof JOBS === 'undefined') return null;
+  const j = JOBS.find(x => x.name === jobName);
+  if (!j || !j.sector) return null;
+  return getSectorColor(j.sector);
+}
 
 // Canonical lookup — job number resolves everything else
 function jobByNumber(num) {
@@ -12512,7 +12634,7 @@ function renderJobDetail(id) {
           <label class="form-label">Sector <span style="font-size:9.5px;color:var(--muted);font-weight:400">— groups jobs in schedule + job view</span></label>
           <select id="je-sector" class="form-input" data-tip="Group jobs by category. PDX247 BMS would be 'Greenfield', service calls 'Service', etc.">
             <option value="">— None —</option>
-            ${SECTORS.map(s => `<option value="${esc(s)}" ${j.sector === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+            ${sectorNames().map(s => `<option value="${esc(s)}" ${j.sector === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
           </select>
         </div>
         <div class="form-group">
@@ -14415,19 +14537,27 @@ function renderSectorsAdmin() {
     return;
   }
   if (empty) empty.style.display = 'none';
-  list.innerHTML = SECTORS.map(s => {
-    // Count how many jobs use this sector
-    const usedBy = JOBS.filter(j => j.sector === s).length;
+  list.innerHTML = SECTORS.map((s, i) => {
+    const e = _sectorEntry(s);
+    const usedBy = JOBS.filter(j => j.sector === e.name).length;
+    const col = e.color || SECTOR_DEFAULT_COLOR;
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 13px;background:var(--white);border:1px solid var(--line);border-radius:8px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(s)}</div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${usedBy} job${usedBy===1?'':'s'} using this sector</div>
+      <div style="display:flex;align-items:center;gap:11px;flex:1;min-width:0">
+        <label style="position:relative;display:inline-block;cursor:pointer;flex-shrink:0" data-tip="Click to change this sector's color. The color is used to tint job cells in the schedule grid, school grid, and dashboard heatmap.">
+          <span style="display:inline-block;width:34px;height:34px;border-radius:8px;background:${esc(col)};border:1px solid var(--line);box-shadow:0 1px 2px rgba(0,0,0,0.06)"></span>
+          <input type="color" value="${esc(col)}" oninput="updateSectorColor(${i}, this.value)"
+            style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+        </label>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;color:var(--ink)">${esc(e.name)}</div>
+          <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${usedBy} job${usedBy===1?'':'s'} using this sector · color <span style="font-family:var(--mono);font-size:10px">${esc(col)}</span></div>
+        </div>
       </div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-sm" onclick="renameSector('${esc(s).replace(/'/g, '&#39;')}')"
+        <button class="btn btn-sm" onclick="renameSector('${esc(e.name).replace(/'/g, '&#39;')}')"
           data-tip="Rename this sector — all jobs using it will keep the new name automatically"
           style="padding:3px 9px;font-size:10.5px">Rename</button>
-        <button class="btn btn-sm" onclick="deleteSector('${esc(s).replace(/'/g, '&#39;')}')"
+        <button class="btn btn-sm" onclick="deleteSector('${esc(e.name).replace(/'/g, '&#39;')}')"
           data-tip="Delete this sector — jobs using it will lose the sector tag but remain otherwise untouched"
           style="padding:3px 9px;font-size:10.5px;border-color:var(--bad);color:var(--bad)">Delete</button>
       </div>
@@ -14435,20 +14565,44 @@ function renderSectorsAdmin() {
   }).join('');
 }
 
+// Color picker handler — debounced DB save so dragging the picker doesn't fire
+// dozens of writes per second. UI repaints immediately.
+let _sectorColorSaveTimer = null;
+async function updateSectorColor(idx, newColor) {
+  if (idx < 0 || idx >= SECTORS.length) return;
+  const e = _sectorEntry(SECTORS[idx]);
+  SECTORS[idx] = { name: e.name, color: newColor };
+  // Re-render the admin list (so the swatch and hex display update)
+  renderSectorsAdmin();
+  // Repaint everywhere that uses sector colors
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  if (typeof renderSchoolWeekGrid === 'function') renderSchoolWeekGrid();
+  if (typeof renderJobView === 'function') renderJobView();
+  if (typeof renderUtilHeatmap === 'function') renderUtilHeatmap('dash-util-heatmap');
+  // Re-populate dashboard sector filter so the dot color updates
+  if (typeof populateDashSectorFilter === 'function') populateDashSectorFilter();
+  // Debounce DB write
+  clearTimeout(_sectorColorSaveTimer);
+  _sectorColorSaveTimer = setTimeout(() => { persistSectors(); }, 400);
+}
+
 async function addSector() {
   const inp = document.getElementById('new-sector-name');
   if (!inp) return;
   const name = (inp.value || '').trim();
   if (!name) { showToast('Sector name required', 'error'); return; }
-  if (SECTORS.some(s => s.toLowerCase() === name.toLowerCase())) {
+  if (SECTORS.some(s => _sectorEntry(s).name.toLowerCase() === name.toLowerCase())) {
     showToast(`"${name}" already exists`, 'error');
     return;
   }
-  // Add in-memory + persist
-  SECTORS.push(name);
+  // Pick a color from a rotating palette so new sectors aren't all gray
+  const palette = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EC4899','#14B8A6','#EF4444','#6366F1','#84CC16'];
+  const color = palette[SECTORS.length % palette.length];
+  SECTORS.push({ name, color });
   inp.value = '';
   renderSectorsAdmin();
   refreshSectorDropdowns();
+  if (typeof populateDashSectorFilter === 'function') populateDashSectorFilter();
   const ok = await persistSectors();
   showToast(ok ? `Added sector "${name}"` : `Added "${name}" locally — DB sync failed`, ok ? 'success' : 'warn');
 }
@@ -14459,14 +14613,15 @@ async function renameSector(oldName) {
   if (newName == null) return; // cancelled
   const trimmed = newName.trim();
   if (!trimmed || trimmed === decoded) return;
-  if (SECTORS.some(s => s.toLowerCase() === trimmed.toLowerCase() && s !== decoded)) {
+  if (SECTORS.some(s => _sectorEntry(s).name.toLowerCase() === trimmed.toLowerCase() && _sectorEntry(s).name !== decoded)) {
     showToast(`"${trimmed}" already exists`, 'error');
     return;
   }
-  // Update SECTORS list
-  const idx = SECTORS.findIndex(s => s === decoded);
+  // Update SECTORS list — preserve color
+  const idx = SECTORS.findIndex(s => _sectorEntry(s).name === decoded);
   if (idx < 0) return;
-  SECTORS[idx] = trimmed;
+  const existing = _sectorEntry(SECTORS[idx]);
+  SECTORS[idx] = { name: trimmed, color: existing.color || SECTOR_DEFAULT_COLOR };
   // Update every job that used the old sector name
   let touched = 0;
   for (const j of JOBS) {
@@ -14478,6 +14633,8 @@ async function renameSector(oldName) {
   }
   renderSectorsAdmin();
   refreshSectorDropdowns();
+  if (typeof populateDashSectorFilter === 'function') populateDashSectorFilter();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
   await persistSectors();
   showToast(`Renamed → "${trimmed}"${touched ? ` · ${touched} job${touched===1?'':'s'} updated` : ''}`, 'success');
 }
@@ -14490,7 +14647,7 @@ async function deleteSector(name) {
     : `Delete "${decoded}"?`;
   if (!confirm(msg)) return;
   // Remove from SECTORS
-  SECTORS = SECTORS.filter(s => s !== decoded);
+  SECTORS = SECTORS.filter(s => _sectorEntry(s).name !== decoded);
   // Clear from every affected job
   for (const j of JOBS) {
     if (j.sector === decoded) {
@@ -14510,27 +14667,44 @@ function refreshSectorDropdowns() {
   if (sel) {
     const current = sel.value;
     sel.innerHTML = `<option value="">— None —</option>` +
-      SECTORS.map(s => `<option value="${esc(s)}" ${s === current ? 'selected' : ''}>${esc(s)}</option>`).join('');
+      sectorNames().map(s => `<option value="${esc(s)}" ${s === current ? 'selected' : ''}>${esc(s)}</option>`).join('');
   }
-  // Re-render schedule grid so sector chips update
+  // Re-render schedule grid + dashboard heatmap so sector chips/tints update
   if (typeof buildSchedTbody === 'function') buildSchedTbody();
   if (typeof renderJobView === 'function')   renderJobView();
+  if (typeof renderUtilHeatmap === 'function') renderUtilHeatmap('dash-util-heatmap');
 }
 
-// Persist the entire SECTORS list to Supabase. We use a single-row settings
-// approach: one row per sector in the `sectors` table.
+// Persist the entire SECTORS list to Supabase. Each sector now has a `color`.
+// Falls back gracefully if the DB schema doesn't have the color column yet
+// (pre-migration-015): logs a warning and writes name-only rows so the rest
+// of the app keeps working.
 async function persistSectors() {
   if (typeof _sb === 'undefined' || !_sb) return false;
   try {
-    // Wipe and rewrite — simplest. The table is tiny.
     const { error: delErr } = await _sb.from('sectors').delete().neq('name', '__none__');
     if (delErr && !_isCosmeticError(delErr)) console.warn('[sectors] delete failed:', _errMsg(delErr));
     if (SECTORS.length === 0) return true;
-    const rows = SECTORS.map((name, i) => ({ name, sort_order: i }));
+    const rows = SECTORS.map((s, i) => {
+      const e = _sectorEntry(s);
+      return { name: e.name, color: e.color || SECTOR_DEFAULT_COLOR, sort_order: i };
+    });
     const { error } = await _sb.from('sectors').insert(rows);
     if (error) {
-      if (_isCosmeticError(error)) return true; // saved, response just couldn't clone
-      console.error('[sectors] save failed:', _errMsg(error));
+      if (_isCosmeticError(error)) return true;
+      const msg = _errMsg(error) || '';
+      // Legacy schema (no color column) — fall back to name-only insert
+      if (msg.toLowerCase().includes('color') || msg.toLowerCase().includes('column')) {
+        console.warn('[sectors] color column missing — apply 015_sector_colors.sql to enable per-sector colors. Saving names only for now.');
+        const fallback = SECTORS.map((s, i) => ({ name: _sectorEntry(s).name, sort_order: i }));
+        const { error: e2 } = await _sb.from('sectors').insert(fallback);
+        if (e2 && !_isCosmeticError(e2)) {
+          console.error('[sectors] fallback insert failed:', _errMsg(e2));
+          return false;
+        }
+        return true;
+      }
+      console.error('[sectors] save failed:', msg);
       return false;
     }
     return true;
@@ -14541,26 +14715,34 @@ async function persistSectors() {
   }
 }
 
-// Load the SECTORS list from Supabase on boot. If the table is empty,
-// seed with the defaults already in memory.
+// Load the SECTORS list from Supabase on boot. Reads color column when
+// present, falls back gracefully if absent (pre-migration-015).
 async function loadSectors() {
   if (typeof _sb === 'undefined' || !_sb) return;
   try {
-    const { data, error } = await _sb.from('sectors').select('name,sort_order').order('sort_order');
+    let { data, error } = await _sb.from('sectors').select('name,color,sort_order').order('sort_order');
+    // Legacy schema → retry without color column
+    if (error && (_errMsg(error) || '').toLowerCase().includes('color')) {
+      const r2 = await _sb.from('sectors').select('name,sort_order').order('sort_order');
+      data = r2.data; error = r2.error;
+    }
     if (error) {
       const msg = (error.message || String(error));
-      // These specific errors are noise from running in iframe contexts where
-      // postMessage can't clone Response Headers. The data still loaded fine.
       if (!msg.includes('postMessage') && !msg.includes('DataCloneError')) {
         console.warn('[sectors] load failed (table may not exist yet):', msg);
       }
       return;
     }
     if (data && data.length > 0) {
-      SECTORS = data.map(r => r.name);
+      SECTORS = data.map(r => ({
+        name: r.name,
+        color: r.color || SECTOR_DEFAULT_COLOR,
+      }));
       console.log(`[sectors] loaded ${SECTORS.length} sectors from DB`);
+      // Repopulate dashboard filter + repaint the schedule with fresh colors
+      if (typeof populateDashSectorFilter === 'function') populateDashSectorFilter();
+      if (typeof refreshSectorDropdowns === 'function')   refreshSectorDropdowns();
     } else {
-      // Seed table with defaults
       console.log('[sectors] empty — seeding defaults');
       await persistSectors();
     }
@@ -15410,13 +15592,62 @@ function exportTransfersCSV() {
 // ── Supabase Auth ─────────────────────────────────────────────
 const _SBURL = 'https://rnskwlgnnphjlzwasgcr.supabase.co';
 const _SBKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuc2t3bGdubnBoamx6d2FzZ2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzA0NzksImV4cCI6MjA5MTg0NjQ3OX0.K0CSasO2uVr7DuECLf5-ybJoezsVAf3Yo3dZEG9N8lk';
-const _sb = supabase.createClient(_SBURL, _SBKEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-  }
-});
+
+// Defensive init: the supabase library is loaded from a CDN. If the user's
+// network blocks the CDN (corporate proxy, ad blocker, transient outage),
+// `supabase` will be undefined and the script would crash before showing
+// anything. Detect that early and show a clear error instead of white screen.
+let _sb;
+if (typeof supabase === 'undefined') {
+  console.error('[boot] Supabase library failed to load from CDN. Showing offline notice.');
+  // Inject error screen — script runs at end of body so document.body exists.
+  // No need to wait for DOMContentLoaded.
+  const _showCdnError = () => {
+    if (!document.body) {
+      // Body not ready yet — try again on DOMContentLoaded
+      document.addEventListener('DOMContentLoaded', _showCdnError);
+      return;
+    }
+    if (document.getElementById('ff-cdn-error')) return; // already shown
+    const overlay = document.createElement('div');
+    overlay.id = 'ff-cdn-error';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#1A1625;color:#F5F3F0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:system-ui,sans-serif;padding:32px;text-align:center';
+    overlay.innerHTML = '<div style="max-width:480px"><div style="font-size:48px;margin-bottom:16px">⚠</div>' +
+      '<h1 style="font-size:22px;margin:0 0 12px;font-weight:500">Couldn\'t reach the database client</h1>' +
+      '<p style="font-size:14px;line-height:1.6;color:#D1CFCB;margin:0 0 18px">FieldFlow loads its database SDK from <code style="background:#2D2438;padding:2px 6px;border-radius:4px;font-family:ui-monospace,monospace;font-size:12px">cdn.jsdelivr.net</code>. Your network blocked that request — likely a firewall, VPN, ad blocker, or temporary CDN outage.</p>' +
+      '<p style="font-size:13px;line-height:1.6;color:#9B9690;margin:0 0 22px">Try: refresh the page · disable ad blocker on this site · or contact IT if the issue persists.</p>' +
+      '<button onclick="location.reload()" style="background:#FACC15;color:#0D0A10;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Reload page</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+  };
+  _showCdnError();
+  // Stub so subsequent `_sb.from(...)` calls don't crash — they just no-op
+  const stubResp = () => Promise.resolve({ data: [], error: { message: 'supabase library not loaded' } });
+  const tableStub = {
+    select: () => ({ eq: stubResp, order: stubResp, gte: () => ({ order: stubResp }) }),
+    insert: stubResp, upsert: stubResp,
+    update: () => ({ eq: stubResp }),
+    delete: () => ({ neq: stubResp }),
+  };
+  _sb = {
+    from: () => tableStub,
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null } }),
+      signOut:    () => Promise.resolve({}),
+      signInWithPassword: () => Promise.resolve({ error: { message: 'Database client not loaded — refresh the page' } }),
+      onAuthStateChange: () => {},
+    },
+    storage: { from: () => ({ getPublicUrl: () => ({ data: { publicUrl: null } }), upload: stubResp }) },
+  };
+} else {
+  _sb = supabase.createClient(_SBURL, _SBKEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    }
+  });
+}
 
 function ffShowForm(name) {
   // Only signin form exists now; forgot/reset flows removed since
@@ -15481,6 +15712,19 @@ function ffShowApp(email, name, role) {
       setTimeout(() => goScreen(s.homeScreen), 0);
     }
   } catch {}
+
+  // Initialize dashboard filter dropdown + panel collapse states. The default
+  // screen is the dashboard, but goScreen('dashboard') only fires on
+  // navigation — it doesn't run on first load. Without this, the sector
+  // dropdown stays empty and the filter+sort can't actually fire.
+  setTimeout(() => {
+    try { if (typeof populateDashSectorFilter === 'function') populateDashSectorFilter(); } catch {}
+    try { if (typeof restoreDashPanelStates === 'function')   restoreDashPanelStates();   } catch {}
+    // Apply any restored filter/sort to the live widgets
+    try { if (typeof renderUtilHeatmap === 'function')  renderUtilHeatmap('dash-util-heatmap'); } catch {}
+    try { if (typeof renderUpcomingJobs === 'function') renderUpcomingJobs(); } catch {}
+    try { if (typeof renderRequestsList === 'function') renderRequestsList(); } catch {}
+  }, 50);
 }
 
 function ffSetErr(id, msg) {
@@ -15537,22 +15781,30 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 (async () => {
   // Production auth: session restore or login screen.
   // (DEV_MODE bypass removed — every visitor must sign in.)
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) {
-    const allowed = await ffAllowed(session.user.email);
-    if (allowed) {
-      ffShowApp(session.user.email, allowed.name, allowed.role);
-      loadPersistedData().catch(err => console.warn('[load] failed', err));
-      loadSectors().catch(err => console.warn('[sectors] load failed', err));
-      loadNotifications().catch(err => console.warn('[notifications] load failed', err));
-      refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
-      loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+  // Defensive: any failure during boot must NOT leave a white screen. If
+  // anything throws, fall through to the login screen so the user has a
+  // path forward. Errors are logged for debugging.
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      const allowed = await ffAllowed(session.user.email);
+      if (allowed) {
+        ffShowApp(session.user.email, allowed.name, allowed.role);
+        loadPersistedData().catch(err => console.warn('[load] failed', err));
+        loadSectors().catch(err => console.warn('[sectors] load failed', err));
+        loadNotifications().catch(err => console.warn('[notifications] load failed', err));
+        refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+        loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+      } else {
+        await _sb.auth.signOut();
+        ffShowLogin();
+      }
     } else {
-      await _sb.auth.signOut();
       ffShowLogin();
     }
-  } else {
-    ffShowLogin();
+  } catch (err) {
+    console.error('[boot] Auth check failed — falling back to login screen.', err);
+    try { ffShowLogin(); } catch {}
   }
 })();
 
