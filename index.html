@@ -1177,6 +1177,33 @@ html.dark .nav-item:hover:not(.active) {
 .btn-sm { padding: 5px 11px; font-size: 12px; }
 .btn svg { width: 14px; height: 14px; }
 
+/* ── Dark mode button visibility ─────────────────────────────
+   In dark mode --ink flips to cream, so the default ink-on-white .btn-primary
+   would render cream-on-cream and disappear. Override with the gold accent
+   so primary actions ("+ Add sector", "Save", etc.) pop. Regular .btn also
+   needs the surface-2 background so it's distinguishable from the screen. */
+html.dark .btn {
+  background: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--line);
+}
+html.dark .btn:hover {
+  background: var(--accent-ghost);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+html.dark .btn-primary {
+  background: var(--accent) !important;
+  border-color: var(--accent-dark) !important;
+  color: var(--surface) !important;
+  font-weight: 600;
+}
+html.dark .btn-primary:hover {
+  background: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+  color: var(--surface) !important;
+}
+
 /* ── Screens ────────────────────────────────────────────── */
 .screen { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 20px; padding-bottom: max(40px, env(safe-area-inset-bottom, 20px)); display: none; -webkit-overflow-scrolling: touch; }
 .screen.active { display: block; animation: fadeIn 0.18s ease; }
@@ -3736,12 +3763,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           style="padding:3px 8px;font-size:10.5px">Clear</button>
         <span class="ctrl-lbl">Sort</span>
         <select class="ctrl-sel" id="sched-sort" onchange="buildSchedTbody()">
+          <option value="sector" selected>Sector (groups jobs)</option>
+          <option value="job">Current job</option>
           <option value="name-asc">Name · A → Z</option>
           <option value="name-desc">Name · Z → A</option>
           <option value="role-sen">Role · seniority</option>
           <option value="role-jr">Role · apprentice first</option>
-          <option value="job">Current job</option>
-          <option value="sector">Sector (groups jobs)</option>
           <option value="conflict">Conflicts first</option>
           <option value="unassigned">Unassigned first</option>
         </select>
@@ -4876,7 +4903,14 @@ function primaryJob(days) {
 function roleBadge(role) {
   if (!role) return '—';
   const r = String(role).trim();
-  // Top-level roles
+  // Field crew roles get colored via getRoleColor (single source of truth
+  // for green/red/yellow/purple per the superintendent's spec). Office/exec
+  // roles keep their existing role-* CSS class palette.
+  const fieldColor = (typeof getRoleColor === 'function') ? getRoleColor(r) : null;
+  if (fieldColor) {
+    return `<span class="role-badge" style="background:${fieldColor}26;color:${fieldColor};border:1px solid ${fieldColor}55" data-tip="${esc((typeof roleLabel==='function'?roleLabel(r):r) || r)}">${esc(r.replace('_',' '))}</span>`;
+  }
+  // Office/exec/director roles
   const topMap = {
     // Executive — deep purple
     PRES:       'role-exec',
@@ -4910,24 +4944,9 @@ function roleBadge(role) {
     WAREHOUSE:  'role-support',
     MECHANIC:   'role-support',
     PREFAB:     'role-support',
-    // Field leadership / craft
-    SUPER:      'role-super',
-    GF:         'role-gf',
-    FM:         'role-fm',
-    WLD:        'role-wld',
-    JN:         'role-jn',
-    JW:         'role-jn',
-    MH:         'role-mh',
   };
   if (topMap[r]) return `<span class="role-badge ${topMap[r]}" data-tip="${esc(roleLabel(r))}">${esc(r.replace('_', ' '))}</span>`;
-  // Apprentice — classify by leading digit
-  const firstChar = r.charAt(0);
-  if (firstChar === '5') return `<span class="role-badge role-ap5">${esc(r)}</span>`;
-  if (firstChar === '4') return `<span class="role-badge role-ap4">${esc(r)}</span>`;
-  if (firstChar === '3') return `<span class="role-badge role-ap3">${esc(r)}</span>`;
-  if (firstChar === '2') return `<span class="role-badge role-ap2">${esc(r)}</span>`;
-  if (firstChar === '1' || firstChar === '0') return `<span class="role-badge role-ap1">${esc(r)}</span>`;
-  // Fallback
+  // Fallback (shouldn't be hit, since field roles are caught above)
   return `<span class="role-badge role-ap">${esc(r)}</span>`;
 }
 
@@ -5025,7 +5044,7 @@ function buildSchedTbody() {
 
   // Read current filter + sort
   const roleFilter = document.getElementById('sched-role-filter')?.value || 'all';
-  const sortKey    = document.getElementById('sched-sort')?.value || 'name-asc';
+  const sortKey    = document.getElementById('sched-sort')?.value || 'sector';
   const searchQ    = (document.getElementById('sched-search')?.value || '').toLowerCase().trim();
 
   // Viewing window indices
@@ -5229,15 +5248,15 @@ function buildSchedTbody() {
           // Tint the tag using the sector color when present. Background uses
           // ~15% alpha so day text stays readable; border + foreground use the
           // full sector color. Falls back to the default tag class styling.
-          const chipStyle = sectorCol ? ` style="background:${sectorCol};color:#fff"` : '';
-          const sectorChip = sector ? `<span class="sector-chip"${chipStyle} data-tip="${esc(sector)} sector">${esc(sector)}</span>` : '';
+          // The sector text below the tag is removed — the color itself
+          // signifies the sector. Tooltip on hover still tells you which.
           const tagStyle = sectorCol
             ? ` style="background:${sectorCol}26;border:1px solid ${sectorCol}66;color:${sectorCol}"`
             : '';
+          const tagTip = sector ? ` data-tip="${esc(sector)} sector · ${esc(d || '')}"` : '';
           return `<td${sep} style="cursor:pointer;position:relative" data-cell-rid="${crid}">
             <div class="sched-cell-wrap">
-              <span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}>${esc(tagVal(d))}</span>
-              ${sectorChip}
+              <span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}${tagTip}>${esc(tagVal(d))}</span>
               <div class="sched-edit-hint"></div>
             </div>
           </td>`;
@@ -5282,7 +5301,7 @@ function toggleSchedGroup(groupRaw, sortKey) {
 // Collapse ALL groups in the current sort. Called from the schedule toolbar.
 function collapseAllSchedGroups() {
   const sortSel = document.getElementById('sched-sort');
-  const sortKey = sortSel?.value || 'name-asc';
+  const sortKey = sortSel?.value || 'sector';
   const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
   let state;
   try { state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
@@ -5299,7 +5318,7 @@ function collapseAllSchedGroups() {
 }
 function expandAllSchedGroups() {
   const sortSel = document.getElementById('sched-sort');
-  const sortKey = sortSel?.value || 'name-asc';
+  const sortKey = sortSel?.value || 'sector';
   const COLLAPSE_KEY = 'fieldflow-sched-collapse-v1';
   let state;
   try { state = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }
@@ -5921,11 +5940,13 @@ function buildRosterRows(filter, roleFilter) {
     const avatarHtml = photo
       ? `<img src="${esc(photo)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0">`
       : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
+    const roleColor = (typeof getRoleColor === 'function') ? getRoleColor(e.role) : null;
+    const nameStyle = roleColor ? ` style="color:${roleColor};font-weight:500"` : '';
     return `<tr class="roster-row" style="cursor:pointer" data-rid="${rid}" data-last="${esc(e.last)}" data-emp-hover="${esc(e.last)},${esc(e.first)}">
       <td style="font-weight:500">
         <div style="display:flex;align-items:center;gap:8px">
           ${avatarHtml}
-          <span>${esc(e.last)}, ${esc(e.first)}</span>
+          <span${nameStyle}>${esc(e.last)}, ${esc(e.first)}</span>
         </div>
       </td>
       <td>${roleBadge(e.role)}</td>
@@ -6347,10 +6368,12 @@ function renderOrgSection(last, first) {
 
   function nodeFromEmp(e, tag) {
     if (!e) return '';
+    const rc = (typeof getRoleColor === 'function') ? getRoleColor(e.role) : null;
+    const ns = rc ? ` style="color:${rc}"` : '';
     return `<div class="org-node ${tag}">
       <div class="org-node-av">${esc(initials(e.first))}${esc(initials(e.last))}</div>
       <div>
-        <div class="org-node-name">${esc(e.last)}, ${esc(e.first)}</div>
+        <div class="org-node-name"${ns}>${esc(e.last)}, ${esc(e.first)}</div>
         <div class="org-node-role">${typeof roleLabel === 'function' ? esc(roleLabel(e.role) || e.role) : esc(e.role)}</div>
       </div>
     </div>`;
@@ -9494,8 +9517,8 @@ function renderOrgChart(containerId) {
         oncontextmenu="showOrgContextMenu(event,'${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')"
         data-tip="${inAssignMode ? (isAssignTarget ? 'Click to exit selection mode' : 'Click to make this person report to ' + esc(_orgAssignMode.last) + ', ' + esc(_orgAssignMode.first)) : esc(emp.last) + ', ' + esc(emp.first) + ' — ' + esc(emp.role) + (orgSector ? ' · on ' + esc(orgSector) : '') + '. Left-click to open manage panel · right-click for actions · drag onto another card to reassign'}">
         ${avatar}
-        <div class="org-name">${esc(compactName)}</div>
-        <div class="org-meta">${esc(emp.role)}</div>
+        <div class="org-name"${(typeof getRoleColor === 'function' && getRoleColor(emp.role)) ? ` style="color:${getRoleColor(emp.role)}"` : ''}>${esc(compactName)}</div>
+        <div class="org-meta"${(typeof getRoleColor === 'function' && getRoleColor(emp.role)) ? ` style="color:${getRoleColor(emp.role)};opacity:.85"` : ''}>${esc(emp.role)}</div>
         ${sectorChip}
         ${countBadge}
         ${toggleBtn}
@@ -9520,11 +9543,10 @@ function renderOrgChart(containerId) {
   const controls = `
     <div class="org-tree-controls">
       <div style="font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#8B5CF6;border-radius:2px"></span>Super</span>
-        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#DC2626;border-radius:2px"></span>GF</span>
-        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#EA580C;border-radius:2px"></span>FM</span>
-        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#0284C7;border-radius:2px"></span>JN/Apr</span>
-        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#64748B;border-radius:2px"></span>MH</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#7C3AED;border-radius:2px"></span>Super/GF/FM</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#16A34A;border-radius:2px"></span>JN/JW/WLD</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#DC2626;border-radius:2px"></span>Apprentices</span>
+        <span style="display:inline-flex;align-items:center;gap:3px"><span style="display:inline-block;width:8px;height:8px;background:#CA8A04;border-radius:2px"></span>MH</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         ${isAdmin ? `<button id="org-clear-btn" class="btn btn-sm" style="position:relative;overflow:hidden"
@@ -12114,35 +12136,46 @@ function getSectorColorByJobName(jobName) {
 }
 
 // ── Crew role colors ─────────────────────────────────────────
-// Per superintendent's spec: Journeymen green, Apprentices red, Material
-// Handlers blue. Other roles get distinct hues that don't collide with the
-// sector colors. Keep these slightly DEEPER than the sector palette so
-// names stay readable on sector-tinted backgrounds.
+// Per superintendent's spec:
+//   • Journeymen (JN/JW) + Welders → green
+//   • All apprentices (every tier 0–5*) → red
+//   • Material Handlers → yellow
+//   • Foreman and above (FM, GF, SUPER) → purple
+//
+// Used for both the employee NAME color and the role BADGE color in the
+// schedule, roster, org chart, and profile chain. Roles not listed here
+// (office/exec/director) keep their existing role-* CSS classes — they're
+// not field roles and don't need this treatment.
 const CREW_ROLE_COLORS = {
-  // Journeyman / Journey Worker — green (deeper than Greenfield #10B981)
+  // Journeymen + Welders — green
   JN:  '#16A34A',
   JW:  '#16A34A',
-  // Apprentices — every tier is red. Tags 1A–5E plus generic AP.
-  AP:  '#DC2626',
+  WLD: '#16A34A',
+  // Apprentices — every tier (0, 1A–5E, plus generic AP) — red
+  AP:  '#DC2626', '0': '#DC2626',
   '1A':'#DC2626','1B':'#DC2626','1C':'#DC2626','1D':'#DC2626','1E':'#DC2626',
   '2A':'#DC2626','2B':'#DC2626','2C':'#DC2626','2D':'#DC2626','2E':'#DC2626',
   '3A':'#DC2626','3B':'#DC2626','3C':'#DC2626','3D':'#DC2626','3E':'#DC2626',
   '4A':'#DC2626','4B':'#DC2626','4C':'#DC2626','4D':'#DC2626','4E':'#DC2626',
   '5A':'#DC2626','5B':'#DC2626','5C':'#DC2626','5D':'#DC2626','5E':'#DC2626',
-  // Material Handler — blue (deeper than Live Work #3B82F6)
-  MH:  '#2563EB',
-  // Other roles — distinct hues so names scan even when names cluster
-  SUPER:          '#7C3AED', // purple — Superintendent stands out
+  // Material Handler — yellow (deeper amber so it reads on cream + dark)
+  MH:  '#CA8A04',
+  // Foreman + above — purple
+  FM:             '#7C3AED',
+  GF:             '#7C3AED',
+  SUPER:          '#7C3AED',
   superintendent: '#7C3AED',
-  GF:             '#B45309', // dark amber — General Foreman
-  FM:             '#0D9488', // teal — Foreman
-  WLD:            '#EA580C', // orange — Welder
 };
 function getRoleColor(role) {
   if (!role) return null;
-  const direct = CREW_ROLE_COLORS[role];
-  if (direct) return direct;
-  // First-character fallback: any role starting with a digit is an apprentice
+  // Defensive: if this fires during early script execution before
+  // CREW_ROLE_COLORS has been initialized (TDZ), return null and let the
+  // caller fall back to default styling. Avoids cascading boot errors.
+  try {
+    const direct = CREW_ROLE_COLORS[role];
+    if (direct) return direct;
+  } catch { return null; }
+  // Apprentice fallback: any role string starting with a digit is an apprentice
   if (/^\d/.test(role)) return '#DC2626';
   return null;
 }
@@ -15662,8 +15695,15 @@ const _SBKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 // network blocks the CDN (corporate proxy, ad blocker, transient outage),
 // `supabase` will be undefined and the script would crash before showing
 // anything. Detect that early and show a clear error instead of white screen.
+//
+// Also defensive against a parent page shadowing the `supabase` global with
+// something that's not the actual library — verify createClient is a function
+// before trusting it.
 let _sb;
-if (typeof supabase === 'undefined') {
+const _supabaseUsable = (typeof supabase !== 'undefined') &&
+                       supabase &&
+                       typeof supabase.createClient === 'function';
+if (!_supabaseUsable) {
   console.error('[boot] Supabase library failed to load from CDN. Showing offline notice.');
   // Inject error screen — script runs at end of body so document.body exists.
   // No need to wait for DOMContentLoaded.
@@ -15845,31 +15885,51 @@ _sb.auth.onAuthStateChange(async (event, session) => {
 
 (async () => {
   // Production auth: session restore or login screen.
-  // (DEV_MODE bypass removed — every visitor must sign in.)
-  // Defensive: any failure during boot must NOT leave a white screen. If
-  // anything throws, fall through to the login screen so the user has a
-  // path forward. Errors are logged for debugging.
+  //
+  // Robust against iframe / embed contexts where _sb.auth.getSession() may
+  // hang indefinitely (corporate proxies, storage-isolation policies in
+  // sandboxed iframes, etc.). The strategy:
+  //   1. Show the login screen immediately so the user always sees something.
+  //   2. Race the session check against a 2.5-second timeout.
+  //   3. If a session resolves and is authorized, swap to the app.
+  //   4. If anything errors or times out, stay on the login screen.
+  //
+  // This guarantees no blank white screen — there's always either login UI
+  // or app UI visible within a few hundred ms of the script running.
+  try { ffShowLogin(); } catch (e) { console.error('[boot] ffShowLogin threw', e); }
+
+  const sessionPromise = _sb.auth.getSession()
+    .then(r => r?.data?.session || null)
+    .catch(err => { console.warn('[boot] getSession failed:', err); return null; });
+  const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 2500));
+
+  let session;
   try {
-    const { data: { session } } = await _sb.auth.getSession();
-    if (session) {
-      const allowed = await ffAllowed(session.user.email);
-      if (allowed) {
-        ffShowApp(session.user.email, allowed.name, allowed.role);
-        loadPersistedData().catch(err => console.warn('[load] failed', err));
-        loadSectors().catch(err => console.warn('[sectors] load failed', err));
-        loadNotifications().catch(err => console.warn('[notifications] load failed', err));
-        refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
-        loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
-      } else {
-        await _sb.auth.signOut();
-        ffShowLogin();
-      }
+    session = await Promise.race([sessionPromise, timeoutPromise]);
+  } catch (err) {
+    console.warn('[boot] session race threw:', err);
+    session = null;
+  }
+
+  if (!session) return; // login already showing
+
+  // Session exists — verify it against allowed_users and swap to the app
+  try {
+    const allowed = await ffAllowed(session.user.email);
+    if (allowed) {
+      ffShowApp(session.user.email, allowed.name, allowed.role);
+      loadPersistedData().catch(err => console.warn('[load] failed', err));
+      loadSectors().catch(err => console.warn('[sectors] load failed', err));
+      loadNotifications().catch(err => console.warn('[notifications] load failed', err));
+      refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+      loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
     } else {
-      ffShowLogin();
+      _sb.auth.signOut().catch(() => {});
+      // login already showing
     }
   } catch (err) {
-    console.error('[boot] Auth check failed — falling back to login screen.', err);
-    try { ffShowLogin(); } catch {}
+    console.error('[boot] Post-session verification failed:', err);
+    // login already showing
   }
 })();
 
