@@ -3,7 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co https://api.weather.gov https://nominatim.openstreetmap.org; frame-ancestors *;">
+<!-- Content Security Policy
+     Tuned to work both standalone AND inside the CremFlow hub iframe.
+     Two fixes from the iframe-blocking incident:
+     1. Removed `frame-ancestors *` — that directive is IGNORED when CSP
+        is delivered via a <meta> element (only HTTP-header CSP can set
+        frame-ancestors). Having it here actually flags the policy as
+        malformed in some Chromium builds and causes strict fall-through
+        enforcement of the rest, blocking unrelated requests inside the
+        iframe. Iframe embedding is controlled by the HOST page's CSP
+        (the hub), not ours.
+     2. Added cdn.jsdelivr.net to connect-src so Supabase JS can fetch
+        its source map at runtime (it's harmless but the failed request
+        spams the console and confused the iframe boot path).
+     If you ever serve FieldFlow with a real HTTP CSP header, set
+     `frame-ancestors 'self' https://crem-hub-domain.com` there. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; connect-src 'self' https://rnskwlgnnphjlzwasgcr.supabase.co wss://rnskwlgnnphjlzwasgcr.supabase.co https://api.weather.gov https://nominatim.openstreetmap.org https://cdn.jsdelivr.net;">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>FieldFlow</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1719,7 +1734,20 @@ html.dark .emp-name[style*="color:"] { /* no-op — inline wins */ }
 .dash { color: var(--ff-tx4); font-size: 11px; }
 
 /* ── School cards ───────────────────────────────────────── */
-.school-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+/* Stack consolidated class cards vertically — one expandable card per
+   class code instead of one card per session week (the CBETA full year is
+   92 sessions, so 92 grid cards is unreadable). */
+.school-grid { display: flex; flex-direction: column; gap: 8px; }
+.school-class-card { transition: box-shadow .15s; }
+.school-class-card:hover { box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.school-class-card[open] { box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+.school-class-card[open] > summary .school-card-chev { transform: rotate(90deg); }
+.school-class-card summary::-webkit-details-marker { display: none; }
+.school-class-card summary::marker { content: ''; }
+html.dark .school-class-card { background: var(--surface-2) !important; border-color: var(--line) !important; }
+
+/* Legacy single-card style — kept for compatibility with any other place
+   that still renders a .school-card directly. */
 .school-card {
   background: var(--ff-surface);
   border: 1px solid var(--ff-bdr);
@@ -3308,7 +3336,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 <body>
 
 <!-- ── LOGIN SCREEN ─────────────────────────────────── -->
-<div id="ff-login" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9999;font-family:inherit;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 15% 20%, rgba(234,179,8,.28), transparent 60%),radial-gradient(ellipse 70% 55% at 85% 85%, rgba(161,98,7,.3), transparent 55%),radial-gradient(ellipse 60% 50% at 70% 15%, rgba(253,224,71,.28), transparent 60%),linear-gradient(135deg, #FEF9C3 0%, #FDE68A 50%, #FACC15 100%)">
+<div id="ff-login" style="display:flex;position:fixed;inset:0;align-items:center;justify-content:center;z-index:9999;font-family:inherit;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 15% 20%, rgba(234,179,8,.28), transparent 60%),radial-gradient(ellipse 70% 55% at 85% 85%, rgba(161,98,7,.3), transparent 55%),radial-gradient(ellipse 60% 50% at 70% 15%, rgba(253,224,71,.28), transparent 60%),linear-gradient(135deg, #FEF9C3 0%, #FDE68A 50%, #FACC15 100%)">
 
   <!-- Drifting drafting-paper grid -->
   <div class="ff-login-grid"></div>
@@ -3405,6 +3433,36 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
   <span id="ff-topbar-email" style="color:rgba(255,255,255,.6);font-size:11.5px"></span>
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
     <span id="ff-topbar-role" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;text-transform:capitalize"></span>
+
+    <!-- Notification bell — replaces the old Admin → Notifications tab so the
+         audit log is one click from anywhere in the app. -->
+    <div style="position:relative">
+      <button id="ff-bell-btn" onclick="toggleNotifBell(event)"
+        data-tip="Recent activity — every schedule change made by anyone. Click to expand."
+        style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);width:30px;height:26px;border-radius:5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;position:relative">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2a4 4 0 00-4 4v3l-1 2h10l-1-2V6a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="ff-bell-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#EF4444;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;padding:0 4px;line-height:14px;text-align:center;border:1.5px solid #0E1828">0</span>
+      </button>
+      <div id="ff-bell-dropdown" style="display:none;position:absolute;top:100%;right:0;margin-top:6px;width:380px;max-height:520px;background:var(--white);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;z-index:200;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-shrink:0">
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--ink)">Activity</div>
+            <div id="ff-bell-meta" style="font-size:10px;color:var(--muted);margin-top:1px">No new notifications</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="markAllNotifsRead()" data-tip="Mark every notification as read — clears the badge" style="padding:3px 9px;font-size:10.5px">Mark all read</button>
+          </div>
+        </div>
+        <div id="ff-bell-list" style="overflow-y:auto;flex:1;padding:8px"></div>
+        <div id="ff-bell-empty" style="display:none;padding:30px 20px;text-align:center;color:var(--muted);font-size:12px">
+          No notifications yet. They'll appear here when anyone changes the schedule.
+        </div>
+      </div>
+    </div>
+
     <button onclick="ffSignOut()"
       style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.65);font-size:11px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:inherit">
       Sign out
@@ -4017,9 +4075,9 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
           Sectors
         </button>
-        <button class="admin-tab"        data-admin-tab="notifications" onclick="adminTab('notifications')">
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M8 2a4 4 0 00-4 4v3l-1 2h10l-1-2V6a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          Notifications
+        <button class="admin-tab"        data-admin-tab="holidays"  onclick="adminTab('holidays')">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><path d="M3 6h10v8H3V6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 6V4a1 1 0 011-1h8a1 1 0 011 1v2M5 3V1.5M11 3V1.5M3 9h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Holidays
         </button>
         <button class="admin-tab"        data-admin-tab="system"    onclick="adminTab('system')">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" style="vertical-align:middle;margin-right:6px"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 8c0-.41-.05-.8-.13-1.19l1.43-1.1-1.5-2.6-1.68.68a4.5 4.5 0 00-2.06-1.19L9.25 1h-3l-.3 1.6a4.5 4.5 0 00-2.06 1.19l-1.68-.68-1.5 2.6 1.43 1.1c-.09.39-.14.78-.14 1.19s.05.8.13 1.19l-1.43 1.1 1.5 2.6 1.68-.68c.56.52 1.27.94 2.06 1.19l.3 1.6h3l.3-1.6a4.5 4.5 0 002.06-1.19l1.68.68 1.5-2.6-1.43-1.1c.09-.39.14-.78.14-1.19z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
@@ -4069,6 +4127,20 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 
       <!-- ── TRANSFERS PANE ── -->
       <div id="admin-pane-transfers" class="admin-pane" style="display:none">
+              <!-- Crew hand-off section — moved here from the System pane.
+                   Both Transfers and Hand-off are about who's moving where,
+                   so they belong on the same surface. -->
+              <div class="panel" style="margin-bottom:16px">
+                <div class="panel-header">
+                  <div class="panel-title">Crew <em>hand-off</em></div>
+                  <span style="font-size:11px;color:var(--muted)">This week → Next week</span>
+                </div>
+                <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
+                  Employees moving between jobs next week. Add notes for the receiving foreman.
+                </div>
+                <div id="admin-handoff-panel"></div>
+              </div>
+
               <!-- Summary metrics -->
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
                 <div class="metric" style="padding:14px 16px">
@@ -4300,32 +4372,38 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </div>
       </div>
 
-      <!-- ── NOTIFICATIONS PANE ── -->
-      <div id="admin-pane-notifications" class="admin-pane" style="display:none">
-        <div style="max-width:920px">
+      <!-- ── HOLIDAYS PANE ── -->
+      <div id="admin-pane-holidays" class="admin-pane" style="display:none">
+        <div style="max-width:780px">
           <div class="panel">
             <div class="panel-header">
-              <div>
-                <div class="panel-title">Notifications log</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:2px">
-                  Audit trail of every schedule change. Each row shows who made the move, who got pinged, and the site requirements that were sent.
-                </div>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input type="text" id="notif-search" class="form-input" placeholder="filter by name, job…"
-                  oninput="renderNotificationsAdmin()"
-                  style="font-size:11.5px;padding:5px 9px;width:220px"
-                  data-tip="Filter the log by employee name, job name, or who made the change">
-                <button class="btn btn-sm" onclick="renderNotificationsAdmin()" data-tip="Reload from database">↻</button>
-              </div>
+              <div class="panel-title">Holidays</div>
+              <div style="font-size:11px;color:var(--muted)">Choose how each holiday behaves: <strong style="color:#D97706">Mandatory</strong> auto-fills the schedule (no crew works) · <strong style="color:#CA8A04">Flagged</strong> warns leadership but crews stay scheduled · <strong style="color:#64748B">Notice</strong> is a soft heads-up · <strong style="color:var(--muted)">Off</strong> hides the holiday entirely.</div>
             </div>
-            <div id="notifications-admin-list" style="display:flex;flex-direction:column;gap:6px;margin-top:10px"></div>
-            <div id="notifications-admin-empty" style="display:none;padding:30px 20px;text-align:center;color:var(--muted);font-size:13px">
-              No notifications yet. They'll appear here whenever someone changes a schedule cell.
+
+            <!-- Add custom holiday -->
+            <div style="background:var(--surface-2);padding:12px 14px;border-radius:9px;margin-bottom:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input id="new-holiday-name" class="form-input" placeholder="Holiday name (e.g. Company Picnic)"
+                style="flex:1;min-width:180px;font-size:12.5px"
+                data-tip="Add a custom holiday — useful for company-specific days like a quarterly picnic or shutdown week.">
+              <input id="new-holiday-date" type="date" class="form-input"
+                style="font-size:12.5px;min-width:140px"
+                data-tip="Pick the date for this custom holiday.">
+              <button class="btn btn-sm btn-primary" onclick="addCustomHoliday()" data-tip="Add this custom holiday — defaults to Notice tier; you can promote it to Mandatory or Flagged after.">+ Add custom</button>
+            </div>
+
+            <div id="holidays-admin-list" style="display:flex;flex-direction:column;gap:6px"></div>
+
+            <div style="margin-top:14px;padding:11px 14px;background:var(--accent-ghost);border-left:3px solid var(--accent);border-radius:8px;font-size:11.5px;color:var(--ink);line-height:1.55">
+              💡 <strong>Tip:</strong> Changes take effect immediately and persist across reloads. Demoting a Mandatory holiday clears its auto-filled HOLIDAY cells from the schedule on the next reload.
+              <br><br>
+              📜 <strong>Holiday observance rules:</strong> When a mandatory holiday falls on a Saturday, CREM observes it on the <strong>Thursday before</strong> (company-wide rule — gives crews a 4-day weekend). When it falls on a Sunday, it's observed the following Monday (per IBEW Local 112 contract section 3.6). The schedule grid auto-fills the observed (workday) date — the original calendar date is shown above with a "→ observed" note.
             </div>
           </div>
         </div>
       </div>
+
+      <!-- ── NOTIFICATIONS PANE removed — see notification bell in topbar ── -->
 
       <!-- ── SYSTEM PANE ── -->
       <div id="admin-pane-system" class="admin-pane" style="display:none">
@@ -4374,17 +4452,8 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             <div id="admin-hr-saved" style="display:none;font-size:11px;color:var(--ff-green);margin-top:8px">✓ Saved</div>
           </div>
 
-          <!-- Crew hand-off -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Crew <em>hand-off</em></div>
-              <span style="font-size:11px;color:var(--muted)">This week → Next week</span>
-            </div>
-            <div style="font-size:11px;color:var(--ff-tx3);margin-bottom:12px">
-              Employees moving between jobs next week. Add notes for the receiving foreman.
-            </div>
-            <div id="admin-handoff-panel"></div>
-          </div>
+          <!-- Crew hand-off relocated to Admin → Labor transfers — both surfaces are
+               about who's moving where, so they belong together. -->
 
           <!-- Notification settings -->
           <div class="panel">
@@ -4745,19 +4814,274 @@ function schedDayLabel(wkIdx, dayIdx) {
   if (typeof applyFederalHolidays === 'function') applyFederalHolidays(true);
 })();
 
+// 2025-2026 CBETA (Construction Building Electrical Training Alliance) class
+// dates — full school-year calendar parsed from CBETA's PDF (Rev 10/15/25).
+// Each apprentice tier has 4–5 weeklong sessions across the year. The list
+// below covers every session for every tier — applySchoolSessionsToSchedule()
+// auto-marks Mon-Thu as "School" on the matching weeks.
+//
+// The `emps` array tells the system WHICH employees in this tier should be
+// marked. Add/remove employee names there to adjust who attends each session.
+// Multiple employees in the same tier all attend the same week.
 const SCHOOL_SESSIONS = [
-  {code:'2D',  start:'Apr 13',end:'Apr 17, 2026',emps:['Kegel, Alex']},
-  {code:'4A',  start:'Apr 13',end:'Apr 17, 2026',emps:['Robins, Jason']},
-  {code:'2E',  start:'Apr 20',end:'Apr 24, 2026',emps:['Sholotyuk, Alexsei']},
-  {code:'4B',  start:'Apr 20',end:'Apr 24, 2026',emps:['Fellows, Shay','Gunderson, Hunter']},
-  {code:'1E',  start:'Apr 27',end:'May 1, 2026', emps:['Campuzano, Eric']},
-  {code:'1C',  start:'May 18',end:'May 22, 2026',emps:['Cole, Kolten']},
-  {code:'4B',  start:'Sep 15',end:'Sep 19, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
-  {code:'5A',  start:'Feb 2', end:'Feb 6, 2026', emps:['Reynolds, Brendan','Walker, Rodger']},
-  {code:'2B',  start:'Feb 9', end:'Feb 13, 2026',emps:['Mellotte, Colby']},
-  {code:'1A',  start:'Mar 16',end:'Mar 20, 2026',emps:['Davis, Jayden']},
-  {code:'2A',  start:'Feb 2', end:'Feb 6, 2026', emps:['Pierce, Ernest']},
+  // ─── 1A (1st-year apprentice, A-track) — Davis, Jayden ───
+  {code:'1A', start:'Sep 8',  end:'Sep 12, 2025',emps:['Davis, Jayden']},
+  {code:'1A', start:'Oct 13', end:'Oct 17, 2025',emps:['Davis, Jayden']},
+  {code:'1A', start:'Dec 8',  end:'Dec 12, 2025',emps:['Davis, Jayden']},
+  {code:'1A', start:'Feb 2',  end:'Feb 6, 2026', emps:['Davis, Jayden']},
+  {code:'1A', start:'Mar 16', end:'Mar 20, 2026',emps:['Davis, Jayden']},
+
+  // ─── 1B (1st-year apprentice, B-track) ───
+  {code:'1B', start:'Sep 15', end:'Sep 19, 2025',emps:[]},
+  {code:'1B', start:'Oct 27', end:'Oct 31, 2025',emps:[]},
+  {code:'1B', start:'Dec 15', end:'Dec 19, 2025',emps:[]},
+  {code:'1B', start:'Feb 9',  end:'Feb 13, 2026',emps:[]},
+
+  // ─── 1C (1st-year apprentice, C-track) — Cole, Kolten ───
+  {code:'1C', start:'Oct 13', end:'Oct 17, 2025',emps:['Cole, Kolten']},
+  {code:'1C', start:'Dec 8',  end:'Dec 12, 2025',emps:['Cole, Kolten']},
+  {code:'1C', start:'Feb 2',  end:'Feb 6, 2026', emps:['Cole, Kolten']},
+  {code:'1C', start:'Mar 16', end:'Mar 20, 2026',emps:['Cole, Kolten']},
+  {code:'1C', start:'May 4',  end:'May 8, 2026', emps:['Cole, Kolten']},
+
+  // ─── 1D (1st-year apprentice, D-track) ───
+  {code:'1D', start:'Oct 20', end:'Oct 24, 2025',emps:[]},
+  {code:'1D', start:'Dec 15', end:'Dec 19, 2025',emps:[]},
+  {code:'1D', start:'Feb 9',  end:'Feb 13, 2026',emps:[]},
+  {code:'1D', start:'Mar 23', end:'Mar 27, 2026',emps:[]},
+  {code:'1D', start:'May 11', end:'May 15, 2026',emps:[]},
+
+  // ─── 1E (1st-year apprentice, E-track) — Campuzano, Eric ───
+  {code:'1E', start:'Oct 27', end:'Oct 31, 2025',emps:['Campuzano, Eric']},
+  {code:'1E', start:'Jan 5',  end:'Jan 9, 2026', emps:['Campuzano, Eric']},
+  {code:'1E', start:'Feb 16', end:'Feb 20, 2026',emps:['Campuzano, Eric']},
+  {code:'1E', start:'Mar 30', end:'Apr 3, 2026', emps:['Campuzano, Eric']},
+  {code:'1E', start:'May 18', end:'May 22, 2026',emps:['Campuzano, Eric']},
+
+  // ─── 1A (LE) — Late entry track ───
+  {code:'1A(LE)', start:'Nov 3', end:'Nov 7, 2025', emps:[]},
+  {code:'1A(LE)', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
+  {code:'1A(LE)', start:'Feb 23',end:'Feb 27, 2026',emps:[]},
+  {code:'1A(LE)', start:'Apr 13',end:'Apr 17, 2026',emps:[]},
+  {code:'1A(LE)', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+
+  // ─── 1B (LE) ───
+  {code:'1B(LE)', start:'Dec 1', end:'Dec 5, 2025', emps:[]},
+  {code:'1B(LE)', start:'Jan 26',end:'Jan 30, 2026',emps:[]},
+  {code:'1B(LE)', start:'Mar 9', end:'Mar 13, 2026',emps:[]},
+  {code:'1B(LE)', start:'Apr 27',end:'May 1, 2026', emps:[]},
+  {code:'1B(LE)', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+
+  // ─── 2A (2nd-year apprentice, A-track) — Pierce, Ernest ───
+  {code:'2A', start:'Nov 3', end:'Nov 7, 2025', emps:['Pierce, Ernest']},
+  {code:'2A', start:'Jan 12',end:'Jan 16, 2026',emps:['Pierce, Ernest']},
+  {code:'2A', start:'Feb 23',end:'Feb 27, 2026',emps:['Pierce, Ernest']},
+  {code:'2A', start:'Apr 13',end:'Apr 17, 2026',emps:['Pierce, Ernest']},
+  {code:'2A', start:'Jun 1', end:'Jun 5, 2026', emps:['Pierce, Ernest']},
+
+  // ─── 2B (2nd-year apprentice, B-track) — Mellotte, Colby ───
+  {code:'2B', start:'Dec 1', end:'Dec 5, 2025', emps:['Mellotte, Colby']},
+  {code:'2B', start:'Jan 26',end:'Jan 30, 2026',emps:['Mellotte, Colby']},
+  {code:'2B', start:'Mar 9', end:'Mar 13, 2026',emps:['Mellotte, Colby']},
+  {code:'2B', start:'Apr 27',end:'May 1, 2026', emps:['Mellotte, Colby']},
+  {code:'2B', start:'Jun 1', end:'Jun 5, 2026', emps:['Mellotte, Colby']},
+
+  // ─── 2C (2nd-year apprentice, C-track) ───
+  {code:'2C', start:'Nov 3', end:'Nov 7, 2025', emps:[]},
+  {code:'2C', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
+  {code:'2C', start:'Feb 23',end:'Feb 27, 2026',emps:[]},
+  {code:'2C', start:'Apr 13',end:'Apr 17, 2026',emps:[]},
+  {code:'2C', start:'Jun 8', end:'Jun 12, 2026',emps:[]},
+
+  // ─── 2D (2nd-year apprentice, D-track) — Kegel, Alex ───
+  {code:'2D', start:'Dec 1', end:'Dec 5, 2025', emps:['Kegel, Alex']},
+  {code:'2D', start:'Jan 26',end:'Jan 30, 2026',emps:['Kegel, Alex']},
+  {code:'2D', start:'Mar 9', end:'Mar 13, 2026',emps:['Kegel, Alex']},
+  {code:'2D', start:'Apr 27',end:'May 1, 2026', emps:['Kegel, Alex']},
+  {code:'2D', start:'Jun 15',end:'Jun 19, 2026',emps:['Kegel, Alex']},
+
+  // ─── 2E (2nd-year apprentice, E-track) — Sholotyuk, Alexsei ───
+  // Five sessions: 09/08, 10/13, 12/08, 02/02 (per PDF column for 2E)
+  {code:'2E', start:'Sep 8', end:'Sep 12, 2025',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Oct 13',end:'Oct 17, 2025',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Dec 8', end:'Dec 12, 2025',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Feb 2', end:'Feb 6, 2026', emps:['Sholotyuk, Alexsei']},
+
+  // ─── 3A (3rd-year apprentice, A-track) ───
+  {code:'3A', start:'Sep 22',end:'Sep 26, 2025',emps:[]},
+  {code:'3A', start:'Jan 5', end:'Jan 9, 2026', emps:[]},
+  {code:'3A', start:'Mar 16',end:'Mar 20, 2026',emps:[]},
+  {code:'3A', start:'May 11',end:'May 15, 2026',emps:[]},
+
+  // ─── 3B (3rd-year apprentice, B-track) ───
+  {code:'3B', start:'Sep 29',end:'Oct 3, 2025', emps:[]},
+  {code:'3B', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
+  {code:'3B', start:'Mar 23',end:'Mar 27, 2026',emps:[]},
+  {code:'3B', start:'May 18',end:'May 22, 2026',emps:[]},
+
+  // ─── 3C (3rd-year apprentice, C-track) ───
+  {code:'3C', start:'Oct 6', end:'Oct 10, 2025',emps:[]},
+  {code:'3C', start:'Jan 19',end:'Jan 23, 2026',emps:[]},
+  {code:'3C', start:'Mar 30',end:'Apr 3, 2026', emps:[]},
+  {code:'3C', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+
+  // ─── 4A (4th-year apprentice, A-track) — Robins, Jason ───
+  {code:'4A', start:'Sep 8', end:'Sep 12, 2025',emps:['Robins, Jason']},
+  {code:'4A', start:'Nov 3', end:'Nov 7, 2025', emps:['Robins, Jason']},
+  {code:'4A', start:'Feb 23',end:'Feb 27, 2026',emps:['Robins, Jason']},
+  {code:'4A', start:'Apr 13',end:'Apr 17, 2026',emps:['Robins, Jason']},
+
+  // ─── 4B (4th-year apprentice, B-track) — Fellows, Shay + Gunderson, Hunter ───
+  {code:'4B', start:'Sep 15',end:'Sep 19, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Nov 17',end:'Nov 21, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Mar 2', end:'Mar 6, 2026', emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Apr 20',end:'Apr 24, 2026',emps:['Fellows, Shay','Gunderson, Hunter']},
+
+  // ─── 4C (4th-year apprentice, C-track) ───
+  {code:'4C', start:'Sep 22',end:'Sep 26, 2025',emps:[]},
+  {code:'4C', start:'Dec 1', end:'Dec 5, 2025', emps:[]},
+  {code:'4C', start:'Mar 9', end:'Mar 13, 2026',emps:[]},
+  {code:'4C', start:'Apr 27',end:'May 1, 2026', emps:[]},
+
+  // ─── 5A (5th-year apprentice, A-track) — Reynolds, Brendan + Walker, Rodger ───
+  {code:'5A', start:'Oct 20',end:'Oct 24, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Dec 15',end:'Dec 19, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Feb 9', end:'Feb 13, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Mar 23',end:'Mar 27, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'May 11',end:'May 15, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
+
+  // ─── 5B (5th-year apprentice, B-track) — Ortega, Miguel ───
+  {code:'5B', start:'Oct 27',end:'Oct 31, 2025',emps:['Ortega, Miguel']},
+  {code:'5B', start:'Jan 5', end:'Jan 9, 2026', emps:['Ortega, Miguel']},
+  {code:'5B', start:'Feb 16',end:'Feb 20, 2026',emps:['Ortega, Miguel']},
+  {code:'5B', start:'Mar 30',end:'Apr 3, 2026', emps:['Ortega, Miguel']},
+  {code:'5B', start:'May 18',end:'May 22, 2026',emps:['Ortega, Miguel']},
 ];
+
+// ── School session sync ─────────────────────────────────────────────
+// Source of truth is SCHOOL_SESSIONS above. Each entry has a start/end
+// date — we parse those, find the matching week in SCHED, and mark every
+// workday (Mon–Thu by default) as 'School' for the listed employees.
+//
+// This runs AT BOOT after the schedule is expanded into 105 weeks, so any
+// hardcoded "School" entries in the original seed that ended up on the
+// wrong week (because seeded data is anchored to Apr 13, 2026) get
+// overwritten with the correct dates from SCHOOL_SESSIONS.
+//
+// It also CLEARS any stray "School" cell that is NOT covered by an active
+// session — so old/stale School marks can't ghost into the schedule.
+function _parseSessionDate(startStr, endStr) {
+  // endStr always contains the year ("Apr 17, 2026"). startStr does not.
+  // Pull the year from end, apply to start. Returns {start, end} as Date or null.
+  const yearMatch = endStr.match(/(\d{4})/);
+  if (!yearMatch) return null;
+  const year = parseInt(yearMatch[1], 10);
+  const tryParse = (s, defaultYear) => {
+    // Accept "Apr 13" or "Apr 13, 2026"
+    const cleaned = s.includes(',') ? s : `${s}, ${defaultYear}`;
+    const d = new Date(cleaned);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const start = tryParse(startStr, year);
+  const end   = tryParse(endStr,   year);
+  if (!start || !end) return null;
+  start.setHours(0,0,0,0);
+  end.setHours(0,0,0,0);
+  return { start, end };
+}
+
+function _weekIndexForDate(date) {
+  // Returns the schedule-week index whose Monday is on or before `date`,
+  // or null if outside the 105-week range.
+  if (!date) return null;
+  const dow = date.getDay();
+  const daysSinceMon = dow === 0 ? 6 : dow - 1;
+  const monOfDate = new Date(date);
+  monOfDate.setDate(date.getDate() - daysSinceMon);
+  monOfDate.setHours(0,0,0,0);
+  const anchorMs = SCHED_CURRENT_WEEK.date.getTime();
+  const diffWeeks = Math.round((monOfDate.getTime() - anchorMs) / (7 * 86400000));
+  const idx = SCHED_CURRENT_WEEK.index + diffWeeks;
+  if (idx < 0 || idx >= SCHED_WEEKS_TOTAL) return null;
+  return idx;
+}
+
+function applySchoolSessionsToSchedule() {
+  if (!Array.isArray(SCHOOL_SESSIONS) || SCHOOL_SESSIONS.length === 0) return;
+
+  // Step 1: Build the set of {empKey, weekIdx} pairs that ARE legitimately
+  // School per SCHOOL_SESSIONS. This is the new source of truth.
+  const validSchoolCells = new Set(); // keys like "Cole,Kolten,1C::64"
+  for (const s of SCHOOL_SESSIONS) {
+    const dates = _parseSessionDate(s.start, s.end);
+    if (!dates) {
+      console.warn(`[school] skipping session — couldn't parse dates: ${s.start} / ${s.end}`);
+      continue;
+    }
+    // Walk every Monday between start and end (inclusive). Multi-week sessions
+    // are uncommon for apprentice school but supported.
+    let cur = new Date(dates.start);
+    // Snap cur to its Monday
+    const dow = cur.getDay();
+    const daysSinceMon = dow === 0 ? 6 : dow - 1;
+    cur.setDate(cur.getDate() - daysSinceMon);
+    cur.setHours(0,0,0,0);
+    while (cur.getTime() <= dates.end.getTime()) {
+      const wkIdx = _weekIndexForDate(cur);
+      if (wkIdx !== null) {
+        for (const empName of (s.emps || [])) {
+          // empName looks like "Cole, Kolten" — find the SCHED key
+          const [last, first] = empName.split(',').map(x => x.trim());
+          if (!last || !first) continue;
+          const key = Object.keys(SCHED).find(k => {
+            const [kl, kf] = k.split(',');
+            return kl === last && kf === first;
+          });
+          if (!key) {
+            console.warn(`[school] no roster row for "${empName}" — skipping`);
+            continue;
+          }
+          validSchoolCells.add(`${key}::${wkIdx}`);
+        }
+      }
+      cur.setDate(cur.getDate() + 7);
+    }
+  }
+
+  // Step 2: For every key in SCHED, walk every week. If that week is in
+  // validSchoolCells, force ['School','School','School','School',''].
+  // If it's NOT in validSchoolCells but currently HAS School, clear those
+  // cells back to '' (workdays only — leave Friday alone since blank Fri
+  // is also '').
+  let written = 0, cleared = 0;
+  for (const empKey of Object.keys(SCHED)) {
+    const weeks = SCHED[empKey];
+    if (!Array.isArray(weeks)) continue;
+    for (let wi = 0; wi < weeks.length; wi++) {
+      const wk = weeks[wi];
+      if (!Array.isArray(wk)) continue;
+      const validHere = validSchoolCells.has(`${empKey}::${wi}`);
+      if (validHere) {
+        // Mon–Thu School, Fri off
+        for (let d = 0; d < 4; d++) {
+          if (wk[d] !== 'School') { wk[d] = 'School'; written++; }
+        }
+        if (wk[4] === 'School') wk[4] = '';
+      } else {
+        // No session for this week — strip any stale School marks
+        for (let d = 0; d < wk.length; d++) {
+          if (wk[d] === 'School') { wk[d] = ''; cleared++; }
+        }
+      }
+    }
+  }
+  if (written || cleared) {
+    console.log(`[school] synced sessions: wrote ${written} School cells, cleared ${cleared} stale ones`);
+  }
+}
+
+// Run the sync NOW so initial render is correct
+applySchoolSessionsToSchedule();
 
 // ── Current user tracking (declared early — referenced by request polling) ──
 let _currentUser = { email: '', name: '', role: '' };
@@ -4849,17 +5173,57 @@ function tagVal(v) { return (!v || v === '') ? '—' : v; }
 // Called automatically on app boot after SCHED is expanded.
 // Idempotent — HOLIDAY cells are only written once per slot.
 // Silent — no confirmation dialog, no toast unless cells were actually changed.
+// Resolve a holiday's OBSERVED date.
+//
+// Per IBEW Local 112 contract section 3.6: weekend holidays shift to a
+// workday — Saturday holidays normally shift to the Friday before,
+// Sunday holidays shift to the Monday after.
+//
+// CREM Inc. company override (per superintendent): we observe Saturday
+// holidays on the THURSDAY before instead of Friday. This gives the crew
+// a 4-day weekend (Thu off, Fri off as the contract pay day, Sat, Sun)
+// rather than a single Friday off. This is a permanent company-wide rule.
+//
+// Sunday rule remains the contract default — observed on the following Monday.
+//
+// Returns the Date object that should actually be marked HOLIDAY in the
+// schedule.
+function _observedHolidayDate(actualDate) {
+  const d = new Date(actualDate);
+  const dow = d.getDay(); // 0=Sun, 6=Sat
+  if (dow === 6) {
+    // Saturday → Thursday before (CREM company rule, 2 days back)
+    d.setDate(d.getDate() - 2);
+  } else if (dow === 0) {
+    // Sunday → following Monday (per contract section 3.6)
+    d.setDate(d.getDate() + 1);
+  }
+  return d;
+}
+
 function applyFederalHolidays(silent = false) {
   let filled = 0;
+  let shifted = 0;
   FEDERAL_HOLIDAYS.forEach(({ name, date }) => {
-    const d = new Date(date + 'T12:00:00');
-    const dow = d.getDay(); // 0=Sun, 6=Sat
-    if (dow === 0 || dow === 6) return; // skip weekends
-    const dayIdx = dow - 1; // Mon=0 … Fri=4
+    const calendar = new Date(date + 'T12:00:00');
+    const calDow = calendar.getDay();
+    // Apply the contract's observance shift for weekend holidays
+    const observed = _observedHolidayDate(calendar);
+    const obsDow = observed.getDay();
+    if (calDow === 0 || calDow === 6) shifted++;
 
-    // Compute weekIdx
-    const diffMs = d - SCHED_CURRENT_WEEK.date;
-    const weekIdx = SCHED_CURRENT_WEEK.index + Math.floor(diffMs / (7 * 86400000));
+    // observed is now guaranteed Mon-Fri (any weekend was shifted)
+    if (obsDow === 0 || obsDow === 6) return; // safety net
+    const dayIdx = obsDow - 1; // Mon=0 … Fri=4
+
+    // Compute weekIdx based on the OBSERVED date, not the calendar date.
+    // Using midnight-of-observed-Monday for stability.
+    const obsMon = new Date(observed);
+    const offsetToMon = (obsMon.getDay() === 0 ? -6 : 1 - obsMon.getDay());
+    obsMon.setDate(obsMon.getDate() + offsetToMon);
+    obsMon.setHours(0, 0, 0, 0);
+    const diffMs = obsMon - SCHED_CURRENT_WEEK.date;
+    const weekIdx = SCHED_CURRENT_WEEK.index + Math.round(diffMs / (7 * 86400000));
     if (weekIdx < 0 || weekIdx >= SCHED_WEEKS_TOTAL) return;
 
     Object.keys(SCHED).forEach(empKey => {
@@ -4884,7 +5248,8 @@ function applyFederalHolidays(silent = false) {
     buildSchedTbody();
     buildSchedThead();
     if (typeof renderJobView === 'function') renderJobView();
-    showToast(`✓ ${FEDERAL_HOLIDAYS.length} holidays applied (${filled} cells updated)`, 'success');
+    const shiftNote = shifted > 0 ? ` · ${shifted} weekend holiday${shifted === 1 ? '' : 's'} shifted to nearest workday` : '';
+    showToast(`✓ ${FEDERAL_HOLIDAYS.length} holidays applied (${filled} cells updated${shiftNote})`, 'success');
   }
 }
 
@@ -8069,17 +8434,100 @@ function renderSchoolGrid() {
     grid.innerHTML = `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--muted);font-size:13px">No school sessions scheduled. Click + Add session to add one.</div>`;
     return;
   }
-  grid.innerHTML = SCHOOL_SESSIONS.map((s, idx) => `
-    <div class="school-card" style="position:relative">
-      <div style="position:absolute;top:6px;right:6px;display:flex;gap:4px">
-        <button class="btn btn-sm" style="padding:1px 7px;font-size:10px" onclick="editSchoolSession(${idx})" title="Edit">✏</button>
-        <button class="btn btn-sm" style="padding:1px 7px;font-size:10px;color:var(--bad);border-color:var(--bad)" onclick="removeSchoolSession(${idx})" title="Remove">×</button>
+
+  // Group every session by class code so the user sees ONE card per class
+  // instead of one card per session week (the CBETA full year has 92
+  // sessions across 20 codes — that's 92 cards otherwise).
+  // Within each class, sessions are sorted chronologically and the next
+  // upcoming session is highlighted. Expanding the card shows the full
+  // year of sessions plus the assigned employees.
+  const today = new Date(); today.setHours(0,0,0,0);
+  const _parseStartDate = (s) => {
+    // s.end always carries the year ("Apr 17, 2026"); s.start often doesn't
+    const yearMatch = s.end.match(/(\d{4})/);
+    if (!yearMatch) return null;
+    const year = parseInt(yearMatch[1], 10);
+    const startStr = s.start.includes(',') ? s.start : `${s.start}, ${year}`;
+    const d = new Date(startStr);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  // Build groups: { code → { sessions[], employees Set } }
+  const groups = new Map();
+  SCHOOL_SESSIONS.forEach((s, originalIdx) => {
+    if (!groups.has(s.code)) groups.set(s.code, { code: s.code, sessions: [], employees: new Set() });
+    const g = groups.get(s.code);
+    g.sessions.push({ ...s, _idx: originalIdx, _date: _parseStartDate(s) });
+    (s.emps || []).forEach(e => g.employees.add(e));
+  });
+
+  // Sort sessions within each group chronologically; pick the "next" upcoming
+  groups.forEach(g => {
+    g.sessions.sort((a, b) => {
+      if (!a._date && !b._date) return 0;
+      if (!a._date) return 1;
+      if (!b._date) return -1;
+      return a._date.getTime() - b._date.getTime();
+    });
+    g.next = g.sessions.find(s => s._date && s._date.getTime() >= today.getTime()) || null;
+    g.lastCompleted = [...g.sessions].reverse().find(s => s._date && s._date.getTime() < today.getTime()) || null;
+  });
+
+  // Sort the groups themselves: alphanumeric by code (1A, 1A(LE), 1B, 1B(LE), 1C, ... 5B)
+  const ordered = [...groups.values()].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+
+  const fmtRange = (s) => `${esc(s.start)} – ${esc(s.end)}`;
+
+  grid.innerHTML = ordered.map((g) => {
+    const empCount = g.employees.size;
+    const empList = empCount > 0
+      ? [...g.employees].sort().map(e => esc(e)).join(', ')
+      : '<em style="color:var(--muted);font-style:italic">No employees assigned</em>';
+
+    const nextLabel = g.next
+      ? `<div style="font-size:10.5px;color:var(--accent-dark);margin-top:4px"><strong>Next:</strong> ${fmtRange(g.next)}</div>`
+      : (g.lastCompleted
+        ? `<div style="font-size:10.5px;color:var(--muted);margin-top:4px"><strong>Last:</strong> ${fmtRange(g.lastCompleted)} <em>(completed)</em></div>`
+        : `<div style="font-size:10.5px;color:var(--muted);margin-top:4px"><em>No scheduled sessions</em></div>`);
+
+    // Each session is a row inside the expandable details. Clicking the
+    // pencil edits the original SCHOOL_SESSIONS index; the × removes it.
+    const sessionRows = g.sessions.map(s => {
+      const isPast = s._date && s._date.getTime() < today.getTime();
+      const isCurrent = s._date && s._date.getTime() === g.next?._date?.getTime();
+      const tone = isCurrent ? 'background:var(--accent-ghost);border-left:3px solid var(--accent)'
+                : isPast ? 'opacity:.55'
+                : '';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;${tone}">
+        <span style="font-size:11px;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${fmtRange(s)}${isCurrent ? ' <strong style="color:var(--accent-dark)">· upcoming</strong>' : isPast ? ' <span style="color:var(--muted)">· past</span>' : ''}</span>
+        <button class="btn btn-sm" style="padding:1px 6px;font-size:10px" onclick="editSchoolSession(${s._idx})" data-tip="Edit this session's dates or employees">✏</button>
+        <button class="btn btn-sm" style="padding:1px 6px;font-size:10px;color:var(--bad);border-color:var(--bad)" onclick="removeSchoolSession(${s._idx})" data-tip="Remove this single session">×</button>
+      </div>`;
+    }).join('');
+
+    return `<details class="school-class-card" style="background:var(--white);border:1px solid var(--line);border-radius:9px;padding:11px 14px">
+      <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px">
+        <div style="display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:36px;border-radius:7px;background:var(--accent-ghost);color:var(--accent-dark);font-weight:700;font-size:13px;letter-spacing:.02em">${esc(g.code)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:600;color:var(--ink)">${esc(g.code)} class</div>
+          <div style="font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px" data-tip="${esc([...g.employees].sort().join(', ') || 'No employees assigned')}">
+            ${empCount} employee${empCount === 1 ? '' : 's'}${empCount > 0 ? ` · ${[...g.employees].sort().slice(0, 2).map(e => esc(e)).join(', ')}${empCount > 2 ? ` +${empCount - 2}` : ''}` : ''}
+          </div>
+          ${nextLabel}
+        </div>
+        <div style="font-size:11px;color:var(--muted);font-weight:500">${g.sessions.length} session${g.sessions.length === 1 ? '' : 's'}</div>
+        <span class="school-card-chev" style="font-size:11px;color:var(--muted);width:14px;text-align:center;transition:transform .18s">▸</span>
+      </summary>
+      <div style="margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft)">
+        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Employees</div>
+        <div style="font-size:11.5px;color:var(--ink);margin-bottom:11px;line-height:1.5">${empList}</div>
+        <div style="font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Sessions (chronological)</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          ${sessionRows}
+        </div>
       </div>
-      <div class="sc-code">${esc(s.code)}</div>
-      <div class="sc-dates">${esc(s.start)} – ${esc(s.end)}</div>
-      <span class="sc-badge">${s.emps.length} emp${s.emps.length !== 1 ? 's' : ''}</span>
-      <div class="sc-emps">${s.emps.map(e => esc(e)).join('<br>')}</div>
-    </div>`).join('');
+    </details>`;
+  }).join('');
 }
 
 function openAddSchoolSession() {
@@ -8325,10 +8773,13 @@ function editSchoolSession(idx) {
 
 function removeSchoolSession(idx) {
   const s = SCHOOL_SESSIONS[idx];
-  if (!confirm(`Remove ${s.code} session (${s.start} – ${s.end}) for ${s.emps.join(', ')}?\n\nThis will NOT automatically clear those employees' schedule cells.`)) return;
+  if (!confirm(`Remove ${s.code} session (${s.start} – ${s.end}) for ${s.emps.join(', ')}?\n\nThis will clear those employees' School cells from the schedule.`)) return;
   SCHOOL_SESSIONS.splice(idx, 1);
+  // Re-sync — applySchoolSessionsToSchedule will clear the now-orphaned School cells
+  if (typeof applySchoolSessionsToSchedule === 'function') applySchoolSessionsToSchedule();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
   renderSchoolGrid();
-  showToast('School session removed', 'success');
+  showToast('School session removed · schedule updated', 'success');
 }
 
 function openSchoolSessionModal(idx, session) {
@@ -8346,11 +8797,14 @@ function openSchoolSessionModal(idx, session) {
   const updated = { code: code.trim(), start: start.trim(), end: end.trim(), emps };
   if (idx === -1) {
     SCHOOL_SESSIONS.push(updated);
-    showToast(`School session ${updated.code} added`, 'success');
+    showToast(`School session ${updated.code} added · schedule updated`, 'success');
   } else {
     SCHOOL_SESSIONS[idx] = updated;
-    showToast(`School session ${updated.code} updated`, 'success');
+    showToast(`School session ${updated.code} updated · schedule updated`, 'success');
   }
+  // Sync the schedule so the new/edited dates land on the correct week
+  if (typeof applySchoolSessionsToSchedule === 'function') applySchoolSessionsToSchedule();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
   renderSchoolGrid();
 }
 
@@ -8617,6 +9071,14 @@ function renderUpcomingJobs() {
 }
 
 function renderRequestsList() {
+  // Defensive: if this fires at module-load time before REQUESTS_DATA or
+  // JOBS are declared (both are `const`s further down the file), bail
+  // silently rather than crashing the whole boot. The proper triggers
+  // (dashboard render, request actions) re-fire this once data is ready.
+  let _requestsData;
+  try { _requestsData = REQUESTS_DATA; } catch { return; }
+  if (!Array.isArray(_requestsData)) return;
+
   // Dashboard preview: top 3 pending requests (short list).
   // Honor the dashboard sector filter — only show requests whose tied job
   // is in the chosen sector.
@@ -8625,13 +9087,13 @@ function renderRequestsList() {
     const sectorFilter = (typeof _dashSectorFilter !== 'undefined') ? _dashSectorFilter : '';
     const matchesSector = (r) => {
       if (!sectorFilter) return true;
-      // Try to resolve the job — request.job may be a number or name
+      // jobByNumber/jobByName are TDZ-safe — return null if JOBS isn't ready
       const job = r.jobNumber ? jobByNumber(r.jobNumber)
                 : r.job        ? (jobByName(r.job) || jobByNumber(r.job))
                                 : null;
       return !!job && job.sector === sectorFilter;
     };
-    const pending = REQUESTS_DATA.filter(r => r.status === 'pending' && matchesSector(r)).slice(0, 3);
+    const pending = _requestsData.filter(r => r.status === 'pending' && matchesSector(r)).slice(0, 3);
     if (pending.length === 0) {
       preview.innerHTML = sectorFilter
         ? `<div style="font-size:11.5px;color:var(--muted);padding:12px 0;text-align:center">No pending requests in <strong>${esc(sectorFilter)}</strong> sector</div>`
@@ -8654,7 +9116,7 @@ function renderRequestsList() {
   // Filter logic:
   //  - "all" → all NON-archived (active set)
   //  - status name → that status (archived shows archived-only)
-  const filtered = REQUESTS_DATA.filter(r => {
+  const filtered = _requestsData.filter(r => {
     if (filter === 'archived') return !!r.archived;
     if (r.archived) return false;
     if (filter === 'all') return true;
@@ -8786,8 +9248,16 @@ async function archiveClosedRequests() {
   showToast(`Archived ${candidates.length} closed request${candidates.length === 1 ? '' : 's'}`, 'success');
 }
 
-// Initial render
-renderRequestsList();
+// Initial render — deferred via setTimeout(0) so the rest of the module
+// finishes parsing first. The const declarations for JOBS, REQUESTS_DATA,
+// ROSTER, SECTORS all live further down in this same script tag; if we
+// call renderRequestsList synchronously here, those bindings are still
+// in their temporal dead zone and the safety guards in jobByNumber etc.
+// quietly return null. Deferring to the next event-loop tick guarantees
+// the whole script has finished and every const is initialized.
+setTimeout(() => {
+  try { renderRequestsList(); } catch (e) { console.warn('[boot] initial requests render failed:', e); }
+}, 0);
 
 // ── Director polling logic ────────────────────────────────────
 // (See cache declarations above renderRequestsList — _DIRECTOR_FALLBACK
@@ -11890,69 +12360,166 @@ function _toISO(d) {
   return `${y}-${m}-${day}`;
 }
 
-function buildUnionHolidays(year) {
-  return [
-    { date: `${year}-07-04`,               name: 'Independence Day' },
-    { date: _toISO(_mondayOfSep(year)),    name: 'Labor Day'         },
-    { date: _toISO(_thursdayOfNov(year)),  name: 'Thanksgiving'      },
-    { date: `${year}-12-25`,               name: 'Christmas'          },
-  ];
-}
+// (buildUnionHolidays / buildFlaggedHolidays / buildFlagOnlyHolidays are
+//  defined further down — they delegate to the catalog + tier overrides
+//  so superintendents can change which bucket each holiday falls into
+//  through the Admin → Holidays UI.)
 
-// Federal/observed holidays the union does NOT recognize. Used for the
-// "heads up" alert panel only. Crews stay scheduled — these never auto-fill.
-function buildFlagOnlyHolidays(year) {
-  // Date math helpers for nth-weekday-of-month
+// FLAGGED holidays (2) — show as a warning in the dashboard alert panel,
+// but do NOT auto-fill HOLIDAY into the schedule. Crews stay scheduled
+// unless leadership explicitly takes the day off. These are visually
+// ── Holiday catalog (canonical list with default tiers) ────────────
+// Single source of truth. Every known holiday gets a unique `key` and a
+// `defaultTier` ('mandatory' | 'flagged' | 'notice'). Users can override
+// any holiday's tier through the Admin → Holidays UI; overrides persist
+// to localStorage so the choice survives reloads.
+function _buildHolidayCatalog(year) {
+  const dayAfterThx = new Date(_thursdayOfNov(year));
+  dayAfterThx.setDate(dayAfterThx.getDate() + 1);
+  const lastMonOfMay = new Date(year, 5, 0);
+  while (lastMonOfMay.getDay() !== 1) lastMonOfMay.setDate(lastMonOfMay.getDate() - 1);
   const nthMon = (mon, nth) => {
     const d = new Date(year, mon, 1);
-    const offset = (8 - d.getDay()) % 7; // days to first Monday
+    const offset = (8 - d.getDay()) % 7;
     d.setDate(1 + offset + (nth - 1) * 7);
     return d;
   };
-  const lastMon = (mon) => {
-    // last day of month, walk back to Mon
-    const last = new Date(year, mon + 1, 0);
-    while (last.getDay() !== 1) last.setDate(last.getDate() - 1);
-    return last;
-  };
-  // Day after Thanksgiving = Friday after the 4th Thursday of November
-  const dayAfterThx = new Date(_thursdayOfNov(year));
-  dayAfterThx.setDate(dayAfterThx.getDate() + 1);
-
+  const colDay = nthMon(9, 2); // 2nd Mon of Oct
   return [
-    { date: `${year}-01-01`,         name: "New Year's Day" },
-    { date: _toISO(nthMon(0, 3)),    name: 'MLK Day' },
-    { date: _toISO(nthMon(1, 3)),    name: "Presidents' Day" },
-    { date: _toISO(lastMon(4)),      name: 'Memorial Day' },
-    { date: `${year}-06-19`,         name: 'Juneteenth' },
-    { date: `${year}-11-11`,         name: 'Veterans Day' },
-    { date: _toISO(dayAfterThx),     name: 'Day after Thanksgiving' },
+    { key:'new_years',     name:"New Year's Day",        date:`${year}-01-01`,                 defaultTier:'mandatory' },
+    { key:'mlk',           name:'MLK Day',               date:_toISO(nthMon(0, 3)),            defaultTier:'flagged'   },
+    { key:'presidents',    name:"Presidents' Day",       date:_toISO(nthMon(1, 3)),            defaultTier:'flagged'   },
+    { key:'memorial',      name:'Memorial Day',          date:_toISO(lastMonOfMay),            defaultTier:'mandatory' },
+    { key:'juneteenth',    name:'Juneteenth',            date:`${year}-06-19`,                 defaultTier:'notice'    },
+    { key:'independence',  name:'Independence Day',      date:`${year}-07-04`,                 defaultTier:'mandatory' },
+    { key:'labor',         name:'Labor Day',             date:_toISO(_mondayOfSep(year)),      defaultTier:'mandatory' },
+    { key:'columbus',      name:'Columbus Day',          date:_toISO(colDay),                  defaultTier:'notice'    },
+    { key:'veterans',      name:'Veterans Day',          date:`${year}-11-11`,                 defaultTier:'mandatory' },
+    { key:'thanksgiving',  name:'Thanksgiving',          date:_toISO(_thursdayOfNov(year)),    defaultTier:'mandatory' },
+    { key:'day_after_thx', name:'Day after Thanksgiving',date:_toISO(dayAfterThx),             defaultTier:'mandatory' },
+    { key:'christmas',     name:'Christmas Day',         date:`${year}-12-25`,                 defaultTier:'mandatory' },
   ];
 }
 
-// Union holidays for the current and next year (schedule can span boundary)
+// User overrides: { 'mlk': 'mandatory', 'juneteenth': 'off', ... }
+// Loaded from localStorage at boot. Empty object = use defaults.
+const _HOLIDAY_OVERRIDES_KEY = 'fieldflow-holiday-tiers-v1';
+let HOLIDAY_TIER_OVERRIDES = {};
+try {
+  const saved = localStorage.getItem(_HOLIDAY_OVERRIDES_KEY);
+  if (saved) HOLIDAY_TIER_OVERRIDES = JSON.parse(saved) || {};
+} catch { HOLIDAY_TIER_OVERRIDES = {}; }
+
+// Custom holidays added by the admin (company-specific days). Stored
+// separately in localStorage as an array of {key, name, date, defaultTier}.
+const _HOLIDAY_CUSTOM_KEY = 'fieldflow-holiday-custom-v1';
+let HOLIDAY_CUSTOM = [];
+try {
+  const saved = localStorage.getItem(_HOLIDAY_CUSTOM_KEY);
+  if (saved) HOLIDAY_CUSTOM = JSON.parse(saved) || [];
+} catch { HOLIDAY_CUSTOM = []; }
+
+// Resolve a holiday's effective tier (default + override).
+function getHolidayTier(key, defaultTier) {
+  return HOLIDAY_TIER_OVERRIDES[key] || defaultTier || 'notice';
+}
+
+// Build the three working arrays from the catalog, applying overrides
+// and including custom holidays. Anything tiered 'off' is excluded entirely.
+function _resolveHolidayBuckets(year) {
+  const catalog = _buildHolidayCatalog(year);
+  // Append custom holidays that fall in this year
+  HOLIDAY_CUSTOM.forEach(c => {
+    if (c.date && c.date.startsWith(String(year))) {
+      catalog.push({ ...c, defaultTier: c.defaultTier || 'notice' });
+    }
+  });
+  const mandatory = [], flagged = [], notice = [];
+  catalog.forEach(h => {
+    const tier = getHolidayTier(h.key, h.defaultTier);
+    if (tier === 'off') return;
+    const entry = { date: h.date, name: h.name, key: h.key };
+    if (tier === 'mandatory')      mandatory.push(entry);
+    else if (tier === 'flagged')   flagged.push(entry);
+    else                            notice.push(entry);
+  });
+  return { mandatory, flagged, notice };
+}
+
+// Wrapper functions kept for backwards compatibility with the rest of
+// the app that already imports buildUnionHolidays/buildFlagged/buildFlagOnly.
+function buildUnionHolidays(year)   { return _resolveHolidayBuckets(year).mandatory; }
+function buildFlaggedHolidays(year) { return _resolveHolidayBuckets(year).flagged;   }
+function buildFlagOnlyHolidays(year){ return _resolveHolidayBuckets(year).notice;    }
+
+// Mandatory union holidays for the current and next year (schedule can span boundary)
 const UNION_HOLIDAYS = [
   ...buildUnionHolidays(new Date().getFullYear()),
   ...buildUnionHolidays(new Date().getFullYear() + 1),
 ];
 
-// Flag-only holidays for the same year span
+// Flagged holidays — shown as warning in dashboard, but crews stay scheduled.
+// Crews CAN still work; superintendents may choose to take the day off.
+const FLAGGED_HOLIDAYS = [
+  ...buildFlaggedHolidays(new Date().getFullYear()),
+  ...buildFlaggedHolidays(new Date().getFullYear() + 1),
+];
+
+// Notice-only holidays — federal holidays not in the above buckets.
+// Just a heads-up alert. Crews stay scheduled.
 const FLAG_ONLY_HOLIDAYS = [
   ...buildFlagOnlyHolidays(new Date().getFullYear()),
   ...buildFlagOnlyHolidays(new Date().getFullYear() + 1),
 ];
 
-// Reassign the legacy FEDERAL_HOLIDAYS alias now that UNION_HOLIDAYS exists.
-// Anything that calls the auto-apply path will only fill the 4 union holidays.
+// Reassign the legacy FEDERAL_HOLIDAYS alias — applyFederalHolidays() only
+// auto-fills the 8 mandatory union holidays. Flagged + notice never write
+// to the schedule cells.
 FEDERAL_HOLIDAYS = UNION_HOLIDAYS;
 
-// Fast lookup: {'2026-07-04': 'Independence Day', ...}
-const UNION_HOLIDAY_MAP = Object.fromEntries(UNION_HOLIDAYS.map(h => [h.date, h.name]));
+// IMPORTANT: the IIFE at the top of the file that expanded SCHED into 105
+// weeks ALSO called applyFederalHolidays(true) — but at that point the
+// FEDERAL_HOLIDAYS array was still empty (it's only populated here). So
+// no holidays got written into the seed. Re-run it now that the holiday
+// array is actually populated.
+if (typeof applyFederalHolidays === 'function') applyFederalHolidays(true);
+
+// Fast lookup maps. Per contract section 3.6, weekend holidays are
+// observed on the nearest workday — so the lookup needs to include BOTH
+// the calendar date (for accurate naming) AND the observed date (so
+// schedule code asking "is this Friday a holiday?" gets the right answer
+// when July 4 falls on Saturday). Each map key points to a value object
+// that distinguishes the two.
+function _buildHolidayLookupMap(list) {
+  const map = {};
+  list.forEach(h => {
+    const cal = new Date(h.date + 'T12:00:00');
+    const obs = _observedHolidayDate(cal);
+    const obsIso = _toISO(obs);
+    map[h.date] = { name: h.name, observed: obsIso, isObservedDate: false };
+    if (obsIso !== h.date) {
+      // Add a second entry for the observed date so lookups by observed
+      // date also resolve. Mark with isObservedDate so downstream code
+      // can tell the difference.
+      map[obsIso] = { name: `${h.name} (observed)`, calendar: h.date, isObservedDate: true };
+    }
+  });
+  return map;
+}
+const UNION_HOLIDAY_MAP   = _buildHolidayLookupMap(UNION_HOLIDAYS);
+const FLAGGED_HOLIDAY_MAP = _buildHolidayLookupMap(FLAGGED_HOLIDAYS);
 
 function isUnionHoliday(dateOrIso) {
   if (!dateOrIso) return null;
   const iso = typeof dateOrIso === 'string' ? dateOrIso : _toISO(dateOrIso);
-  return UNION_HOLIDAY_MAP[iso] || null;
+  const hit = UNION_HOLIDAY_MAP[iso];
+  return hit ? hit.name : null;
+}
+function isFlaggedHoliday(dateOrIso) {
+  if (!dateOrIso) return null;
+  const iso = typeof dateOrIso === 'string' ? dateOrIso : _toISO(dateOrIso);
+  const hit = FLAGGED_HOLIDAY_MAP[iso];
+  return hit ? hit.name : null;
 }
 
 function upcomingUnionHolidays(weeksAhead = 8) {
@@ -11964,9 +12531,21 @@ function upcomingUnionHolidays(weeksAhead = 8) {
   });
 }
 
-// Flag-only holidays: federal holidays the union does NOT recognize. They're
-// surfaced as a softer info alert so leadership knows they're coming, but
-// crews stay scheduled. See FLAG_ONLY_HOLIDAYS at the top of the file.
+// Flagged holidays — MLK Day + Presidents' Day. Show in alert panel as a
+// warning so superintendents know they're coming. Crews stay scheduled
+// unless leadership chooses to take the day off.
+function upcomingFlaggedHolidays(weeksAhead = 8) {
+  const now = new Date();
+  const cutoff = new Date(now.getTime() + weeksAhead * 7 * 86400000);
+  return FLAGGED_HOLIDAYS.filter(h => {
+    const d = new Date(h.date + 'T12:00:00');
+    return d >= now && d <= cutoff;
+  });
+}
+
+// Notice-only holidays: federal holidays not in either of the above buckets.
+// Surfaced as a soft info alert so leadership knows they're coming.
+// Crews stay scheduled. See FLAG_ONLY_HOLIDAYS at the top of the file.
 function upcomingFlagOnlyHolidays(weeksAhead = 8) {
   const now = new Date();
   const cutoff = new Date(now.getTime() + weeksAhead * 7 * 86400000);
@@ -11979,40 +12558,273 @@ function upcomingFlagOnlyHolidays(weeksAhead = 8) {
 function renderUnionHolidayAlerts() {
   const el = document.getElementById('alert-union-holidays');
   if (!el) return;
-  const union = upcomingUnionHolidays(10);
-  const flag  = upcomingFlagOnlyHolidays(10);
+  // Three buckets, three visual treatments:
+  //   • Mandatory union holidays — red/amber pip, "no crew scheduled" sub
+  //   • Flagged (MLK, Presidents' Day) — yellow pip with ⚠, warning sub
+  //   • Notice-only (Juneteenth, Columbus Day) — gray pip, info sub
+  const union   = upcomingUnionHolidays(10);
+  const flagged = upcomingFlaggedHolidays(10);
+  const flag    = upcomingFlagOnlyHolidays(10);
 
+  const fmtDate = (iso) => {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  // Compute observed-date label per contract 3.6. If the calendar date
+  // falls on a weekend, show "Sat Jul 4 → observed Fri Jul 3" so the user
+  // sees both. Otherwise just show the date.
+  const fmtWithObserved = (iso) => {
+    const cal = new Date(iso + 'T12:00:00');
+    const dow = cal.getDay();
+    if (dow !== 0 && dow !== 6) return fmtDate(iso); // weekday — no shift
+    const obs = _observedHolidayDate(cal);
+    const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dow];
+    const obsName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][obs.getDay()];
+    return `${dayName} ${fmtDate(iso)} → observed ${obsName} ${fmtDate(_toISO(obs))}`;
+  };
+
+  // ── Mandatory: amber pip, no crew works ──
   const unionHtml = union.map(h => {
-    const d = new Date(h.date + 'T12:00:00');
-    const nice = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const cal = new Date(h.date + 'T12:00:00');
+    const dow = cal.getDay();
+    let sub;
+    if (dow === 6) {
+      // Saturday — CREM company rule, observe on Thursday before
+      sub = 'Mandatory holiday · Sat → observed Thu before (CREM rule) · auto-filled';
+    } else if (dow === 0) {
+      // Sunday — contract 3.6, observe on Monday after
+      sub = 'Mandatory holiday · Sun → observed Mon after (contract 3.6) · auto-filled';
+    } else {
+      sub = 'Mandatory holiday · no crew scheduled · auto-filled into schedule';
+    }
     return `
       <div class="alert-item">
         <div class="alert-pip" style="background:#D97706"></div>
         <div>
-          <div class="alert-text">${esc(h.name)} — ${esc(nice)}</div>
-          <div class="alert-sub">Union holiday · no crew scheduled</div>
+          <div class="alert-text">${esc(h.name)} — ${esc(fmtWithObserved(h.date))}</div>
+          <div class="alert-sub">${sub}</div>
         </div>
       </div>`;
   }).join('');
 
-  const flagHtml = flag.map(h => {
-    const d = new Date(h.date + 'T12:00:00');
-    const nice = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    return `
+  // ── Flagged: yellow pip with ⚠, warning ──
+  const flaggedHtml = flagged.map(h => `
+      <div class="alert-item" style="background:rgba(250,204,21,0.08);border-left:3px solid #FACC15;padding-left:10px;margin-left:-3px">
+        <div class="alert-pip" style="background:#FACC15"></div>
+        <div>
+          <div class="alert-text">⚠ ${esc(h.name)} — ${esc(fmtWithObserved(h.date))}</div>
+          <div class="alert-sub">Flagged holiday · NOT auto-filled · superintendent decides if crew works</div>
+        </div>
+      </div>`).join('');
+
+  // ── Notice-only: gray pip, soft info ──
+  const flagHtml = flag.map(h => `
       <div class="alert-item" style="opacity:.85">
         <div class="alert-pip" style="background:#94A3B8"></div>
         <div>
-          <div class="alert-text">${esc(h.name)} — ${esc(nice)}</div>
-          <div class="alert-sub">Federal holiday · crews stay scheduled (not a union holiday)</div>
+          <div class="alert-text">${esc(h.name)} — ${esc(fmtWithObserved(h.date))}</div>
+          <div class="alert-sub">Federal holiday · crews stay scheduled (heads-up only)</div>
         </div>
-      </div>`;
-  }).join('');
+      </div>`).join('');
 
-  if (!union.length && !flag.length) {
+  if (!union.length && !flagged.length && !flag.length) {
     el.innerHTML = '';
     return;
   }
-  el.innerHTML = unionHtml + flagHtml;
+  el.innerHTML = unionHtml + flaggedHtml + flagHtml;
+}
+
+// ══════════════════════════════════════════════════════════════
+// HOLIDAYS — Admin → Holidays pane
+// ══════════════════════════════════════════════════════════════
+// Lets superintendents customize each holiday's tier:
+//   mandatory → auto-fill HOLIDAY into the schedule, no crew works
+//   flagged   → warning alert, crew stays scheduled (manual decision)
+//   notice    → soft alert, crew stays scheduled
+//   off       → hidden entirely
+//
+// Choices persist to localStorage, both for built-in holidays (overrides
+// applied to the catalog) and for custom ones (full holiday objects).
+function _persistHolidayState() {
+  try { localStorage.setItem(_HOLIDAY_OVERRIDES_KEY, JSON.stringify(HOLIDAY_TIER_OVERRIDES)); } catch {}
+  try { localStorage.setItem(_HOLIDAY_CUSTOM_KEY, JSON.stringify(HOLIDAY_CUSTOM)); } catch {}
+}
+
+// Re-apply mandatory holidays + re-render alerts after any change. Called
+// after every tier toggle / add / remove so the schedule grid updates.
+function _refreshAfterHolidayChange() {
+  // Clear all auto-filled HOLIDAY cells first so demoted holidays are wiped.
+  // We only clear cells that currently say HOLIDAY — manual edits aren't touched.
+  if (typeof SCHED !== 'undefined') {
+    Object.values(SCHED).forEach(weeks => {
+      if (!Array.isArray(weeks)) return;
+      weeks.forEach(wk => {
+        if (!Array.isArray(wk)) return;
+        for (let i = 0; i < wk.length; i++) {
+          if (wk[i] === 'HOLIDAY') wk[i] = '';
+        }
+      });
+    });
+  }
+  // Now re-fill the (possibly changed) mandatory list
+  if (typeof applyFederalHolidays === 'function') {
+    // Refresh the global FEDERAL_HOLIDAYS reference because the wrapper
+    // function is closure-bound to whatever the catalog returns NOW.
+    if (typeof FEDERAL_HOLIDAYS !== 'undefined' && typeof buildUnionHolidays === 'function') {
+      const yr = new Date().getFullYear();
+      FEDERAL_HOLIDAYS = [...buildUnionHolidays(yr), ...buildUnionHolidays(yr + 1)];
+    }
+    applyFederalHolidays(true);
+  }
+  // Re-render UI surfaces that show holidays
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  if (typeof renderUnionHolidayAlerts === 'function') renderUnionHolidayAlerts();
+  if (typeof renderHolidaysAdmin === 'function') renderHolidaysAdmin();
+}
+
+function setHolidayTier(key, newTier) {
+  if (!key || !['mandatory','flagged','notice','off'].includes(newTier)) return;
+  // First check if it's a custom holiday — if so, mutate the entry directly
+  const customIdx = HOLIDAY_CUSTOM.findIndex(c => c.key === key);
+  if (customIdx >= 0) {
+    HOLIDAY_CUSTOM[customIdx].defaultTier = newTier;
+  } else {
+    // Built-in holiday — store an override
+    HOLIDAY_TIER_OVERRIDES[key] = newTier;
+  }
+  _persistHolidayState();
+  _refreshAfterHolidayChange();
+  if (typeof showToast === 'function') {
+    const tierLabels = { mandatory:'Mandatory', flagged:'Flagged', notice:'Notice', off:'Off' };
+    showToast(`Holiday tier set to ${tierLabels[newTier]}`, 'success');
+  }
+}
+
+function addCustomHoliday() {
+  const nameInput = document.getElementById('new-holiday-name');
+  const dateInput = document.getElementById('new-holiday-date');
+  if (!nameInput || !dateInput) return;
+  const name = (nameInput.value || '').trim();
+  const date = (dateInput.value || '').trim();
+  if (!name) { showToast('Holiday name required', 'error'); return; }
+  if (!date) { showToast('Holiday date required', 'error'); return; }
+  if (HOLIDAY_CUSTOM.some(c => c.name.toLowerCase() === name.toLowerCase() && c.date === date)) {
+    showToast(`"${name}" on that date already exists`, 'error');
+    return;
+  }
+  // Generate a stable key from the name (lowercased, slugged) plus a short suffix
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  const key  = `custom_${slug}_${Math.random().toString(36).slice(2, 6)}`;
+  HOLIDAY_CUSTOM.push({ key, name, date, defaultTier: 'notice' });
+  nameInput.value = '';
+  dateInput.value = '';
+  _persistHolidayState();
+  _refreshAfterHolidayChange();
+  showToast(`Added "${name}" — currently set to Notice. Promote to Mandatory or Flagged from the list.`, 'success');
+}
+
+function removeCustomHoliday(key) {
+  const idx = HOLIDAY_CUSTOM.findIndex(c => c.key === key);
+  if (idx < 0) return;
+  const removed = HOLIDAY_CUSTOM[idx];
+  if (!confirm(`Remove "${removed.name}" (${removed.date})?\n\nIf this was set to Mandatory, its HOLIDAY cells will clear from the schedule on save.`)) return;
+  HOLIDAY_CUSTOM.splice(idx, 1);
+  _persistHolidayState();
+  _refreshAfterHolidayChange();
+  showToast(`Removed "${removed.name}"`, 'success');
+}
+
+function resetHolidayTier(key) {
+  // Drops the override so the catalog default kicks back in
+  if (HOLIDAY_TIER_OVERRIDES[key]) {
+    delete HOLIDAY_TIER_OVERRIDES[key];
+    _persistHolidayState();
+    _refreshAfterHolidayChange();
+    showToast('Reset to default tier', 'success');
+  }
+}
+
+function renderHolidaysAdmin() {
+  const list = document.getElementById('holidays-admin-list');
+  if (!list) return;
+
+  // Build a single year's catalog (current year) for display. Custom
+  // holidays from any year are also shown so admins can manage them.
+  const yr = new Date().getFullYear();
+  const catalog = _buildHolidayCatalog(yr);
+  const customForYear = HOLIDAY_CUSTOM.filter(c => c.date && c.date.startsWith(String(yr)));
+  customForYear.forEach(c => catalog.push({ ...c, isCustom: true }));
+
+  // Sort by date so the user sees holidays in chronological order
+  catalog.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  // Tier metadata for the buttons
+  const tierMeta = {
+    mandatory: { label:'Mandatory', color:'#D97706', tip:'Auto-fills HOLIDAY into the schedule. No crew works this day.' },
+    flagged:   { label:'Flagged',   color:'#CA8A04', tip:'Warning alert in dashboard. Crews stay scheduled — leadership decides per-job.' },
+    notice:    { label:'Notice',    color:'#64748B', tip:'Soft heads-up alert. Crews stay scheduled.' },
+    off:       { label:'Off',       color:'#94A3B8', tip:'Hide this holiday entirely — no alert, no schedule fill.' },
+  };
+
+  list.innerHTML = catalog.map(h => {
+    const currentTier = getHolidayTier(h.key, h.defaultTier);
+    const calDate = new Date(h.date + 'T12:00:00');
+    const calDow = calDate.getDay();
+    const niceDate = (() => {
+      try {
+        return calDate.toLocaleDateString('en-US', { month:'short', day:'numeric', weekday:'short' });
+      } catch { return h.date; }
+    })();
+    // Per contract section 3.6, weekend holidays are observed on the
+    // nearest workday. Show this directly on the row so admins know
+    // why the schedule fills a different day than the calendar shows.
+    let observedNote = '';
+    if (calDow === 0 || calDow === 6) {
+      const obs = _observedHolidayDate(calDate);
+      const obsLabel = obs.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+      observedNote = `<span style="font-size:10px;color:var(--accent-dark);font-weight:500;margin-left:8px;background:var(--accent-faint);padding:1px 6px;border-radius:4px" data-tip="CREM observance rule: Saturday holidays shift to the Thursday before (company-wide rule, gives crews a 4-day weekend). Sunday holidays shift to the Monday after (per IBEW Local 112 contract 3.6).">→ observed ${esc(obsLabel)}</span>`;
+    }
+    const isOverridden = !h.isCustom && HOLIDAY_TIER_OVERRIDES[h.key];
+    const customBadge = h.isCustom
+      ? `<span style="font-size:9px;font-weight:600;background:var(--accent-faint);color:var(--accent-dark);padding:1px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;letter-spacing:.04em">Custom</span>`
+      : '';
+    const overrideBadge = isOverridden
+      ? `<span style="font-size:9px;font-weight:500;color:var(--muted);font-style:italic;margin-left:6px">(default: ${tierMeta[h.defaultTier]?.label || h.defaultTier})</span>`
+      : '';
+
+    // Tier toggle buttons — clicking one swaps the tier
+    const tierButtons = ['mandatory','flagged','notice','off'].map(t => {
+      const meta = tierMeta[t];
+      const isActive = currentTier === t;
+      return `<button class="btn btn-sm" onclick="setHolidayTier('${esc(h.key)}', '${t}')"
+        data-tip="${esc(meta.tip)}"
+        style="padding:3px 9px;font-size:10.5px;${isActive ? `background:${meta.color};border-color:${meta.color};color:#fff;font-weight:600` : ''}">${esc(meta.label)}</button>`;
+    }).join('');
+
+    const rightActions = h.isCustom
+      ? `<button class="btn btn-sm" onclick="removeCustomHoliday('${esc(h.key)}')"
+          data-tip="Delete this custom holiday"
+          style="padding:3px 9px;font-size:10.5px;color:var(--bad);border-color:var(--bad)">×</button>`
+      : (isOverridden
+          ? `<button class="btn btn-sm" onclick="resetHolidayTier('${esc(h.key)}')"
+              data-tip="Reset to the default tier (${esc(tierMeta[h.defaultTier]?.label || h.defaultTier)})"
+              style="padding:3px 9px;font-size:10.5px">↺</button>`
+          : '');
+
+    // Dot color reflects current tier so the row scans visually
+    const tierColor = tierMeta[currentTier]?.color || tierMeta.notice.color;
+
+    return `<div style="display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--white);border:1px solid var(--line);border-radius:8px">
+      <div style="width:9px;height:9px;border-radius:50%;background:${tierColor};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap">${esc(h.name)}${customBadge}${overrideBadge}${observedNote}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:2px">${esc(niceDate)} · ${esc(h.date)}</div>
+      </div>
+      <div style="display:flex;gap:4px">${tierButtons}</div>
+      ${rightActions}
+    </div>`;
+  }).join('');
 }
 
 // Call after DOM renders
@@ -12180,18 +12992,32 @@ function getRoleColor(role) {
   return null;
 }
 
-// Canonical lookup — job number resolves everything else
+// Canonical lookup — job number resolves everything else.
+// Guarded against the temporal dead zone: this file declares JOBS as a
+// `const` on line ~12838, but render functions defined earlier in the
+// file (renderRequestsList, dashboard previews) can fire at module-load
+// time before that declaration runs. Touching `JOBS` at that point throws
+// "Cannot access 'JOBS' before initialization" and halts the script.
+// `typeof JOBS` is NOT safe — TDZ throws on typeof too when the binding
+// is declared later in the same scope with let/const. Only try/catch
+// catches it cleanly. _safeJobs() returns the array or null.
+function _safeJobs() {
+  try { return JOBS; } catch { return null; }
+}
 function jobByNumber(num) {
   if (!num) return null;
-  return JOBS.find(j => j.number === num) || null;
+  const list = _safeJobs();
+  return list ? (list.find(j => j.number === num) || null) : null;
 }
 function jobByName(name) {
   if (!name) return null;
-  return JOBS.find(j => j.name === name) || null;
+  const list = _safeJobs();
+  return list ? (list.find(j => j.name === name) || null) : null;
 }
 function jobById(id) {
   if (!id) return null;
-  return JOBS.find(j => j.id === id) || null;
+  const list = _safeJobs();
+  return list ? (list.find(j => j.id === id) || null) : null;
 }
 // Validate uniqueness at load (prevents silent data corruption)
 (function _validateJobNumbers() {
@@ -12497,13 +13323,17 @@ function isApprentice(role) {
   return role && /^\d/.test(role);
 }
 
-function getJobCrew(j) {
-  // Return all employees currently assigned to this job for the current week.
-  // Reads from SCHED (canonical schedule grid data). Previously read from
-  // DS_SCHEDULE which is only populated by the drag-reassign UI — that meant
-  // crew counted as zero whenever assignments came from the day popover.
+function getJobCrew(j, weekIdx) {
+  // Return all employees currently assigned to this job for the given week,
+  // defaulting to the CURRENT real-world week (not the visible schedule window).
+  // The previous version used `_schedWindowStart` which is the LEFTMOST visible
+  // week — so if the user scrolled forward to a future week with no
+  // assignments, the dashboard quick-look showed "0 on crew" even when the
+  // current week had a full crew assigned. The current week is the right
+  // anchor for "who's on this job right now".
   if (typeof SCHED === 'undefined') return [];
-  const wk = (typeof _schedWindowStart === 'number') ? _schedWindowStart : 0;
+  const wk = (typeof weekIdx === 'number') ? weekIdx :
+             (typeof SCHED_CURRENT_WEEK !== 'undefined' ? SCHED_CURRENT_WEEK.index : 0);
   const seen = new Set();
   const crew = [];
   Object.entries(SCHED).forEach(([key, weeks]) => {
@@ -13422,44 +14252,93 @@ async function saveJobEdit(id) {
 }
 
 // Persist a single job to Supabase. Returns true on success, false on failure.
+//
+// Resilient against schema mismatch: if the full payload includes a column
+// the DB doesn't have (e.g. `requirements`, `doc_path`, `percent_complete`
+// before their migrations have been run), it falls back to a minimal payload
+// containing only the columns guaranteed to exist. This way the user's
+// sector/name/lead/notes changes still persist even on partially-migrated DBs.
 async function persistJob(j) {
   if (typeof _sb === 'undefined' || !_sb) return false;
+  const fullPayload = {
+    id:           j.id,
+    name:         j.name,
+    number:       j.number,
+    location:     j.location || null,
+    sector:       j.sector || null,
+    status:       j.status || 'active',
+    days:         j.days || 5,
+    lead:         j.lead || null,
+    lead_email:   j.leadEmail || null,
+    notes:        j.notes || null,
+    color:        j.color || null,
+    address:      j.address || null,
+    start_date:   j.startDate || null,
+    end_date:     j.endDate || null,
+    percent_complete: j.percentComplete ?? null,
+    doc_path:     j.doc_path || null,
+    doc_name:     j.doc_name || null,
+    requirements: j.requirements || null,
+    updated_at:   new Date().toISOString(),
+  };
+  // Minimal payload — only columns from the original migration 014 schema.
+  // Used as a fallback when the full payload fails due to a missing column.
+  const minimalPayload = {
+    id:         j.id,
+    name:       j.name,
+    number:     j.number,
+    location:   j.location || null,
+    sector:     j.sector || null,
+    status:     j.status || 'active',
+    days:       j.days || 5,
+    lead:       j.lead || null,
+    notes:      j.notes || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Detects errors that mean "you sent a column that doesn't exist" — these
+  // are recoverable by dropping the offending columns and retrying.
+  const isSchemaError = (err) => {
+    const msg = (_errMsg(err) || '').toLowerCase();
+    return msg.includes('column') ||
+           msg.includes('schema cache') ||
+           msg.includes('does not exist') ||
+           msg.includes('pgrst204');
+  };
+
   try {
-    const payload = {
-      id:           j.id,
-      name:         j.name,
-      number:       j.number,
-      location:     j.location || null,
-      sector:       j.sector || null,
-      status:       j.status || 'active',
-      days:         j.days || 5,
-      lead:         j.lead || null,
-      lead_email:   j.leadEmail || null,
-      notes:        j.notes || null,
-      color:        j.color || null,
-      address:      j.address || null,
-      start_date:   j.startDate || null,
-      end_date:     j.endDate || null,
-      percent_complete: j.percentComplete ?? null,
-      doc_path:     j.doc_path || null,
-      doc_name:     j.doc_name || null,
-      requirements: j.requirements || null,
-      updated_at:   new Date().toISOString(),
-    };
-    const { error } = await _sb.from('jobs').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      if (_isCosmeticError(error)) {
-        // Likely saved, just couldn't return response across iframe
-        console.log(`[jobs] ${j.name} (response clone blocked, likely saved)`);
+    const { error } = await _sb.from('jobs').upsert(fullPayload, { onConflict: 'id' });
+    if (!error) {
+      console.log(`[jobs] ✓ saved ${j.name} (${j.number})`);
+      return true;
+    }
+    if (_isCosmeticError(error)) {
+      console.log(`[jobs] ${j.name} (response clone blocked, likely saved)`);
+      return true;
+    }
+    if (isSchemaError(error)) {
+      console.warn(`[jobs] full payload rejected (schema mismatch): ${_errMsg(error)} — retrying with minimal payload`);
+      const r2 = await _sb.from('jobs').upsert(minimalPayload, { onConflict: 'id' });
+      if (!r2.error || _isCosmeticError(r2.error)) {
+        console.log(`[jobs] ✓ saved ${j.name} (minimal — extended columns skipped)`);
         return true;
       }
-      console.error('[jobs] save failed:', _errMsg(error));
+      console.error('[jobs] minimal-payload retry also failed:', _errMsg(r2.error));
       return false;
     }
-    console.log(`[jobs] ✓ saved ${j.name} (${j.number})`);
-    return true;
+    console.error('[jobs] save failed:', _errMsg(error));
+    return false;
   } catch (err) {
     if (_isCosmeticError(err)) return true;
+    if (isSchemaError(err)) {
+      try {
+        const r2 = await _sb.from('jobs').upsert(minimalPayload, { onConflict: 'id' });
+        if (!r2.error || _isCosmeticError(r2.error)) {
+          console.log(`[jobs] ✓ saved ${j.name} (minimal — full payload threw)`);
+          return true;
+        }
+      } catch {}
+    }
     console.error('[jobs] save threw:', _errMsg(err));
     return false;
   }
@@ -13532,10 +14411,11 @@ async function openNewJobForm() {
   if (persisted) {
     showToast(`New job created — edit the name and details, all changes save automatically`, 'success');
   } else {
-    // Persist failed — most common cause is missing 'jobs' table or the
-    // 'notifications' table from the latest migration. Toast points the
-    // user at the right diagnostic step.
-    showToast(`New job created in memory — database sync failed. Re-run migration 014 in Supabase if you haven't, then refresh.`, 'warn');
+    // Persist failed even after the minimal-payload fallback attempt — the
+    // database is genuinely unreachable (network, RLS, or jobs table is
+    // missing entirely). Job stays in memory; user can keep editing and
+    // try again. Most common: jobs table missing → re-run migration 014.
+    showToast(`Job created locally — couldn't reach database. Check console (F12) for the exact error. Re-run migration 014 in Supabase if the jobs table is missing.`, 'warn');
   }
 
   // Auto-focus the name field so the user can rename right away
@@ -13827,6 +14707,19 @@ function applyDayChange(crid, newValue) {
     }
   } else {
     // Fallback: full re-render. Always shows the user the change.
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  }
+
+  // If the schedule is currently grouped (by sector or job) AND the change
+  // affects this week's primary job, the affected row needs to move to a
+  // different group with different sector colors. Rebuild fully so the
+  // user sees the row physically migrate to the right group.
+  const sortKey = document.getElementById('sched-sort')?.value || 'sector';
+  const isGroupedSort = sortKey === 'sector' || sortKey === 'job';
+  const isCurrentWeek = (d.weekIdx === SCHED_CURRENT_WEEK.index);
+  if (isGroupedSort && isCurrentWeek) {
+    // The cell element we already updated will be replaced — that's fine,
+    // the new render is consistent with the underlying SCHED state.
     if (typeof buildSchedTbody === 'function') buildSchedTbody();
   }
 
@@ -14202,11 +15095,8 @@ function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
   }
   // Persist (fire-and-forget, errors filtered)
   if (typeof persistNotification === 'function') persistNotification(record);
-  // Refresh viewer if it's open
-  if (typeof renderNotificationsAdmin === 'function' &&
-      document.getElementById('admin-pane-notifications')?.style.display !== 'none') {
-    renderNotificationsAdmin();
-  }
+  // Refresh the topbar bell so the new entry shows up in the badge + dropdown
+  if (typeof renderNotifBell === 'function') renderNotifBell();
 
   // Single log line per change (was: one per recipient → spam)
   console.log(`[Notify] ${baseMsg}${reqBlock}\n  → notified: ${record.recipients.join(', ') || '(no recipients)'}`);
@@ -14476,22 +15366,25 @@ function adminTab(which) {
   // managed directly in the Supabase dashboard. If anything still tries to
   // open the users tab, fall through to jobs.
   if (which === 'users') which = 'jobs';
-  ['jobs','reassign','transfers','absents','certs','sectors','notifications','system'].forEach(name => {
+  ['jobs','reassign','transfers','absents','certs','sectors','holidays','system'].forEach(name => {
     const pane = document.getElementById('admin-pane-' + name);
     const btn  = document.querySelector(`.admin-tab[data-admin-tab="${name}"]`);
     if (pane) pane.style.display = name === which ? '' : 'none';
     if (btn)  btn.classList.toggle('active', name === which);
   });
   // Refresh data when switching
-  if (which === 'transfers' && typeof renderTransfers === 'function')    renderTransfers();
+  if (which === 'transfers' && typeof renderTransfers === 'function') {
+    renderTransfers();
+    // Crew handoff lives at the top of this pane now — render it too
+    try { renderHandoffPanel('admin-handoff-panel'); } catch {}
+  }
   if (which === 'jobs'      && typeof renderJobManager === 'function')   renderJobManager();
   if (which === 'reassign'  && typeof renderDragSchedule === 'function') renderDragSchedule();
   if (which === 'absents')  renderAbsentsAdmin();
   if (which === 'certs')    renderCertsAdmin();
   if (which === 'sectors')  renderSectorsAdmin();
-  if (which === 'notifications') renderNotificationsAdmin();
+  if (which === 'holidays' && typeof renderHolidaysAdmin === 'function') renderHolidaysAdmin();
   if (which === 'system') {
-    try { renderHandoffPanel('admin-handoff-panel'); } catch {}
     try { loadHRContact(); } catch {}
     // Sync the dark-mode button visuals to current state
     try {
@@ -14503,66 +15396,159 @@ function adminTab(which) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// NOTIFICATIONS — admin viewer + DB persistence
+// NOTIFICATION BELL — replaces the admin Notifications pane
 // ══════════════════════════════════════════════════════════════
-function renderNotificationsAdmin() {
-  const list  = document.getElementById('notifications-admin-list');
-  const empty = document.getElementById('notifications-admin-empty');
+// The bell lives in the topbar so the audit log is one click from
+// anywhere. NOTIFICATIONS data store, persistNotification(), and
+// loadNotifications() all stay the same — only the viewer moved.
+//
+// Read state is tracked by a single timestamp (_lastNotifReadAt). Any
+// notification newer than that timestamp counts as unread → contributes
+// to the badge count. Persists to localStorage.
+
+const _NOTIF_READ_KEY = 'fieldflow-notif-last-read';
+let _lastNotifReadAt = 0;
+try {
+  const saved = localStorage.getItem(_NOTIF_READ_KEY);
+  if (saved) _lastNotifReadAt = parseInt(saved, 10) || 0;
+} catch {}
+
+let _notifBellOpen = false;
+
+function _unreadNotifCount() {
+  if (!Array.isArray(NOTIFICATIONS)) return 0;
+  return NOTIFICATIONS.filter(n => {
+    const t = new Date(n.at).getTime();
+    return t > _lastNotifReadAt;
+  }).length;
+}
+
+function _relTime(iso) {
+  const t = new Date(iso).getTime();
+  const diff = Date.now() - t;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function renderNotifBell() {
+  const badge = document.getElementById('ff-bell-badge');
+  if (badge) {
+    const unread = _unreadNotifCount();
+    if (unread > 0) {
+      badge.textContent = unread > 99 ? '99+' : String(unread);
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  // Only re-render the dropdown body when it's open (saves work)
+  if (_notifBellOpen) renderNotifBellDropdown();
+}
+
+function renderNotifBellDropdown() {
+  const list  = document.getElementById('ff-bell-list');
+  const empty = document.getElementById('ff-bell-empty');
+  const meta  = document.getElementById('ff-bell-meta');
   if (!list) return;
 
-  const q = (document.getElementById('notif-search')?.value || '').toLowerCase().trim();
-  const rows = NOTIFICATIONS.filter(n => {
-    if (!q) return true;
-    return [n.employee, n.changer, n.old_value, n.new_value, ...(n.recipients || [])]
-      .join(' ').toLowerCase().includes(q);
-  });
+  const all = Array.isArray(NOTIFICATIONS) ? NOTIFICATIONS : [];
+  const unreadCount = _unreadNotifCount();
+  if (meta) {
+    meta.textContent = unreadCount > 0
+      ? `${unreadCount} new · ${all.length} total`
+      : (all.length === 0 ? 'No new notifications' : `${all.length} total`);
+  }
 
-  if (rows.length === 0) {
+  if (all.length === 0) {
     list.innerHTML = '';
     if (empty) empty.style.display = '';
     return;
   }
   if (empty) empty.style.display = 'none';
 
-  // Friendly relative time
-  const relTime = (iso) => {
-    const t = new Date(iso).getTime();
-    const diff = Date.now() - t;
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'just now';
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    const d = Math.floor(h / 24);
-    if (d < 7) return `${d}d ago`;
-    return new Date(iso).toLocaleDateString();
-  };
-
-  list.innerHTML = rows.slice(0, 200).map(n => {
+  // Render the most recent 50 — the full audit lives in DB if needed
+  list.innerHTML = all.slice(0, 50).map(n => {
+    const t = new Date(n.at).getTime();
+    const isUnread = t > _lastNotifReadAt;
     const direction = n.old_value && n.new_value
       ? `${esc(n.old_value)} → ${esc(n.new_value)}`
       : n.new_value
         ? `assigned to ${esc(n.new_value)}`
         : `cleared from ${esc(n.old_value || 'job')}`;
-    const reqExcerpt = n.requirements
-      ? `<details style="margin-top:6px"><summary style="cursor:pointer;font-size:11px;color:var(--muted)">View site requirements sent</summary><pre style="font-size:10.5px;color:var(--ink-soft);white-space:pre-wrap;background:var(--surface-2);padding:8px 10px;border-radius:6px;margin-top:5px;font-family:var(--mono)">${esc(n.requirements.trim())}</pre></details>`
+    const recipientsLine = n.recipients && n.recipients.length
+      ? `<div style="font-size:9.5px;color:var(--muted);margin-top:3px;line-height:1.4">→ ${n.recipients.slice(0, 3).map(r => esc(r)).join(' · ')}${n.recipients.length > 3 ? ` · +${n.recipients.length - 3}` : ''}</div>`
       : '';
-    return `<div style="padding:10px 13px;background:var(--white);border:1px solid var(--line);border-radius:8px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px">
-        <div style="font-size:12.5px;color:var(--ink)">
-          <strong>${esc(n.employee)}</strong> · ${direction}
+    return `<div style="padding:9px 11px;background:${isUnread ? 'var(--accent-faint)' : 'var(--surface-2)'};border-left:3px solid ${isUnread ? 'var(--accent)' : 'transparent'};border-radius:5px;margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <div style="font-size:11.5px;color:var(--ink);line-height:1.4;flex:1;min-width:0">
+          <strong style="color:var(--ink)">${esc(n.employee)}</strong>
+          <span style="color:var(--muted)"> · </span>${direction}
         </div>
-        <div style="font-size:10px;color:var(--muted);white-space:nowrap;font-family:var(--mono)" data-tip="${esc(new Date(n.at).toLocaleString())}">${relTime(n.at)}</div>
+        <div style="font-size:9.5px;color:var(--muted);white-space:nowrap;font-family:var(--mono)" data-tip="${esc(new Date(n.at).toLocaleString())}">${_relTime(n.at)}</div>
       </div>
-      <div style="font-size:10.5px;color:var(--muted);line-height:1.5">
-        Changed by <strong style="color:var(--ink-soft)">${esc(n.changer)}</strong>
-        ${n.recipients && n.recipients.length ? ` · pinged ${n.recipients.length} ${n.recipients.length === 1 ? 'person' : 'people'}` : ''}
-      </div>
-      ${n.recipients && n.recipients.length ? `<div style="font-size:10px;color:var(--muted);margin-top:3px">${n.recipients.map(r => `<span style="display:inline-block;background:var(--accent-faint);color:var(--accent-dark);padding:1px 7px;border-radius:8px;margin:1px 3px 1px 0;font-weight:500">${esc(r)}</span>`).join('')}</div>` : ''}
-      ${reqExcerpt}
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">by ${esc(n.changer || 'unknown')}</div>
+      ${recipientsLine}
     </div>`;
   }).join('') +
-    (rows.length > 200 ? `<div style="text-align:center;padding:12px;font-size:11px;color:var(--muted)">Showing 200 of ${rows.length} — refine your search to see more</div>` : '');
+    (all.length > 50 ? `<div style="text-align:center;padding:8px;font-size:10.5px;color:var(--muted)">Showing 50 of ${all.length}</div>` : '');
+}
+
+function toggleNotifBell(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('ff-bell-dropdown');
+  if (!dropdown) return;
+  _notifBellOpen = !_notifBellOpen;
+  dropdown.style.display = _notifBellOpen ? 'flex' : 'none';
+  if (_notifBellOpen) {
+    renderNotifBellDropdown();
+    // Auto-mark-as-read 1.5s after opening so the user sees the unread
+    // highlights first, then they fade on next open.
+    setTimeout(() => {
+      if (_notifBellOpen) {
+        _lastNotifReadAt = Date.now();
+        try { localStorage.setItem(_NOTIF_READ_KEY, String(_lastNotifReadAt)); } catch {}
+        const badge = document.getElementById('ff-bell-badge');
+        if (badge) badge.style.display = 'none';
+      }
+    }, 1500);
+  }
+}
+
+function markAllNotifsRead() {
+  _lastNotifReadAt = Date.now();
+  try { localStorage.setItem(_NOTIF_READ_KEY, String(_lastNotifReadAt)); } catch {}
+  renderNotifBell();
+  if (typeof showToast === 'function') showToast('All notifications marked read', 'success');
+}
+
+// Click-outside-to-close
+document.addEventListener('click', (e) => {
+  if (!_notifBellOpen) return;
+  const dropdown = document.getElementById('ff-bell-dropdown');
+  const button   = document.getElementById('ff-bell-btn');
+  if (!dropdown || !button) return;
+  if (dropdown.contains(e.target) || button.contains(e.target)) return;
+  _notifBellOpen = false;
+  dropdown.style.display = 'none';
+});
+
+// Backwards compatibility — anything that called renderNotificationsAdmin
+// before now redirects to the bell renderer. Keeps stray callers working.
+function renderNotificationsAdmin() {
+  return renderNotifBell();
+}
+
+// Initial paint so the badge is correct right after boot
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderNotifBell);
+} else {
+  setTimeout(renderNotifBell, 100);
 }
 
 async function persistNotification(record) {
@@ -14616,6 +15602,8 @@ async function loadNotifications() {
       }));
       console.log(`[notifications] loaded ${NOTIFICATIONS.length} from DB`);
     }
+    // Refresh the topbar bell so badge + dropdown reflect the loaded set
+    if (typeof renderNotifBell === 'function') renderNotifBell();
   } catch (err) {
     if (typeof _isCosmeticError === 'function' && _isCosmeticError(err)) return;
     console.warn('[notifications] load threw:', _errMsg ? _errMsg(err) : err);
@@ -15883,19 +16871,22 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
+// ── Production boot ─────────────────────────────────────────────
+// Auth gate is active: the login screen shows by default, the user
+// authenticates against Supabase, and the app only swaps in once
+// allowed_users confirms their access.
+//
+// Robust against iframe / embed contexts where _sb.auth.getSession()
+// may hang indefinitely (corporate proxies, storage-isolation policies
+// in sandboxed iframes). Strategy:
+//   1. Show the login screen immediately so the user always sees something.
+//   2. Race the session check against a 2.5-second timeout.
+//   3. If a session resolves and is authorized, swap to the app.
+//   4. If anything errors or times out, stay on the login screen.
+//
+// To re-enable testing-mode bypass for development, replace the call
+// below with the testing-mode IIFE preserved at the bottom of this file.
 (async () => {
-  // Production auth: session restore or login screen.
-  //
-  // Robust against iframe / embed contexts where _sb.auth.getSession() may
-  // hang indefinitely (corporate proxies, storage-isolation policies in
-  // sandboxed iframes, etc.). The strategy:
-  //   1. Show the login screen immediately so the user always sees something.
-  //   2. Race the session check against a 2.5-second timeout.
-  //   3. If a session resolves and is authorized, swap to the app.
-  //   4. If anything errors or times out, stay on the login screen.
-  //
-  // This guarantees no blank white screen — there's always either login UI
-  // or app UI visible within a few hundred ms of the script running.
   try { ffShowLogin(); } catch (e) { console.error('[boot] ffShowLogin threw', e); }
 
   const sessionPromise = _sb.auth.getSession()
@@ -15911,9 +16902,8 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     session = null;
   }
 
-  if (!session) return; // login already showing
+  if (!session) return; // login screen already showing
 
-  // Session exists — verify it against allowed_users and swap to the app
   try {
     const allowed = await ffAllowed(session.user.email);
     if (allowed) {
@@ -15924,14 +16914,41 @@ _sb.auth.onAuthStateChange(async (event, session) => {
       refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
       loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
     } else {
+      // Email is logged in to Supabase Auth but isn't in allowed_users —
+      // sign them out and leave the login screen showing
       _sb.auth.signOut().catch(() => {});
-      // login already showing
     }
   } catch (err) {
     console.error('[boot] Post-session verification failed:', err);
-    // login already showing
   }
 })();
+
+// ── Testing-mode bypass — DEV ONLY ──────────────────────────────
+// Preserved here for fast iteration during development. To activate:
+//  1. Comment out the production IIFE above
+//  2. Uncomment the IIFE below
+//  3. Flip the HTML defaults at the top of <body> back to:
+//     <div id="ff-login" style="display:none;...">
+//     <div id="ff-topbar" style="display:flex;...">
+//     <div id="ff-app" style="display:block">
+//
+/*
+(async () => {
+  try {
+    const l = document.getElementById('ff-login');
+    if (l) l.style.display = 'none';
+    ffShowApp('test@crem-inc.com', 'Test User', 'superintendent');
+    loadPersistedData().catch(err => console.warn('[load] failed', err));
+    loadSectors().catch(err => console.warn('[sectors] load failed', err));
+    loadNotifications().catch(err => console.warn('[notifications] load failed', err));
+    refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+    loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+    console.log('[boot] testing mode active — login bypassed');
+  } catch (err) {
+    console.error('[boot] testing-mode launch failed', err);
+  }
+})();
+*/
 
 // ── Load persisted data from Supabase ──────────────────────
 // Pulls schedule overrides, transfers, requests so state survives reloads.
