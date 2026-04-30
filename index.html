@@ -4823,139 +4823,155 @@ function schedDayLabel(wkIdx, dayIdx) {
 // The `emps` array tells the system WHICH employees in this tier should be
 // marked. Add/remove employee names there to adjust who attends each session.
 // Multiple employees in the same tier all attend the same week.
+// ─── 2025-2026 CBETA Class Calendar (full year) ────────────────────
+// Parsed from CBETA's official PDF (Rev 10/15/25). Source of truth is
+// the PDF — applySchoolSessionsToSchedule() reads this array at boot
+// and writes School to Mon-Thu of the matching week for each listed emp.
+//
+// Roster mapping (each apprentice in the roster gets matched to their tier):
+//   Davis, Jayden ........ 1A    Pierce, Ernest ....... 2A
+//   Cole, Kolten ......... 1C    Mellotte, Colby ...... 2B
+//   Campuzano, Eric ...... 1E    Kegel, Alex .......... 2D
+//   Robins, Jason ........ 4A    Sholotyuk, Alexsei ... 2E
+//   Fellows, Shay ........ 4B    Reynolds, Brendan .... 5A
+//   Gunderson, Hunter .... 4B    Walker, Rodger ....... 5A
+//   Ortega, Miguel ....... 5B
+//
+// Tiers without named employees keep emps:[] as placeholders. When a
+// new apprentice is added, just include their name in the matching
+// session entries below and the schedule auto-fills.
 const SCHOOL_SESSIONS = [
-  // ─── 1A (1st-year apprentice, A-track) — Davis, Jayden ───
-  {code:'1A', start:'Sep 8',  end:'Sep 12, 2025',emps:['Davis, Jayden']},
+  // ─── 1A (1st-year, A-track) — Davis, Jayden ───
   {code:'1A', start:'Oct 13', end:'Oct 17, 2025',emps:['Davis, Jayden']},
   {code:'1A', start:'Dec 8',  end:'Dec 12, 2025',emps:['Davis, Jayden']},
   {code:'1A', start:'Feb 2',  end:'Feb 6, 2026', emps:['Davis, Jayden']},
   {code:'1A', start:'Mar 16', end:'Mar 20, 2026',emps:['Davis, Jayden']},
+  {code:'1A', start:'May 4',  end:'May 8, 2026', emps:['Davis, Jayden']},
 
-  // ─── 1B (1st-year apprentice, B-track) ───
-  {code:'1B', start:'Sep 15', end:'Sep 19, 2025',emps:[]},
-  {code:'1B', start:'Oct 27', end:'Oct 31, 2025',emps:[]},
+  // ─── 1B (1st-year, B-track) ───
+  {code:'1B', start:'Oct 20', end:'Oct 24, 2025',emps:[]},
   {code:'1B', start:'Dec 15', end:'Dec 19, 2025',emps:[]},
   {code:'1B', start:'Feb 9',  end:'Feb 13, 2026',emps:[]},
+  {code:'1B', start:'Mar 23', end:'Mar 27, 2026',emps:[]},
+  {code:'1B', start:'May 11', end:'May 15, 2026',emps:[]},
 
-  // ─── 1C (1st-year apprentice, C-track) — Cole, Kolten ───
-  {code:'1C', start:'Oct 13', end:'Oct 17, 2025',emps:['Cole, Kolten']},
-  {code:'1C', start:'Dec 8',  end:'Dec 12, 2025',emps:['Cole, Kolten']},
-  {code:'1C', start:'Feb 2',  end:'Feb 6, 2026', emps:['Cole, Kolten']},
-  {code:'1C', start:'Mar 16', end:'Mar 20, 2026',emps:['Cole, Kolten']},
-  {code:'1C', start:'May 4',  end:'May 8, 2026', emps:['Cole, Kolten']},
+  // ─── 1C (1st-year, C-track) — Cole, Kolten ───
+  {code:'1C', start:'Oct 27', end:'Oct 31, 2025',emps:['Cole, Kolten']},
+  {code:'1C', start:'Jan 5',  end:'Jan 9, 2026', emps:['Cole, Kolten']},
+  {code:'1C', start:'Feb 16', end:'Feb 20, 2026',emps:['Cole, Kolten']},
+  {code:'1C', start:'Mar 30', end:'Apr 3, 2026', emps:['Cole, Kolten']},
+  {code:'1C', start:'May 18', end:'May 22, 2026',emps:['Cole, Kolten']},
 
-  // ─── 1D (1st-year apprentice, D-track) ───
-  {code:'1D', start:'Oct 20', end:'Oct 24, 2025',emps:[]},
-  {code:'1D', start:'Dec 15', end:'Dec 19, 2025',emps:[]},
-  {code:'1D', start:'Feb 9',  end:'Feb 13, 2026',emps:[]},
-  {code:'1D', start:'Mar 23', end:'Mar 27, 2026',emps:[]},
-  {code:'1D', start:'May 11', end:'May 15, 2026',emps:[]},
+  // ─── 1D (1st-year, D-track) ───
+  {code:'1D', start:'Nov 3',  end:'Nov 7, 2025', emps:[]},
+  {code:'1D', start:'Jan 12', end:'Jan 16, 2026',emps:[]},
+  {code:'1D', start:'Feb 23', end:'Feb 27, 2026',emps:[]},
+  {code:'1D', start:'Apr 13', end:'Apr 17, 2026',emps:[]},
+  {code:'1D', start:'Jun 1',  end:'Jun 5, 2026', emps:[]},
 
-  // ─── 1E (1st-year apprentice, E-track) — Campuzano, Eric ───
-  {code:'1E', start:'Oct 27', end:'Oct 31, 2025',emps:['Campuzano, Eric']},
-  {code:'1E', start:'Jan 5',  end:'Jan 9, 2026', emps:['Campuzano, Eric']},
-  {code:'1E', start:'Feb 16', end:'Feb 20, 2026',emps:['Campuzano, Eric']},
-  {code:'1E', start:'Mar 30', end:'Apr 3, 2026', emps:['Campuzano, Eric']},
-  {code:'1E', start:'May 18', end:'May 22, 2026',emps:['Campuzano, Eric']},
+  // ─── 1E (1st-year, E-track) — Campuzano, Eric ───
+  {code:'1E', start:'Dec 1',  end:'Dec 5, 2025', emps:['Campuzano, Eric']},
+  {code:'1E', start:'Jan 26', end:'Jan 30, 2026',emps:['Campuzano, Eric']},
+  {code:'1E', start:'Mar 9',  end:'Mar 13, 2026',emps:['Campuzano, Eric']},
+  {code:'1E', start:'Apr 27', end:'May 1, 2026', emps:['Campuzano, Eric']},
+  {code:'1E', start:'Jun 1',  end:'Jun 5, 2026', emps:['Campuzano, Eric']},
 
   // ─── 1A (LE) — Late entry track ───
-  {code:'1A(LE)', start:'Nov 3', end:'Nov 7, 2025', emps:[]},
-  {code:'1A(LE)', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
-  {code:'1A(LE)', start:'Feb 23',end:'Feb 27, 2026',emps:[]},
-  {code:'1A(LE)', start:'Apr 13',end:'Apr 17, 2026',emps:[]},
-  {code:'1A(LE)', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+  {code:'1A(LE)', start:'Nov 3',  end:'Nov 7, 2025', emps:[]},
+  {code:'1A(LE)', start:'Jan 12', end:'Jan 16, 2026',emps:[]},
+  {code:'1A(LE)', start:'Feb 23', end:'Feb 27, 2026',emps:[]},
+  {code:'1A(LE)', start:'Apr 13', end:'Apr 17, 2026',emps:[]},
+  {code:'1A(LE)', start:'Jun 8',  end:'Jun 12, 2026',emps:[]},
 
   // ─── 1B (LE) ───
-  {code:'1B(LE)', start:'Dec 1', end:'Dec 5, 2025', emps:[]},
-  {code:'1B(LE)', start:'Jan 26',end:'Jan 30, 2026',emps:[]},
-  {code:'1B(LE)', start:'Mar 9', end:'Mar 13, 2026',emps:[]},
-  {code:'1B(LE)', start:'Apr 27',end:'May 1, 2026', emps:[]},
-  {code:'1B(LE)', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+  {code:'1B(LE)', start:'Dec 1',  end:'Dec 5, 2025', emps:[]},
+  {code:'1B(LE)', start:'Jan 26', end:'Jan 30, 2026',emps:[]},
+  {code:'1B(LE)', start:'Mar 9',  end:'Mar 13, 2026',emps:[]},
+  {code:'1B(LE)', start:'Apr 27', end:'May 1, 2026', emps:[]},
+  {code:'1B(LE)', start:'Jun 15', end:'Jun 19, 2026',emps:[]},
 
-  // ─── 2A (2nd-year apprentice, A-track) — Pierce, Ernest ───
-  {code:'2A', start:'Nov 3', end:'Nov 7, 2025', emps:['Pierce, Ernest']},
-  {code:'2A', start:'Jan 12',end:'Jan 16, 2026',emps:['Pierce, Ernest']},
-  {code:'2A', start:'Feb 23',end:'Feb 27, 2026',emps:['Pierce, Ernest']},
-  {code:'2A', start:'Apr 13',end:'Apr 17, 2026',emps:['Pierce, Ernest']},
-  {code:'2A', start:'Jun 1', end:'Jun 5, 2026', emps:['Pierce, Ernest']},
+  // ─── 2A (2nd-year, A-track) — Pierce, Ernest ───
+  {code:'2A', start:'Oct 13', end:'Oct 17, 2025',emps:['Pierce, Ernest']},
+  {code:'2A', start:'Dec 8',  end:'Dec 12, 2025',emps:['Pierce, Ernest']},
+  {code:'2A', start:'Feb 2',  end:'Feb 6, 2026', emps:['Pierce, Ernest']},
+  {code:'2A', start:'Mar 16', end:'Mar 20, 2026',emps:['Pierce, Ernest']},
+  {code:'2A', start:'May 4',  end:'May 8, 2026', emps:['Pierce, Ernest']},
 
-  // ─── 2B (2nd-year apprentice, B-track) — Mellotte, Colby ───
-  {code:'2B', start:'Dec 1', end:'Dec 5, 2025', emps:['Mellotte, Colby']},
-  {code:'2B', start:'Jan 26',end:'Jan 30, 2026',emps:['Mellotte, Colby']},
-  {code:'2B', start:'Mar 9', end:'Mar 13, 2026',emps:['Mellotte, Colby']},
-  {code:'2B', start:'Apr 27',end:'May 1, 2026', emps:['Mellotte, Colby']},
-  {code:'2B', start:'Jun 1', end:'Jun 5, 2026', emps:['Mellotte, Colby']},
+  // ─── 2B (2nd-year, B-track) — Mellotte, Colby ───
+  {code:'2B', start:'Oct 20', end:'Oct 24, 2025',emps:['Mellotte, Colby']},
+  {code:'2B', start:'Dec 15', end:'Dec 19, 2025',emps:['Mellotte, Colby']},
+  {code:'2B', start:'Feb 9',  end:'Feb 13, 2026',emps:['Mellotte, Colby']},
+  {code:'2B', start:'Mar 23', end:'Mar 27, 2026',emps:['Mellotte, Colby']},
+  {code:'2B', start:'May 11', end:'May 15, 2026',emps:['Mellotte, Colby']},
 
-  // ─── 2C (2nd-year apprentice, C-track) ───
-  {code:'2C', start:'Nov 3', end:'Nov 7, 2025', emps:[]},
-  {code:'2C', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
-  {code:'2C', start:'Feb 23',end:'Feb 27, 2026',emps:[]},
-  {code:'2C', start:'Apr 13',end:'Apr 17, 2026',emps:[]},
-  {code:'2C', start:'Jun 8', end:'Jun 12, 2026',emps:[]},
+  // ─── 2C (2nd-year, C-track) ───
+  {code:'2C', start:'Oct 27', end:'Oct 31, 2025',emps:[]},
+  {code:'2C', start:'Jan 5',  end:'Jan 9, 2026', emps:[]},
+  {code:'2C', start:'Feb 16', end:'Feb 20, 2026',emps:[]},
+  {code:'2C', start:'Mar 30', end:'Apr 3, 2026', emps:[]},
+  {code:'2C', start:'May 18', end:'May 22, 2026',emps:[]},
 
-  // ─── 2D (2nd-year apprentice, D-track) — Kegel, Alex ───
-  {code:'2D', start:'Dec 1', end:'Dec 5, 2025', emps:['Kegel, Alex']},
-  {code:'2D', start:'Jan 26',end:'Jan 30, 2026',emps:['Kegel, Alex']},
-  {code:'2D', start:'Mar 9', end:'Mar 13, 2026',emps:['Kegel, Alex']},
-  {code:'2D', start:'Apr 27',end:'May 1, 2026', emps:['Kegel, Alex']},
-  {code:'2D', start:'Jun 15',end:'Jun 19, 2026',emps:['Kegel, Alex']},
+  // ─── 2D (2nd-year, D-track) — Kegel, Alex ───
+  {code:'2D', start:'Nov 3',  end:'Nov 7, 2025', emps:['Kegel, Alex']},
+  {code:'2D', start:'Jan 12', end:'Jan 16, 2026',emps:['Kegel, Alex']},
+  {code:'2D', start:'Feb 23', end:'Feb 27, 2026',emps:['Kegel, Alex']},
+  {code:'2D', start:'Apr 13', end:'Apr 17, 2026',emps:['Kegel, Alex']},
+  {code:'2D', start:'Jun 1',  end:'Jun 5, 2026', emps:['Kegel, Alex']},
 
-  // ─── 2E (2nd-year apprentice, E-track) — Sholotyuk, Alexsei ───
-  // Five sessions: 09/08, 10/13, 12/08, 02/02 (per PDF column for 2E)
-  {code:'2E', start:'Sep 8', end:'Sep 12, 2025',emps:['Sholotyuk, Alexsei']},
-  {code:'2E', start:'Oct 13',end:'Oct 17, 2025',emps:['Sholotyuk, Alexsei']},
-  {code:'2E', start:'Dec 8', end:'Dec 12, 2025',emps:['Sholotyuk, Alexsei']},
-  {code:'2E', start:'Feb 2', end:'Feb 6, 2026', emps:['Sholotyuk, Alexsei']},
+  // ─── 2E (2nd-year, E-track) — Sholotyuk, Alexsei ───
+  {code:'2E', start:'Nov 17', end:'Nov 21, 2025',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Jan 19', end:'Jan 23, 2026',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Mar 2',  end:'Mar 6, 2026', emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Apr 20', end:'Apr 24, 2026',emps:['Sholotyuk, Alexsei']},
+  {code:'2E', start:'Jun 8',  end:'Jun 12, 2026',emps:['Sholotyuk, Alexsei']},
 
-  // ─── 3A (3rd-year apprentice, A-track) ───
-  {code:'3A', start:'Sep 22',end:'Sep 26, 2025',emps:[]},
-  {code:'3A', start:'Jan 5', end:'Jan 9, 2026', emps:[]},
-  {code:'3A', start:'Mar 16',end:'Mar 20, 2026',emps:[]},
-  {code:'3A', start:'May 11',end:'May 15, 2026',emps:[]},
+  // ─── 3A (3rd-year, A-track) ───
+  {code:'3A', start:'Sep 22', end:'Sep 26, 2025',emps:[]},
+  {code:'3A', start:'Jan 5',  end:'Jan 9, 2026', emps:[]},
+  {code:'3A', start:'Mar 16', end:'Mar 20, 2026',emps:[]},
+  {code:'3A', start:'May 11', end:'May 15, 2026',emps:[]},
 
-  // ─── 3B (3rd-year apprentice, B-track) ───
-  {code:'3B', start:'Sep 29',end:'Oct 3, 2025', emps:[]},
-  {code:'3B', start:'Jan 12',end:'Jan 16, 2026',emps:[]},
-  {code:'3B', start:'Mar 23',end:'Mar 27, 2026',emps:[]},
-  {code:'3B', start:'May 18',end:'May 22, 2026',emps:[]},
+  // ─── 3B (3rd-year, B-track) ───
+  {code:'3B', start:'Sep 29', end:'Oct 3, 2025', emps:[]},
+  {code:'3B', start:'Jan 12', end:'Jan 16, 2026',emps:[]},
+  {code:'3B', start:'Mar 23', end:'Mar 27, 2026',emps:[]},
+  {code:'3B', start:'May 18', end:'May 22, 2026',emps:[]},
 
-  // ─── 3C (3rd-year apprentice, C-track) ───
-  {code:'3C', start:'Oct 6', end:'Oct 10, 2025',emps:[]},
-  {code:'3C', start:'Jan 19',end:'Jan 23, 2026',emps:[]},
-  {code:'3C', start:'Mar 30',end:'Apr 3, 2026', emps:[]},
-  {code:'3C', start:'Jun 1', end:'Jun 5, 2026', emps:[]},
+  // ─── 3C (3rd-year, C-track) ───
+  {code:'3C', start:'Oct 6',  end:'Oct 10, 2025',emps:[]},
+  {code:'3C', start:'Jan 19', end:'Jan 23, 2026',emps:[]},
+  {code:'3C', start:'Mar 30', end:'Apr 3, 2026', emps:[]},
+  {code:'3C', start:'Jun 1',  end:'Jun 5, 2026', emps:[]},
 
-  // ─── 4A (4th-year apprentice, A-track) — Robins, Jason ───
-  {code:'4A', start:'Sep 8', end:'Sep 12, 2025',emps:['Robins, Jason']},
-  {code:'4A', start:'Nov 3', end:'Nov 7, 2025', emps:['Robins, Jason']},
-  {code:'4A', start:'Feb 23',end:'Feb 27, 2026',emps:['Robins, Jason']},
-  {code:'4A', start:'Apr 13',end:'Apr 17, 2026',emps:['Robins, Jason']},
+  // ─── 4A (4th-year, A-track) — Robins, Jason ───
+  {code:'4A', start:'Sep 8',  end:'Sep 12, 2025',emps:['Robins, Jason']},
+  {code:'4A', start:'Nov 3',  end:'Nov 7, 2025', emps:['Robins, Jason']},
+  {code:'4A', start:'Feb 23', end:'Feb 27, 2026',emps:['Robins, Jason']},
+  {code:'4A', start:'Apr 13', end:'Apr 17, 2026',emps:['Robins, Jason']},
 
-  // ─── 4B (4th-year apprentice, B-track) — Fellows, Shay + Gunderson, Hunter ───
-  {code:'4B', start:'Sep 15',end:'Sep 19, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
-  {code:'4B', start:'Nov 17',end:'Nov 21, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
-  {code:'4B', start:'Mar 2', end:'Mar 6, 2026', emps:['Fellows, Shay','Gunderson, Hunter']},
-  {code:'4B', start:'Apr 20',end:'Apr 24, 2026',emps:['Fellows, Shay','Gunderson, Hunter']},
+  // ─── 4B (4th-year, B-track) — Fellows, Shay + Gunderson, Hunter ───
+  {code:'4B', start:'Sep 15', end:'Sep 19, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Nov 17', end:'Nov 21, 2025',emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Mar 2',  end:'Mar 6, 2026', emps:['Fellows, Shay','Gunderson, Hunter']},
+  {code:'4B', start:'Apr 20', end:'Apr 24, 2026',emps:['Fellows, Shay','Gunderson, Hunter']},
 
-  // ─── 4C (4th-year apprentice, C-track) ───
-  {code:'4C', start:'Sep 22',end:'Sep 26, 2025',emps:[]},
-  {code:'4C', start:'Dec 1', end:'Dec 5, 2025', emps:[]},
-  {code:'4C', start:'Mar 9', end:'Mar 13, 2026',emps:[]},
-  {code:'4C', start:'Apr 27',end:'May 1, 2026', emps:[]},
+  // ─── 4C (4th-year, C-track) ───
+  {code:'4C', start:'Sep 22', end:'Sep 26, 2025',emps:[]},
+  {code:'4C', start:'Dec 1',  end:'Dec 5, 2025', emps:[]},
+  {code:'4C', start:'Mar 9',  end:'Mar 13, 2026',emps:[]},
+  {code:'4C', start:'Apr 27', end:'May 1, 2026', emps:[]},
 
-  // ─── 5A (5th-year apprentice, A-track) — Reynolds, Brendan + Walker, Rodger ───
-  {code:'5A', start:'Oct 20',end:'Oct 24, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
-  {code:'5A', start:'Dec 15',end:'Dec 19, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
-  {code:'5A', start:'Feb 9', end:'Feb 13, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
-  {code:'5A', start:'Mar 23',end:'Mar 27, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
-  {code:'5A', start:'May 11',end:'May 15, 2026',emps:['Reynolds, Brendan','Walker, Rodger']},
+  // ─── 5A (5th-year, A-track) — Reynolds, Brendan + Walker, Rodger ───
+  {code:'5A', start:'Sep 8',  end:'Sep 12, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Oct 13', end:'Oct 17, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Dec 8',  end:'Dec 12, 2025',emps:['Reynolds, Brendan','Walker, Rodger']},
+  {code:'5A', start:'Feb 2',  end:'Feb 6, 2026', emps:['Reynolds, Brendan','Walker, Rodger']},
 
-  // ─── 5B (5th-year apprentice, B-track) — Ortega, Miguel ───
-  {code:'5B', start:'Oct 27',end:'Oct 31, 2025',emps:['Ortega, Miguel']},
-  {code:'5B', start:'Jan 5', end:'Jan 9, 2026', emps:['Ortega, Miguel']},
-  {code:'5B', start:'Feb 16',end:'Feb 20, 2026',emps:['Ortega, Miguel']},
-  {code:'5B', start:'Mar 30',end:'Apr 3, 2026', emps:['Ortega, Miguel']},
-  {code:'5B', start:'May 18',end:'May 22, 2026',emps:['Ortega, Miguel']},
+  // ─── 5B (5th-year, B-track) — Ortega, Miguel ───
+  {code:'5B', start:'Sep 15', end:'Sep 19, 2025',emps:['Ortega, Miguel']},
+  {code:'5B', start:'Oct 27', end:'Oct 31, 2025',emps:['Ortega, Miguel']},
+  {code:'5B', start:'Dec 15', end:'Dec 19, 2025',emps:['Ortega, Miguel']},
+  {code:'5B', start:'Feb 9',  end:'Feb 13, 2026',emps:['Ortega, Miguel']},
 ];
 
 // ── School session sync ─────────────────────────────────────────────
