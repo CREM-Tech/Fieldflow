@@ -18135,6 +18135,17 @@ async function _safeLoad(tableName, buildQuery) {
 async function loadPersistedData() {
   if (typeof _sb === 'undefined' || !_sb) return;
 
+  // Guard: never load from DB without a confirmed session.
+  // Without this, loadPersistedData() called during boot before
+  // auth is established sends unauthenticated requests → 403.
+  try {
+    const { data: { session: chkSession } } = await _sb.auth.getSession();
+    if (!chkSession) {
+      console.log('[load] skipped — no active session yet');
+      return;
+    }
+  } catch { return; }
+
   // 1. Schedule overrides — apply to SCHED in memory
   const overrides = await _safeLoad('schedule_day_overrides', () =>
     _sb.from('schedule_day_overrides').select('emp_key, week_idx, day_idx, job_value')
@@ -18258,9 +18269,19 @@ async function loadPersistedData() {
   // 7. Jobs — load from DB and merge with seed
   // _dbRowToJob maps DB snake_case → JS camelCase and is also used by
   // the on-demand sync so CremCommand-pushed jobs land correctly.
-  const jobRows = await _safeLoad('jobs', () =>
+  // Retry once after 1.5s — PostgREST sometimes needs a moment to
+  // apply policy changes, causing a 403 on the first request after login.
+  let jobRows = await _safeLoad('jobs', () =>
     _sb.from('jobs').select('*').order('name')
   );
+  if (!jobRows) {
+    // First attempt failed (possibly 403 from stale PostgREST cache)
+    await new Promise(r => setTimeout(r, 1500));
+    jobRows = await _safeLoad('jobs', () =>
+      _sb.from('jobs').select('*').order('name')
+    );
+    if (jobRows) console.log('[jobs] loaded on retry — PostgREST cache was stale');
+  }
   if (jobRows && jobRows.length) {
     jobRows.forEach(r => {
       const entry = _dbRowToJob(r);
