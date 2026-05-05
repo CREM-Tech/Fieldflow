@@ -3417,11 +3417,33 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <div style="font-size:11px;color:#9B9690;text-align:center;margin-top:4px;line-height:1.5">
           Passwords are managed by your admin.<br>Contact them if you need access or a password reset.
         </div>
+        <div style="text-align:center;margin-top:8px">
+          <a href="javascript:void(0)" onclick="runConnectionDiagnostic();document.getElementById('ff-diag-modal').style.display='flex'"
+            style="font-size:10.5px;color:#9CA3AF;text-decoration:underline">Trouble signing in? Run diagnostic</a>
+        </div>
       </div>
     </div>
     <div style="margin-top:24px;padding-top:18px;border-top:1px solid #F3F4F6;text-align:center;font-size:12px;color:#9CA3AF;font-style:italic">
       Access restricted to CREM team members
     </div>
+  </div>
+</div>
+
+<!-- Diagnostic modal — accessible from login screen for users stuck before sign-in -->
+<div id="ff-diag-modal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:12px;padding:24px;max-width:760px;width:100%;max-height:85vh;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h3 style="margin:0;font-size:16px">Connection Diagnostic</h3>
+      <button onclick="document.getElementById('ff-diag-modal').style.display='none'"
+        style="background:none;border:none;font-size:20px;color:#9CA3AF;cursor:pointer;padding:0 8px">×</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="runConnectionDiagnostic()">🔍 Re-run</button>
+      <button class="btn btn-sm" onclick="copyDiagnosticOutput()">📋 Copy output</button>
+      <button class="btn btn-sm" onclick="clearSessionAndReload()" style="margin-left:auto;color:#B91C1C">🚪 Clear session + reload</button>
+    </div>
+    <textarea id="diag-output-modal" readonly
+      style="flex:1;min-height:380px;font-family:monospace;font-size:10.5px;padding:10px;border:1px solid #E5E7EB;border-radius:6px;background:#F9FAFB;color:#111827;resize:vertical;line-height:1.5"></textarea>
   </div>
 </div>
 
@@ -4523,6 +4545,22 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
               </button>
               <span style="font-size:10.5px;color:var(--muted)">CremCommand pushes also auto-merge on next page load</span>
             </div>
+          </div>
+
+          <!-- Connection Diagnostic -->
+          <div class="panel" style="border-left:3px solid #B91C1C">
+            <div class="panel-header"><div class="panel-title">Connection <em>diagnostic</em></div></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+              Tests the live database connection and shows exactly what's happening with auth, RLS, and queries.
+              If anything is broken, click the button below and copy the output to share for troubleshooting.
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn btn-sm btn-primary" onclick="runConnectionDiagnostic()" id="diag-run-btn">🔍 Run diagnostic</button>
+              <button class="btn btn-sm" onclick="copyDiagnosticOutput()" id="diag-copy-btn" style="display:none">📋 Copy output</button>
+              <button class="btn btn-sm" onclick="clearSessionAndReload()" style="margin-left:auto;color:#B91C1C">🚪 Clear session + reload</button>
+            </div>
+            <textarea id="diag-output" readonly placeholder="Click 'Run diagnostic' to see connection status, JWT details, and test query results..."
+              style="width:100%;height:340px;font-family:monospace;font-size:10.5px;padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--ink);resize:vertical;line-height:1.5"></textarea>
           </div>
 
           <!-- Appearance — dark mode toggle -->
@@ -15092,6 +15130,223 @@ async function syncJobsNow(showToastMsg = true) {
     console.error('[jobs] syncJobsNow threw:', e);
   }
 }
+
+// ── Connection Diagnostic ───────────────────────────────────
+// Comprehensive test of the live DB connection. Run from
+// Admin → System → Connection diagnostic, or window.ffDiag()
+// in the browser console.
+async function runConnectionDiagnostic() {
+  // Write to whichever textarea is present (Admin panel or login modal)
+  const out1 = document.getElementById('diag-output');
+  const out2 = document.getElementById('diag-output-modal');
+  const btn = document.getElementById('diag-run-btn');
+  const copyBtn = document.getElementById('diag-copy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Running…'; }
+
+  const log = [];
+  const add = (line) => {
+    log.push(line);
+    const txt = log.join('\n');
+    if (out1) out1.value = txt;
+    if (out2) out2.value = txt;
+  };
+  const sep = () => add('─'.repeat(60));
+
+  add('═══ FieldFlow Connection Diagnostic ═══');
+  add('Time: ' + new Date().toISOString());
+  add('URL:  ' + window.location.href);
+  add('Inside iframe: ' + (window.parent !== window ? 'YES' : 'NO'));
+  if (window.parent !== window) {
+    try { add('Parent origin: ' + (document.referrer || 'unknown')); } catch {}
+  }
+  sep();
+
+  // 1. Supabase client
+  add('STEP 1: Supabase client');
+  if (typeof _sb === 'undefined' || !_sb) {
+    add('  ❌ FAIL — _sb is not defined. Hard reload required.');
+    if (out && copyBtn) { copyBtn.style.display = ''; }
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
+    return;
+  }
+  add('  ✓ _sb client is initialized');
+  add('  Supabase URL: ' + (typeof _SBURL !== 'undefined' ? _SBURL : 'unknown'));
+  sep();
+
+  // 2. Session + JWT inspection
+  add('STEP 2: Auth session');
+  let session = null;
+  try {
+    const r = await _sb.auth.getSession();
+    session = r?.data?.session || null;
+  } catch (e) {
+    add('  ❌ getSession() threw: ' + (e?.message || e));
+  }
+  if (!session) {
+    add('  ❌ No active session — user is not signed in');
+    add('  → If you just signed in: hard refresh (Ctrl+Shift+R)');
+    add('  → If still nothing: localStorage may be blocked in iframe');
+    add('  → Try the "Clear session + reload" button below');
+    if (out && copyBtn) { copyBtn.style.display = ''; }
+    if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
+    return;
+  }
+  add('  ✓ Session exists');
+  add('  User email: ' + (session.user?.email || '(no email)'));
+  add('  User ID:    ' + (session.user?.id || '(no id)'));
+
+  // Decode JWT payload
+  try {
+    const parts = session.access_token.split('.');
+    if (parts.length === 3) {
+      const payload = JSON.parse(atob(parts[1]));
+      add('  JWT issuer: ' + (payload.iss || '(none)'));
+      add('  JWT role:   ' + (payload.role || '(none)'));
+      add('  JWT sub:    ' + (payload.sub || '(none)'));
+      const expDate = payload.exp ? new Date(payload.exp * 1000) : null;
+      if (expDate) {
+        const minsLeft = Math.round((expDate - Date.now()) / 60000);
+        add('  JWT expires: ' + expDate.toISOString() + '  (' + minsLeft + ' min from now)');
+        if (minsLeft < 0) add('  ⚠ TOKEN IS EXPIRED — sign in again');
+      }
+      const expectedProject = 'rnskwlgnnphjlzwasgcr';
+      if (payload.iss && !payload.iss.includes(expectedProject)) {
+        add('  ❌ TOKEN IS FROM WRONG PROJECT');
+        add('     Expected: ' + expectedProject);
+        add('     Got:      ' + payload.iss);
+        add('     → This causes ALL 403s. Click "Clear session + reload"');
+      } else {
+        add('  ✓ JWT is from the correct Supabase project');
+      }
+    }
+  } catch (e) {
+    add('  ⚠ Could not decode JWT: ' + (e?.message || e));
+  }
+  add('  Token preview: ' + session.access_token.slice(0, 40) + '...');
+  sep();
+
+  // 3. Allowlist check
+  add('STEP 3: Allowlist check');
+  try {
+    const { data, error } = await _sb.from('allowed_users')
+      .select('email, name, role, active').ilike('email', session.user.email).maybeSingle();
+    if (error) {
+      add('  ❌ allowed_users query failed: ' + (error.message || error.code));
+      add('     code: ' + (error.code || 'none') + ' · hint: ' + (error.hint || 'none'));
+    } else if (!data) {
+      add('  ❌ Email not found in allowed_users — user can\'t access app');
+    } else {
+      add('  ✓ User is in allowed_users');
+      add('  Role: ' + data.role + ' · Active: ' + data.active);
+    }
+  } catch (e) {
+    add('  ❌ Threw: ' + (e?.message || e));
+  }
+  sep();
+
+  // 4. Test queries on the failing tables
+  add('STEP 4: Test queries on each table');
+  const tables = [
+    { name: 'jobs',          q: () => _sb.from('jobs').select('id, name').limit(1) },
+    { name: 'sectors',       q: () => _sb.from('sectors').select('name').limit(1) },
+    { name: 'notifications', q: () => _sb.from('notifications').select('id').limit(1) },
+    { name: 'employees',     q: () => _sb.from('employees').select('email').limit(1) },
+    { name: 'schedule_day_overrides', q: () => _sb.from('schedule_day_overrides').select('emp_key').limit(1) },
+  ];
+  for (const t of tables) {
+    try {
+      const { data, error } = await t.q();
+      if (error) {
+        add('  ❌ ' + t.name + ' — ' + (error.message || ''));
+        add('       code: ' + (error.code || '?') + '  hint: ' + (error.hint || '?'));
+        add('       details: ' + (error.details || '?'));
+      } else {
+        add('  ✓ ' + t.name + ' — got ' + (data?.length || 0) + ' row(s)');
+      }
+    } catch (e) {
+      add('  ❌ ' + t.name + ' threw: ' + (e?.message || e));
+    }
+  }
+  sep();
+
+  // 5. Direct REST API test (bypasses supabase-js client)
+  add('STEP 5: Direct REST API test (bypasses supabase-js client)');
+  try {
+    const res = await fetch(_SBURL + '/rest/v1/jobs?select=id&limit=1', {
+      headers: {
+        'apikey': _SBKEY,
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    });
+    add('  HTTP status: ' + res.status + ' ' + res.statusText);
+    if (res.ok) {
+      const data = await res.json();
+      add('  ✓ Direct REST works — got ' + data.length + ' row(s)');
+      add('  → If supabase-js queries above failed but this works, it\'s a client/cache issue');
+    } else {
+      const body = await res.text().catch(() => '(unreadable)');
+      add('  ❌ Direct REST also failed');
+      add('  Body: ' + body.slice(0, 300));
+    }
+  } catch (e) {
+    add('  ❌ Threw: ' + (e?.message || e));
+  }
+  sep();
+
+  // 6. Storage check
+  add('STEP 6: Browser storage');
+  try {
+    localStorage.setItem('_ff_test', '1');
+    localStorage.removeItem('_ff_test');
+    add('  ✓ localStorage is writable');
+    const sessionKey = Object.keys(localStorage).find(k => k.includes('supabase') || k.includes('sb-'));
+    if (sessionKey) {
+      add('  ✓ Supabase session key in localStorage: ' + sessionKey);
+    } else {
+      add('  ⚠ No Supabase session in localStorage — sessions will not persist across reloads');
+    }
+  } catch (e) {
+    add('  ❌ localStorage blocked: ' + (e?.message || e));
+    add('     → Common in cross-origin iframes. Sign-in won\'t persist.');
+  }
+  sep();
+
+  add('═══ End of diagnostic ═══');
+  add('Click "Copy output" below and share the full text.');
+
+  if (out && copyBtn) copyBtn.style.display = '';
+  if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
+  console.log(log.join('\n'));
+}
+
+function copyDiagnosticOutput() {
+  const out = document.getElementById('diag-output-modal') || document.getElementById('diag-output');
+  if (!out || !out.value) return;
+  out.select();
+  out.setSelectionRange(0, 99999);
+  let copied = false;
+  try { navigator.clipboard.writeText(out.value).then(() => {}); copied = true; } catch {}
+  if (!copied) { try { document.execCommand('copy'); copied = true; } catch {} }
+  const btn = document.getElementById('diag-copy-btn');
+  if (btn) {
+    btn.textContent = copied ? '✓ Copied!' : '⚠ Select manually & Ctrl+C';
+    setTimeout(() => { btn.textContent = '📋 Copy output'; }, 2500);
+  }
+}
+
+async function clearSessionAndReload() {
+  if (!confirm('This will sign you out and clear all locally cached session data. Continue?')) return;
+  try { await _sb.auth.signOut(); } catch {}
+  try {
+    Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-') || k.includes('_ff_'))
+      .forEach(k => localStorage.removeItem(k));
+  } catch {}
+  try { sessionStorage.clear(); } catch {}
+  window.location.reload();
+}
+
+// Console alias — type ffDiag() into devtools
+window.ffDiag = runConnectionDiagnostic;
 
 // Copy current Supabase session JWT to clipboard for CremCommand setup.
 // Used in Admin → System → CremCommand integration → Copy my JWT.
