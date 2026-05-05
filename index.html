@@ -4509,10 +4509,11 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
 
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">Sector mapping (exact strings CremCommand sends)</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-              ${['Greenfield','Live Work','Service','Special Projects','Other'].map(s => {
-                const c = typeof getSectorColor === 'function' ? getSectorColor(s) : '#374151';
-                return `<span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:${c}22;color:${c};border:1px solid ${c}55;font-weight:600">${s}</span>`;
-              }).join('')}
+              <span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:#15803D22;color:#15803D;border:1px solid #15803D55;font-weight:600">Greenfield</span>
+              <span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:#1D4ED822;color:#1D4ED8;border:1px solid #1D4ED855;font-weight:600">Live Work</span>
+              <span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:#B4530922;color:#B45309;border:1px solid #B4530955;font-weight:600">Service</span>
+              <span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:#6D28D922;color:#6D28D9;border:1px solid #6D28D955;font-weight:600">Special Projects</span>
+              <span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:#37415122;color:#374151;border:1px solid #37415155;font-weight:600">Other</span>
             </div>
 
             <div style="display:flex;gap:8px;align-items:center">
@@ -15100,18 +15101,44 @@ async function copyFieldFlowJWT() {
   try {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) {
-      if (status) status.textContent = '⚠ Not signed in — sign in first';
+      if (status) { status.textContent = '⚠ Not signed in — sign in first'; status.style.color = 'var(--bad)'; }
       return;
     }
-    await navigator.clipboard.writeText(session.access_token);
-    if (btn) btn.textContent = '✓ Copied!';
-    if (status) status.textContent = 'Paste into CremCommand → Connections → FieldFlow → User Token';
-    setTimeout(() => {
-      if (btn) btn.textContent = '📋 Copy my JWT';
-      if (status) status.textContent = '';
-    }, 3500);
+    const token = session.access_token;
+
+    // Try Clipboard API first — blocked in cross-origin iframes (CremFlow shell)
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(token);
+      copied = true;
+    } catch (_) { /* blocked in iframe — fall through to text display */ }
+
+    if (copied) {
+      if (btn) btn.textContent = '✓ Copied!';
+      if (status) { status.textContent = 'Paste into CremCommand → Connections → FieldFlow → User Token'; status.style.color = 'var(--good)'; }
+      setTimeout(() => { if (btn) btn.textContent = '📋 Copy my JWT'; if (status) status.textContent = ''; }, 3500);
+    } else {
+      // Clipboard blocked (running in iframe) — show token in a selectable box
+      const existing = document.getElementById('jwt-token-box');
+      if (existing) { existing.select(); document.execCommand('copy'); } else {
+        const box = document.createElement('textarea');
+        box.id = 'jwt-token-box';
+        box.value = token;
+        box.readOnly = true;
+        box.style.cssText = 'width:100%;margin-top:8px;padding:8px;font-size:10px;font-family:monospace;border:1px solid var(--accent);border-radius:6px;resize:none;height:72px;background:var(--surface-2);color:var(--ink);word-break:break-all';
+        btn?.parentElement?.appendChild(box);
+        box.select();
+        try { document.execCommand('copy'); copied = true; } catch (_) {}
+      }
+      if (status) {
+        status.style.color = 'var(--accent-dark)';
+        status.textContent = copied
+          ? '✓ Copied via fallback — or manually select the token above'
+          : 'Clipboard blocked in iframe — manually select and copy the token above';
+      }
+    }
   } catch(e) {
-    if (status) status.textContent = '⚠ ' + (e.message || 'Copy failed');
+    if (status) { status.textContent = '⚠ ' + (e.message || 'Error retrieving session'); status.style.color = 'var(--bad)'; }
   }
 }
 
@@ -17774,9 +17801,9 @@ if (!_supabaseUsable) {
 } else {
   _sb = supabase.createClient(_SBURL, _SBKEY, {
     auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
+      persistSession:    true,   // store session in localStorage so refreshes stay authenticated
+      autoRefreshToken:  true,   // automatically refresh before expiry
+      detectSessionInUrl: false, // no OAuth redirect flows needed
     }
   });
 }
