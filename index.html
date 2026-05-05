@@ -16649,6 +16649,10 @@ async function persistNotification(record) {
 async function loadNotifications() {
   if (typeof _sb === 'undefined' || !_sb) return;
   try {
+    const { data: { session: s } } = await _sb.auth.getSession();
+    if (!s) return; // no session — skip silently
+  } catch { return; }
+  try {
     const { data, error } = await _sb.from('notifications')
       .select('*').order('at', { ascending: false }).limit(500);
     if (error) {
@@ -16870,6 +16874,10 @@ async function persistSectors() {
 // present, falls back gracefully if absent (pre-migration-015).
 async function loadSectors() {
   if (typeof _sb === 'undefined' || !_sb) return;
+  try {
+    const { data: { session: s } } = await _sb.auth.getSession();
+    if (!s) return; // no session — skip silently, will retry after login
+  } catch { return; }
   try {
     let { data, error } = await _sb.from('sectors').select('name,color,sort_order').order('sort_order');
     // Legacy schema → retry without color column
@@ -17915,6 +17923,9 @@ async function ffSignIn() {
   const allowed = await ffAllowed(email);
   if (!allowed) { await _sb.auth.signOut(); ffSetErr('ff-error','Your email is not authorized. Contact your superintendent.'); return; }
   ffShowApp(email, allowed.name, allowed.role);
+  // Lock the SSO bridge so it can't override this valid FieldFlow session
+  // with a cross-project token from the CremFlow shell.
+  if (typeof window._sessionApplied !== 'undefined') window._sessionApplied = true;
   // Notify CremFlow shell — other sub-apps sharing this Supabase project
   // will receive SESSION_TOKEN and skip their own login screens.
   try {
@@ -17996,6 +18007,20 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     if (_sessionApplied) return;                    // only apply once
     var t = e.data.token;
     if (!t || !t.access_token || !t.refresh_token) return;
+
+    // Guard: verify this token was issued by FieldFlow's Supabase project.
+    // CremFlow runs on a different Supabase project — its tokens would pass
+    // setSession in supabase-js (no signature check) but fail on every DB
+    // request with 403, corrupting the FieldFlow session.
+    try {
+      var payload = JSON.parse(atob(t.access_token.split('.')[1]));
+      var iss = payload.iss || '';
+      if (iss && iss.indexOf('rnskwlgnnphjlzwasgcr') === -1) {
+        console.log('[shell-sso] token is from a different Supabase project — ignoring');
+        return; // do NOT call setSession — it would corrupt the FieldFlow session
+      }
+    } catch (_) { return; } // malformed JWT — ignore
+
     _sessionApplied = true;
     _sb.auth.setSession({ access_token: t.access_token, refresh_token: t.refresh_token })
       .then(function (r) {
