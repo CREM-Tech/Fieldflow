@@ -17888,11 +17888,23 @@ async function ffSignIn() {
   const allowed = await ffAllowed(email);
   if (!allowed) { await _sb.auth.signOut(); ffSetErr('ff-error','Your email is not authorized. Contact your superintendent.'); return; }
   ffShowApp(email, allowed.name, allowed.role);
-  loadPersistedData().catch(err => console.warn('[load] failed', err));
-    loadSectors().catch(err => console.warn('[sectors] load failed', err));
-      loadNotifications().catch(err => console.warn('[notifications] load failed', err));
+  // Notify CremFlow shell — other sub-apps sharing this Supabase project
+  // will receive SESSION_TOKEN and skip their own login screens.
+  try {
+    const { data: { session: s } } = await _sb.auth.getSession();
+    window._notifyShellOfLogin(s);
+  } catch (e) { /* best-effort */ }
+  loadPersistedData()
+    .then(() => syncJobsNow(false)) // silent auto-sync on first load
+    .catch(err => console.warn('[load] failed', err));
+  loadSectors().catch(err => console.warn('[sectors] load failed', err));
+  loadNotifications().catch(err => console.warn('[notifications] load failed', err));
   refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
   loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+  // Auto-sync CremCommand jobs every 5 minutes — silent, no toast
+  if (!window._cremSyncInterval) {
+    window._cremSyncInterval = setInterval(() => syncJobsNow(false), 5 * 60 * 1000);
+  }
 }
 
 async function ffSignOut() {
@@ -17906,6 +17918,73 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     ffShowLogin();
   }
 });
+
+// ── CremFlow shell SSO bridge ────────────────────────────────
+// Secure origin-locked version. Only accepts messages from the
+// CremFlow shell. Uses _sessionApplied guard to prevent double-boot.
+// onSignIn() is the FieldFlow-specific post-login function defined below.
+(function () {
+  'use strict';
+  var SHELL_ORIGIN = 'https://cremflow.up.railway.app';
+  var _sessionApplied = false;
+
+  // Called by ffSignIn() and the SESSION_TOKEN handler to notify the shell.
+  // Scoped to window so ffSignIn (defined later) can reference it by name.
+  window._notifyShellOfLogin = function (session) {
+    if (!session) return;
+    try {
+      window.parent.postMessage({
+        type:  'USER_AUTHED',
+        token: { access_token: session.access_token, refresh_token: session.refresh_token }
+      }, SHELL_ORIGIN);
+    } catch (e) { /* best-effort, shell may not be present */ }
+  };
+
+  // FieldFlow-specific boot path called after SSO token is validated.
+  // Mirrors the production boot: checks allowlist → shows app → loads data.
+  function onSignIn(user) {
+    ffAllowed(user.email).then(function (allowed) {
+      if (!allowed) return; // not on allowlist — show login
+      ffShowApp(user.email, allowed.name, allowed.role);
+      window._notifyShellOfLogin({ access_token: user.access_token, refresh_token: user.refresh_token });
+      loadPersistedData()
+        .then(function () { syncJobsNow(false); }) // silent auto-sync after initial load
+        .catch(function (e) { console.warn('[load] failed', e); });
+      loadSectors().catch(function (e) { console.warn('[sectors] failed', e); });
+      loadNotifications().catch(function (e) { console.warn('[notifications] failed', e); });
+      refreshDirectorsCache().catch(function (e) { console.warn('[directors] failed', e); });
+      loadJobDocuments().catch(function (e) { console.warn('[job-docs] failed', e); });
+      // Auto-sync CremCommand jobs every 5 minutes silently
+      if (!window._cremSyncInterval) {
+        window._cremSyncInterval = setInterval(function () {
+          syncJobsNow(false);
+        }, 5 * 60 * 1000);
+      }
+    }).catch(function () {}); // allowlist check failed — normal login
+  }
+
+  window.addEventListener('message', function (e) {
+    if (e.origin !== SHELL_ORIGIN) return;          // strict origin check
+    if (!e.data || e.data.type !== 'SESSION_TOKEN') return;
+    if (_sessionApplied) return;                    // only apply once
+    var t = e.data.token;
+    if (!t || !t.access_token || !t.refresh_token) return;
+    _sessionApplied = true;
+    _sb.auth.setSession({ access_token: t.access_token, refresh_token: t.refresh_token })
+      .then(function (r) {
+        if (r.error || !r.data.session) { _sessionApplied = false; return; }
+        console.log('[shell-sso] session received — skipping login screen');
+        onSignIn(r.data.session.user);
+      })
+      .catch(function (err) {
+        _sessionApplied = false;
+        console.log('[shell-sso] token rejected (different project or expired):', err?.message);
+      });
+  });
+
+  // Announce to the shell that FieldFlow is mounted and ready.
+  window.parent.postMessage({ type: 'IFRAME_READY', app: window.location.hostname }, '*');
+})();
 
 // ── Production auth — ACTIVE ────────────────────────────────
 (async () => {
@@ -17922,11 +18001,16 @@ _sb.auth.onAuthStateChange(async (event, session) => {
     const allowed = await ffAllowed(session.user.email);
     if (allowed) {
       ffShowApp(session.user.email, allowed.name, allowed.role);
-      loadPersistedData().catch(err => console.warn('[load] failed', err));
+      loadPersistedData()
+        .then(() => syncJobsNow(false))
+        .catch(err => console.warn('[load] failed', err));
       loadSectors().catch(err => console.warn('[sectors] load failed', err));
       loadNotifications().catch(err => console.warn('[notifications] load failed', err));
       refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
       loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
+      if (!window._cremSyncInterval) {
+        window._cremSyncInterval = setInterval(() => syncJobsNow(false), 5 * 60 * 1000);
+      }
     } else {
       _sb.auth.signOut().catch(() => {});
     }
