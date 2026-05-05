@@ -15165,7 +15165,7 @@ async function runConnectionDiagnostic() {
   add('STEP 1: Supabase client');
   if (typeof _sb === 'undefined' || !_sb) {
     add('  ❌ FAIL — _sb is not defined. Hard reload required.');
-    if (out && copyBtn) { copyBtn.style.display = ''; }
+    if (copyBtn) { copyBtn.style.display = ''; }
     if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
     return;
   }
@@ -15187,7 +15187,7 @@ async function runConnectionDiagnostic() {
     add('  → If you just signed in: hard refresh (Ctrl+Shift+R)');
     add('  → If still nothing: localStorage may be blocked in iframe');
     add('  → Try the "Clear session + reload" button below');
-    if (out && copyBtn) { copyBtn.style.display = ''; }
+    if (copyBtn) { copyBtn.style.display = ''; }
     if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
     return;
   }
@@ -15250,7 +15250,7 @@ async function runConnectionDiagnostic() {
     { name: 'jobs',          q: () => _sb.from('jobs').select('id, name').limit(1) },
     { name: 'sectors',       q: () => _sb.from('sectors').select('name').limit(1) },
     { name: 'notifications', q: () => _sb.from('notifications').select('id').limit(1) },
-    { name: 'employees',     q: () => _sb.from('employees').select('email').limit(1) },
+    { name: 'employees',     q: () => _sb.from('employees').select('name').limit(1) },
     { name: 'schedule_day_overrides', q: () => _sb.from('schedule_day_overrides').select('emp_key').limit(1) },
   ];
   for (const t of tables) {
@@ -15314,7 +15314,7 @@ async function runConnectionDiagnostic() {
   add('═══ End of diagnostic ═══');
   add('Click "Copy output" below and share the full text.');
 
-  if (out && copyBtn) copyBtn.style.display = '';
+  if (copyBtn) copyBtn.style.display = '';
   if (btn) { btn.disabled = false; btn.textContent = '🔍 Run diagnostic'; }
   console.log(log.join('\n'));
 }
