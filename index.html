@@ -3425,52 +3425,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
   </div>
 </div>
 
-<!-- ── TOPBAR ─────────────────────────────────────────── -->
-<div id="ff-topbar" style="display:none;height:40px;background:#0E1828;align-items:center;padding:0 16px;gap:10px;position:sticky;top:0;z-index:100">
-  <div style="width:22px;height:22px;border-radius:5px;background:#EAB308;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff">FF</div>
-  <span style="color:#fff;font-size:12px;font-weight:500">FieldFlow</span>
-  <span style="color:rgba(255,255,255,.25)">·</span>
-  <span id="ff-topbar-email" style="color:rgba(255,255,255,.6);font-size:11.5px"></span>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-    <span id="ff-topbar-role" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;text-transform:capitalize"></span>
-
-    <!-- Notification bell — replaces the old Admin → Notifications tab so the
-         audit log is one click from anywhere in the app. -->
-    <div style="position:relative">
-      <button id="ff-bell-btn" onclick="toggleNotifBell(event)"
-        data-tip="Recent activity — every schedule change made by anyone. Click to expand."
-        style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);width:30px;height:26px;border-radius:5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;position:relative">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M8 2a4 4 0 00-4 4v3l-1 2h10l-1-2V6a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-          <path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-        <span id="ff-bell-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#EF4444;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;padding:0 4px;line-height:14px;text-align:center;border:1.5px solid #0E1828">0</span>
-      </button>
-      <div id="ff-bell-dropdown" style="display:none;position:absolute;top:100%;right:0;margin-top:6px;width:380px;max-height:520px;background:var(--white);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;z-index:200;flex-direction:column">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-shrink:0">
-          <div>
-            <div style="font-size:12.5px;font-weight:600;color:var(--ink)">Activity</div>
-            <div id="ff-bell-meta" style="font-size:10px;color:var(--muted);margin-top:1px">No new notifications</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-sm" onclick="markAllNotifsRead()" data-tip="Mark every notification as read — clears the badge" style="padding:3px 9px;font-size:10.5px">Mark all read</button>
-          </div>
-        </div>
-        <div id="ff-bell-list" style="overflow-y:auto;flex:1;padding:8px"></div>
-        <div id="ff-bell-empty" style="display:none;padding:30px 20px;text-align:center;color:var(--muted);font-size:12px">
-          No notifications yet. They'll appear here when anyone changes the schedule.
-        </div>
-      </div>
-    </div>
-
-    <button onclick="ffSignOut()"
-      style="background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.65);font-size:11px;padding:3px 10px;border-radius:5px;cursor:pointer;font-family:inherit">
-      Sign out
-    </button>
-  </div>
-</div>
-
 <!-- ── APP ───────────────────────────────────────────── -->
+<!-- Ghost ff-topbar — keeps JS references working (ffShowApp reads ff-topbar-email, ff-topbar-role) -->
+<div id="ff-topbar" style="display:none">
+  <span id="ff-topbar-email"></span>
+  <span id="ff-topbar-role"></span>
+</div>
 <div id="ff-app" style="display:none">
 
 <!-- Sidebar overlay for mobile -->
@@ -3511,10 +3471,19 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         Job view
       </div>
+      <div class="nav-item" data-screen="pipeline">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="5" height="12" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="8" y="2" width="5" height="8" rx="1" stroke="currentColor" stroke-width="1.4"/><path d="M8 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Pipeline
+      </div>
       <div class="nav-item" data-screen="requests">
         <svg viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
         Requests
         <span class="nav-badge" id="req-badge">3</span>
+      </div>
+      <div class="nav-item" data-screen="activity-log">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v5l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Activity log
+        <span class="nav-badge" id="activity-badge" style="display:none">0</span>
       </div>
 
       <div class="nav-section">People</div>
@@ -3562,6 +3531,41 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           Search
           <kbd style="font-size:9.5px;background:var(--line);padding:1px 5px;border-radius:4px;font-family:var(--mono)">⌘K</kbd>
         </button>
+
+        <!-- Notification bell — shows all schedule changes in real time -->
+        <div style="position:relative">
+          <button id="ff-bell-btn" onclick="toggleNotifBell(event)"
+            data-tip="Activity log — every schedule change made by anyone. Click to expand."
+            style="display:inline-flex;align-items:center;justify-content:center;position:relative;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;transition:all .12s"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-ghost)'"
+            onmouseout="this.style.borderColor='var(--line)';this.style.background='var(--surface-2)'">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2a4 4 0 00-4 4v3l-1 2h10l-1-2V6a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M6.5 13.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <span id="ff-bell-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#EF4444;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;padding:0 4px;line-height:14px;text-align:center">0</span>
+          </button>
+          <div id="ff-bell-dropdown" style="display:none;position:absolute;top:100%;right:0;margin-top:6px;width:380px;max-height:520px;background:var(--white);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden;z-index:200;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);flex-shrink:0">
+              <div>
+                <div style="font-size:12.5px;font-weight:600;color:var(--ink)">Activity log</div>
+                <div id="ff-bell-meta" style="font-size:10px;color:var(--muted);margin-top:1px">Schedule changes appear here in real time</div>
+              </div>
+              <div style="display:flex;gap:5px;align-items:center">
+                <span class="panel-link" onclick="toggleNotifBell();goScreen('activity-log')" style="font-size:10.5px">View all →</span>
+                <button class="btn btn-sm" onclick="markAllNotifsRead()" style="padding:3px 9px;font-size:10.5px">Mark all read</button>
+              </div>
+            </div>
+            <div id="ff-bell-list" style="overflow-y:auto;flex:1;padding:8px"></div>
+            <div id="ff-bell-empty" style="display:none;padding:30px 20px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6">
+              <div style="font-size:22px;margin-bottom:8px;opacity:.4">🔔</div>
+              No activity yet.<br>
+              <span style="font-size:11px">Every schedule change appears here — who moved who, when, and who was notified.</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="ffSignOut()" class="btn btn-sm" data-tip="Sign out of FieldFlow">Sign out</button>
       </div>
     </div>
 
@@ -3790,53 +3794,67 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
         </button>
       </div>
       <div class="controls">
-        <button class="btn jump-today-btn" onclick="schedJumpToday()">
-          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:4px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor"/></svg>
-          This week
-        </button>
-        <div style="width:1px;height:22px;background:var(--line);margin:0 4px"></div>
-        <button class="btn btn-sm" onclick="schedNav(-3)" title="Back 3 weeks">◀◀</button>
-        <button class="btn btn-sm" onclick="schedNav(-1)" title="Back 1 week">◀</button>
-        <button class="btn btn-sm" onclick="schedNav(1)"  title="Forward 1 week">▶</button>
-        <button class="btn btn-sm" onclick="schedNav(3)"  title="Forward 3 weeks">▶▶</button>
-        <span class="ctrl-lbl" style="margin-left:10px">Jump to</span>
-        <select class="ctrl-sel" id="sched-jump" onchange="schedJumpTo(parseInt(this.value))" style="max-width:180px"></select>
-        <span class="ctrl-lbl">Role</span>
-        <select class="ctrl-sel" id="sched-role-filter" onchange="buildSchedTbody()">
-          <option value="all">All employees</option>
-          <option value="gf-fm">GF / FM only</option>
-          <option value="journey">Journeymen</option>
-          <option value="apprentice">Apprentices</option>
-          <option value="mh">Material Handlers</option>
-        </select>
-        <span class="ctrl-lbl">Search</span>
-        <input type="text" id="sched-search" class="ctrl-sel"
-          placeholder="name · role · job · sector"
-          oninput="buildSchedTbody()"
-          data-tip="Excel-style filter: type any text to filter the rows. Searches name, role, job assignments and sectors."
-          style="width:220px;padding:5px 9px;font-size:11.5px"
-          autocomplete="off">
-        <button class="btn btn-sm" onclick="document.getElementById('sched-search').value='';buildSchedTbody()"
-          data-tip="Clear search filter"
-          style="padding:3px 8px;font-size:10.5px">Clear</button>
-        <span class="ctrl-lbl">Sort</span>
-        <select class="ctrl-sel" id="sched-sort" onchange="buildSchedTbody()">
-          <option value="sector" selected>Sector (groups jobs)</option>
-          <option value="job">Current job</option>
-          <option value="name-asc">Name · A → Z</option>
-          <option value="name-desc">Name · Z → A</option>
-          <option value="role-sen">Role · seniority</option>
-          <option value="role-jr">Role · apprentice first</option>
-          <option value="conflict">Conflicts first</option>
-          <option value="unassigned">Unassigned first</option>
-        </select>
-        <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="btn btn-sm" onclick="collapseAllSchedGroups()" data-tip="Collapse every group in the current sort. Useful when sorted by Sector or Job to get a high-level view." style="padding:3px 8px;font-size:10.5px">⊟ Collapse all</button>
-          <button class="btn btn-sm" onclick="expandAllSchedGroups()" data-tip="Expand every group" style="padding:3px 8px;font-size:10.5px">⊞ Expand all</button>
-          <button class="btn btn-sm" onclick="openTimeOffModal()" data-tip="Request time off (vacation, personal, jury duty, etc.) for any employee. Auto-fills VACATION/OFF across the chosen date range.">🏖 Time off</button>
-          <button class="btn btn-sm" onclick="openCopyWeekModal()" data-tip="Duplicate this week's schedule (all employees' Mon-Fri assignments) to another week. Useful when most of next week will look like this one.">📋 Copy week</button>
-          <button class="btn btn-sm" onclick="exportScheduleCSV()" data-tip="Download the visible schedule as a CSV file you can open in Excel or import into Spectrum">Export CSV</button>
-          <button class="btn btn-sm" onclick="printSchedule()" data-tip="Print the current 3-week view in landscape. Headers, sidebar, and panels are hidden. Tag colors convert to grayscale for B&W printers.">🖨 Print</button>
+        <!-- Row 1: Navigation + Actions -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <button class="btn jump-today-btn" onclick="schedJumpToday()">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" style="margin-right:4px"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="10.5" r="1.5" fill="currentColor"/></svg>
+            This week
+          </button>
+          <button class="btn btn-sm" onclick="schedNav(-3)" title="Back 3 weeks">◀◀</button>
+          <button class="btn btn-sm" onclick="schedNav(-1)" title="Back 1 week">◀</button>
+          <button class="btn btn-sm" onclick="schedNav(1)"  title="Forward 1 week">▶</button>
+          <button class="btn btn-sm" onclick="schedNav(3)"  title="Forward 3 weeks">▶▶</button>
+          <select class="ctrl-sel" id="sched-jump" onchange="schedJumpTo(parseInt(this.value))" style="max-width:180px"></select>
+          <div style="display:flex;background:var(--surface-2);border-radius:7px;padding:2px;gap:1px;margin-left:6px" data-tip="Work week: how many days to show per week (4×10 = Mon-Thu, 5-day = Mon-Fri, 7-day = Mon-Sun)">
+            <button onclick="setSchedDisplayDays(4)" id="days-btn-4"
+              style="padding:3px 9px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)">4×10</button>
+            <button onclick="setSchedDisplayDays(5)" id="days-btn-5"
+              style="padding:3px 9px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:transparent;color:var(--muted)">5-day</button>
+            <button onclick="setSchedDisplayDays(7)" id="days-btn-7"
+              style="padding:3px 9px;border-radius:5px;border:none;font-size:11px;font-family:inherit;cursor:pointer;font-weight:500;background:transparent;color:var(--muted)">7-day</button>
+          </div>
+          <div style="flex:1"></div>
+          <button class="btn btn-sm" onclick="openTimeOffModal()" data-tip="Request vacation, personal day, jury duty, sick leave — auto-fills the schedule across the chosen date range" style="display:inline-flex;align-items:center;gap:5px">
+            🏖 Time off / Vacation
+          </button>
+          <button class="btn btn-sm" onclick="openCopyWeekModal()" data-tip="Duplicate this week's assignments to another week">📋 Copy week</button>
+          <button class="btn btn-sm" onclick="exportScheduleCSV()" data-tip="Download as CSV for Excel or Spectrum">Export CSV</button>
+          <button class="btn btn-sm" onclick="printSchedule()" data-tip="Print current 3-week view in landscape">🖨 Print</button>
+        </div>
+        <!-- Row 2: Filters -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="ctrl-lbl">Role</span>
+          <select class="ctrl-sel" id="sched-role-filter" onchange="buildSchedTbody()">
+            <option value="all">All employees</option>
+            <option value="gf-fm">GF / FM only</option>
+            <option value="journey">Journeymen</option>
+            <option value="apprentice">Apprentices</option>
+            <option value="mh">Material Handlers</option>
+          </select>
+          <span class="ctrl-lbl">Search</span>
+          <input type="text" id="sched-search" class="ctrl-sel"
+            placeholder="name · role · job · sector"
+            oninput="buildSchedTbody()"
+            data-tip="Filter rows by name, role, job assignment, or sector"
+            style="width:200px;padding:5px 9px;font-size:11.5px"
+            autocomplete="off">
+          <button class="btn btn-sm" onclick="document.getElementById('sched-search').value='';buildSchedTbody()"
+            data-tip="Clear search" style="padding:3px 8px;font-size:10.5px">✕</button>
+          <span id="sched-match-count" style="font-size:10.5px;color:var(--accent-dark);font-weight:500;min-width:80px"></span>
+          <span class="ctrl-lbl">Sort</span>
+          <select class="ctrl-sel" id="sched-sort" onchange="buildSchedTbody()">
+            <option value="sector" selected>Sector</option>
+            <option value="job">Current job</option>
+            <option value="name-asc">Name A → Z</option>
+            <option value="name-desc">Name Z → A</option>
+            <option value="role-sen">Role · seniority</option>
+            <option value="role-jr">Role · apprentice first</option>
+            <option value="conflict">Conflicts first</option>
+            <option value="unassigned">Unassigned first</option>
+          </select>
+          <div style="flex:1"></div>
+          <button class="btn btn-sm" onclick="collapseAllSchedGroups()" data-tip="Collapse all groups" style="padding:3px 8px;font-size:10.5px">⊟ All</button>
+          <button class="btn btn-sm" onclick="expandAllSchedGroups()" data-tip="Expand all groups" style="padding:3px 8px;font-size:10.5px">⊞ All</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -3927,6 +3945,22 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       </div>
     </div>
 
+    <!-- PIPELINE ─────────────────────────────────────── -->
+    <!-- Upcoming / future work planning board. Superintendents log jobs that
+         haven't been assigned to crew yet — upcoming bids awarded, upcoming
+         starts, pre-mobilization items. Each card is a sticky note with a
+         job name, target start week, estimated crew size, notes, and sector. -->
+    <div class="screen" id="screen-pipeline">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="openNewPipelineItem()">+ Add upcoming work</button>
+        <select class="ctrl-sel" id="pipeline-sector-filter" onchange="renderPipeline()">
+          <option value="">All sectors</option>
+        </select>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">Upcoming and pre-mobilization work — log it here before crew is assigned</span>
+      </div>
+      <div id="pipeline-board" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
     <!-- REQUESTS ───────────────────────────────────────── -->
     <div class="screen" id="screen-requests">
       <div style="display:flex;gap:8px;margin-bottom:13px;align-items:center;flex-wrap:wrap">
@@ -3940,11 +3974,31 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
           <option value="archived">Archived</option>
         </select>
         <button class="btn btn-sm" onclick="archiveClosedRequests()"
-          data-tip="Archive every approved/denied/union request older than 30 days. Their data is preserved — they just disappear from the active view."
-          style="font-size:10.5px">Clear closed</button>
+          data-tip="Archive every approved/denied/union request. Data is preserved — use the Archived filter to see them again."
+          style="font-size:10.5px;border-color:var(--accent);color:var(--accent)">⬇ Archive all closed</button>
         <span style="font-size:11px;color:var(--ff-tx3);margin-left:4px">Requests poll all directors · auto-escalates to union after 48hrs</span>
       </div>
       <div id="req-full-list"></div>
+    </div>
+
+    <!-- ACTIVITY LOG ────────────────────────────────────── -->
+    <!-- Full notification/audit log screen. Shows every schedule change,
+         who made it, when, and which recipients were notified.
+         More complete than the topbar bell dropdown (which shows last 50). -->
+    <div class="screen" id="screen-activity-log">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+        <select class="ctrl-sel" id="actlog-filter" onchange="renderActivityLog()">
+          <option value="all">All changes</option>
+          <option value="assignments">Assignments only</option>
+          <option value="clears">Clears only</option>
+          <option value="today">Today</option>
+          <option value="week">This week</option>
+        </select>
+        <input type="text" class="ctrl-sel" id="actlog-search" placeholder="Search employee or job…"
+          oninput="renderActivityLog()" style="width:200px;padding:5px 9px;font-size:11.5px">
+        <button class="btn btn-sm" onclick="markAllNotifsRead();renderActivityLog()" style="margin-left:auto">✓ Mark all read</button>
+      </div>
+      <div id="actlog-list" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
 
     <!-- ROSTER ─────────────────────────────────────────── -->
@@ -4016,7 +4070,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <div class="panel" style="margin-bottom:14px">
         <div class="panel-header">
           <div>
-            <div class="panel-title">School <em>grid</em></div>
+            <div class="panel-title">School <em>schedule</em></div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px">
               Schedule-style view of who's in school which weeks — gold cells mean School, lined up Mon-Sun.
             </div>
@@ -4094,7 +4148,12 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
                 <div style="width:280px;flex-shrink:0;overflow-y:auto">
                   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
                     <span style="font-size:12.5px;font-weight:500">Jobs</span>
-                    <button class="btn btn-sm btn-primary" onclick="openNewJobForm()">+ New job</button>
+                    <div style="display:flex;gap:5px">
+                      <button class="btn btn-sm" onclick="syncJobsNow(true)"
+                        data-tip="Pull the latest jobs from Supabase — picks up any jobs pushed by CremCommand since you last loaded the page. Merges by id then job number."
+                        style="font-size:10.5px">⟳ Sync</button>
+                      <button class="btn btn-sm btn-primary" onclick="openNewJobForm()">+ New job</button>
+                    </div>
                   </div>
                   <div id="jm-job-list"></div>
                 </div>
@@ -4408,6 +4467,62 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
       <!-- ── SYSTEM PANE ── -->
       <div id="admin-pane-system" class="admin-pane" style="display:none">
         <div style="max-width:720px;display:flex;flex-direction:column;gap:16px">
+
+          <!-- CremCommand Integration -->
+          <div class="panel" style="border-left:3px solid #1D4ED8">
+            <div class="panel-header"><div class="panel-title">CremCommand <em>integration</em></div></div>
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+              CremCommand pushes approved jobs directly to Supabase. FieldFlow receives them automatically — no manual import needed.
+              Run migration <strong>017_cremcommand_integration.sql</strong> in your Supabase SQL Editor once to add the required
+              <code style="background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:10.5px">UNIQUE</code>
+              constraint on <code style="background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:10.5px">number</code> and the
+              <code style="background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:10.5px">updated_at</code> trigger.
+            </div>
+
+            <div style="background:var(--surface-2);border-radius:9px;padding:13px 15px;margin-bottom:12px;font-size:11.5px">
+              <div style="font-weight:600;color:var(--ink);margin-bottom:6px">CremCommand → Connections → FieldFlow → User Token</div>
+              <div style="color:var(--muted);margin-bottom:8px">Paste your JWT so CremCommand can write to Supabase on your behalf.</div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button class="btn btn-sm btn-primary" onclick="copyFieldFlowJWT()" id="jwt-copy-btn"
+                  data-tip="Copies your current session JWT to the clipboard — paste it into CremCommand → Connections → FieldFlow → User Token">
+                  📋 Copy my JWT
+                </button>
+                <span id="jwt-copy-status" style="font-size:10.5px;color:var(--good)"></span>
+              </div>
+              <div style="margin-top:8px;font-size:10.5px;color:var(--muted)">
+                Token expires with your session. Re-copy after each login. 
+                CremCommand uses it as a Bearer token so writes are scoped to your account's RLS role.
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div style="background:var(--surface-2);border-radius:9px;padding:11px 13px">
+                <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px">Supabase URL</div>
+                <code style="font-size:11px;color:var(--ink);word-break:break-all">https://rnskwlgnnphjlzwasgcr.supabase.co</code>
+              </div>
+              <div style="background:var(--surface-2);border-radius:9px;padding:11px 13px">
+                <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px">Target table</div>
+                <code style="font-size:11px;color:var(--ink)">public.jobs</code>
+                <div style="font-size:10px;color:var(--muted);margin-top:3px">Upsert on <code>number</code> (job number)</div>
+              </div>
+            </div>
+
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">Sector mapping (exact strings CremCommand sends)</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+              ${['Greenfield','Live Work','Service','Special Projects','Other'].map(s => {
+                const c = typeof getSectorColor === 'function' ? getSectorColor(s) : '#374151';
+                return `<span style="font-size:10.5px;padding:2px 9px;border-radius:10px;background:${c}22;color:${c};border:1px solid ${c}55;font-weight:600">${s}</span>`;
+              }).join('')}
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-sm" onclick="syncJobsNow(true)"
+                data-tip="Manually pull the latest jobs from Supabase. CremCommand jobs are also auto-merged on every page load.">
+                ⟳ Pull latest jobs from Supabase
+              </button>
+              <span style="font-size:10.5px;color:var(--muted)">CremCommand pushes also auto-merge on next page load</span>
+            </div>
+          </div>
 
           <!-- Appearance — dark mode toggle -->
           <div class="panel">
@@ -5102,6 +5217,20 @@ applySchoolSessionsToSchedule();
 // ── Current user tracking (declared early — referenced by request polling) ──
 let _currentUser = { email: '', name: '', role: '' };
 
+// ── Role guard ────────────────────────────────────────────────
+// Client-side check for admin-only operations. This is NOT the
+// security enforcement layer — Supabase RLS handles that. This
+// is defense-in-depth: stops accidental calls from non-admin
+// users who somehow reach the function (e.g., via browser console).
+// Returns true if the call should proceed, false + toast if not.
+function _requireSuperintendent(fnName) {
+  const role = (typeof _currentUser !== 'undefined' && _currentUser?.role) || '';
+  if (role === 'superintendent' || role === 'admin') return true;
+  console.warn(`[auth] ${fnName || 'admin fn'} blocked — role="${role}" (requires superintendent)`);
+  if (typeof showToast === 'function') showToast('Admin access required', 'error');
+  return false;
+}
+
 // ── Manpower requests ────────────────────────────────
 // Structured request — directors (superintendent role) are polled.
 // If all respond No within 48 hours → email requester to call union.
@@ -5115,6 +5244,186 @@ const REQ_ROLE_LABEL = {
   '5':'5th-yr Apprentice','4':'4th-yr Apprentice','3':'3rd-yr Apprentice',
   '2':'2nd-yr Apprentice','1':'1st-yr Apprentice','0':'New hire (unassigned)'
 };
+
+// ── Pipeline — upcoming / future work planning board ──────────
+// Each entry is a job not yet crew-assigned: awarded bids, pre-mob items,
+// upcoming starts. Not connected to the schedule until crew is assigned.
+let PIPELINE_DATA = [];
+try {
+  const saved = localStorage.getItem('fieldflow-pipeline-v1');
+  if (saved) PIPELINE_DATA = JSON.parse(saved) || [];
+} catch { PIPELINE_DATA = []; }
+
+function _savePipeline() {
+  try { localStorage.setItem('fieldflow-pipeline-v1', JSON.stringify(PIPELINE_DATA)); } catch {}
+}
+
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  if (!board) return;
+
+  // Populate sector filter
+  const sf = document.getElementById('pipeline-sector-filter');
+  if (sf && sf.options.length <= 1) {
+    const sectors = typeof sectorNames === 'function' ? sectorNames() : ['Live Work','Greenfield','Service','Special Projects','Other'];
+    sectors.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sf.appendChild(o);
+    });
+  }
+  const sectorFilter = sf?.value || '';
+
+  const items = PIPELINE_DATA.filter(p => !sectorFilter || p.sector === sectorFilter)
+    .sort((a,b) => (a.targetStart || 'z').localeCompare(b.targetStart || 'z'));
+
+  if (items.length === 0) {
+    board.innerHTML = `
+      <div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7">
+        <div style="font-size:32px;margin-bottom:10px;opacity:.3">📋</div>
+        No upcoming work logged yet.<br>
+        <span style="font-size:11px">Use <strong>+ Add upcoming work</strong> to track awarded bids, pre-mobilization jobs, and future starts before crew is assigned.</span>
+      </div>`;
+    return;
+  }
+
+  board.innerHTML = items.map(p => {
+    const sc = typeof getSectorColor === 'function' ? getSectorColor(p.sector) : '#374151';
+    const borderColor = sc || '#374151';
+    const linkedJob = typeof JOBS !== 'undefined' ? JOBS.find(j => j.id === p.linkedJobId) : null;
+    return `
+      <div style="background:var(--white);border:1px solid var(--line);border-left:4px solid ${borderColor};border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;transition:box-shadow .15s"
+        onmouseover="this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
+            <span style="font-size:14px;font-weight:600;color:var(--ink)">${esc(p.name)}</span>
+            ${p.sector ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:${borderColor}22;color:${borderColor};border:1px solid ${borderColor}44">${esc(p.sector)}</span>` : ''}
+            ${p.status ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)">${esc(p.status)}</span>` : ''}
+          </div>
+          <div style="display:flex;gap:16px;font-size:11.5px;color:var(--muted);flex-wrap:wrap;margin-bottom:p.notes?6:0">
+            ${p.targetStart ? `<span>🗓 Target start: <strong style="color:var(--ink)">${esc(p.targetStart)}</strong></span>` : ''}
+            ${p.crewSize ? `<span>👷 Est. crew: <strong style="color:var(--ink)">${esc(String(p.crewSize))}</strong></span>` : ''}
+            ${p.gcName ? `<span>🏗 GC: <strong style="color:var(--ink)">${esc(p.gcName)}</strong></span>` : ''}
+            ${p.projectNum ? `<span style="font-family:var(--mono);font-size:10.5px">${esc(p.projectNum)}</span>` : ''}
+          </div>
+          ${p.notes ? `<div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;line-height:1.5;background:var(--surface-2);padding:8px 10px;border-radius:6px">${esc(p.notes)}</div>` : ''}
+          ${linkedJob ? `<div style="margin-top:8px;font-size:11px;color:var(--accent-dark)">🔗 Linked to job: ${esc(linkedJob.name)}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+          <button class="btn btn-sm" onclick="openEditPipelineItem('${esc(p.id)}')" style="font-size:10.5px;padding:3px 10px">Edit</button>
+          <button class="btn btn-sm" onclick="deletePipelineItem('${esc(p.id)}')" style="font-size:10.5px;padding:3px 10px;color:var(--bad)">Remove</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openNewPipelineItem() { _pipelineModal(null); }
+function openEditPipelineItem(id) {
+  const p = PIPELINE_DATA.find(x => x.id === id);
+  if (p) _pipelineModal(p);
+}
+
+function _pipelineModal(existing) {
+  document.getElementById('pipeline-modal')?.remove();
+  const isNew = !existing;
+  const p = existing ? { ...existing } : {
+    id: 'pl_' + Date.now().toString(36),
+    name: '', projectNum: '', sector: '', gcName: '',
+    targetStart: '', crewSize: '', status: 'Awarded', notes: '',
+  };
+
+  const sectors = typeof sectorNames === 'function' ? sectorNames() : ['Live Work','Greenfield','Service','Special Projects','Other'];
+  const sectorOpts = ['', ...sectors].map(s => `<option value="${esc(s)}" ${p.sector === s ? 'selected':''}>${esc(s)||'— Select sector —'}</option>`).join('');
+  const statusOpts = ['Awarded','Mobilizing','Pre-bid','On hold','Conditional award'].map(s =>
+    `<option value="${esc(s)}" ${p.status === s ? 'selected':''}>${esc(s)}</option>`).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'pipeline-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--white);border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <div style="padding:16px 22px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:16px;font-weight:600;color:var(--ink)">${isNew ? 'Add upcoming work' : 'Edit upcoming work'}</div>
+        <button onclick="document.getElementById('pipeline-modal').remove()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1">×</button>
+      </div>
+      <div style="padding:18px 22px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <label class="form-label">Job / project name *</label>
+          <input id="pl-name" class="form-input" value="${esc(p.name)}" placeholder="e.g. Lakeside Phase 2, WTP Expansion">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="form-label">Project number</label>
+            <input id="pl-num" class="form-input" value="${esc(p.projectNum)}" placeholder="26-XXXX">
+          </div>
+          <div>
+            <label class="form-label">GC / customer</label>
+            <input id="pl-gc" class="form-input" value="${esc(p.gcName)}" placeholder="Contractor or owner">
+          </div>
+          <div>
+            <label class="form-label">Sector</label>
+            <select id="pl-sector" class="form-input">${sectorOpts}</select>
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select id="pl-status" class="form-input">${statusOpts}</select>
+          </div>
+          <div>
+            <label class="form-label">Target start</label>
+            <input id="pl-start" type="date" class="form-input" value="${esc(p.targetStart)}">
+          </div>
+          <div>
+            <label class="form-label">Est. crew size</label>
+            <input id="pl-crew" type="number" min="1" class="form-input" value="${esc(String(p.crewSize||''))}" placeholder="0">
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Notes / pre-mobilization items</label>
+          <textarea id="pl-notes" class="form-input" rows="3" style="resize:vertical;font-size:12px" placeholder="Material lead times, scope highlights, contacts, pre-req checklist...">${esc(p.notes)}</textarea>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-sm" onclick="document.getElementById('pipeline-modal').remove()">Cancel</button>
+          <button class="btn btn-sm btn-primary" onclick="savePipelineItem(${JSON.stringify(p.id)})">✓ Save</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.getElementById('pl-name')?.focus();
+}
+
+function savePipelineItem(id) {
+  const name = document.getElementById('pl-name')?.value.trim();
+  if (!name) { showToast('Job name is required', 'error'); return; }
+  const item = {
+    id,
+    name,
+    projectNum: document.getElementById('pl-num')?.value.trim() || '',
+    gcName:     document.getElementById('pl-gc')?.value.trim() || '',
+    sector:     document.getElementById('pl-sector')?.value || '',
+    status:     document.getElementById('pl-status')?.value || '',
+    targetStart:document.getElementById('pl-start')?.value || '',
+    crewSize:   parseInt(document.getElementById('pl-crew')?.value || '0') || '',
+    notes:      document.getElementById('pl-notes')?.value.trim() || '',
+  };
+  const idx = PIPELINE_DATA.findIndex(p => p.id === id);
+  if (idx >= 0) PIPELINE_DATA[idx] = item;
+  else PIPELINE_DATA.unshift(item);
+  _savePipeline();
+  document.getElementById('pipeline-modal')?.remove();
+  renderPipeline();
+  showToast(`${item.name} saved to pipeline`, 'success');
+}
+
+function deletePipelineItem(id) {
+  const p = PIPELINE_DATA.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Remove "${p.name}" from the pipeline?`)) return;
+  PIPELINE_DATA = PIPELINE_DATA.filter(x => x.id !== id);
+  _savePipeline();
+  renderPipeline();
+  showToast('Removed from pipeline', 'success');
+}
 
 const REQUESTS_DATA = [
   {
@@ -5336,6 +5645,31 @@ function roleBadge(role) {
 let _schedWindowStart = SCHED_CURRENT_WEEK.index; // Default to current week
 const SCHED_WINDOW_SIZE = 3;
 
+// Work-week display mode: 4 = Mon-Thu (4x10), 5 = Mon-Fri, 7 = Mon-Sun
+// Controls how many day columns show per week and which days fillWeek covers.
+let SCHED_DISPLAY_DAYS = 4;
+try { SCHED_DISPLAY_DAYS = parseInt(localStorage.getItem('ff-sched-display-days') || '4', 10) || 4; } catch {}
+function setSchedDisplayDays(n) {
+  SCHED_DISPLAY_DAYS = n;
+  try { localStorage.setItem('ff-sched-display-days', String(n)); } catch {}
+  // Update button visuals
+  [4, 5, 7].forEach(d => {
+    const btn = document.getElementById(`days-btn-${d}`);
+    if (!btn) return;
+    if (d === n) {
+      btn.style.background = 'var(--white)';
+      btn.style.color = 'var(--ink)';
+      btn.style.boxShadow = '0 1px 3px rgba(0,0,0,.08)';
+    } else {
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--muted)';
+      btn.style.boxShadow = '';
+    }
+  });
+  buildSchedThead();
+  buildSchedTbody();
+}
+
 function schedNav(delta) {
   const newStart = Math.max(0, Math.min(SCHED_WEEKS_TOTAL - SCHED_WINDOW_SIZE, _schedWindowStart + delta));
   _schedWindowStart = newStart;
@@ -5391,20 +5725,24 @@ function buildSchedJumpOptions() {
 function buildSchedThead() {
   const thead = document.getElementById('sched-thead');
   if (!thead) return;
+  const displayDays = SCHED_DISPLAY_DAYS || 4;
   const weekRange = [];
-  for (let i = 0; i < SCHED_WINDOW_SIZE; i++) {
-    weekRange.push(_schedWindowStart + i);
-  }
+  for (let i = 0; i < SCHED_WINDOW_SIZE; i++) weekRange.push(_schedWindowStart + i);
   const wkHdrs = weekRange.map((wi, idx) => {
     const isCurrent = wi === SCHED_CURRENT_WEEK.index;
+    const isNext    = wi === SCHED_CURRENT_WEEK.index + 1;
     const cls = idx % 2 === 0 ? 'wk-hdr' : 'wk-hdr2';
-    const bg  = isCurrent ? 'background:var(--accent-ghost);color:var(--accent-dark);font-weight:600' : '';
-    return `<th colspan="${SCHED_DAYS_PER_WEEK}" class="${cls}" style="${bg}">${schedWeekLabel(wi)}${isCurrent?' · THIS WEEK':''}</th>`;
+    const bg  = isCurrent ? 'background:var(--accent-ghost);color:var(--accent-dark);font-weight:600'
+              : isNext    ? 'background:#f0fdf4;color:#15803D;font-weight:500' : '';
+    const label = schedWeekLabel(wi) + (isCurrent ? ' · THIS WEEK' : isNext ? ' · NEXT' : '');
+    return `<th colspan="${displayDays}" class="${cls}" style="${bg}">${label}</th>`;
   }).join('');
   const dayHdrs = weekRange.map((wi, wkPos) => {
-    return Array.from({length: SCHED_DAYS_PER_WEEK}, (_, di) => {
-      const sep = (di === SCHED_DAYS_PER_WEEK - 1 && wkPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
-      return `<th${sep}>${schedDayLabel(wi, di)}</th>`;
+    return Array.from({length: displayDays}, (_, di) => {
+      const sep = (di === displayDays - 1 && wkPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
+      const isWeekend = di >= 5;
+      const wkndStyle = isWeekend ? ' style="color:var(--muted);background:var(--surface-2)"' : '';
+      return `<th${sep}${wkndStyle}>${schedDayLabel(wi, di)}</th>`;
     }).join('');
   }).join('');
   thead.innerHTML = `
@@ -5498,7 +5836,7 @@ function buildSchedTbody() {
   }
 
   // Compute total column count for separator-row colspans
-  const TOTAL_COLS = 1 + (SCHED_WINDOW_SIZE * SCHED_DAYS_PER_WEEK);
+  const TOTAL_COLS = 1 + (SCHED_WINDOW_SIZE * (SCHED_DISPLAY_DAYS || 4));
 
   // Determine if current sort produces groups (used to inject delineation rows)
   const groupKeyOf = (key, weeks) => {
@@ -5540,6 +5878,7 @@ function buildSchedTbody() {
   const isCollapsed = (g) => !!collapsed[sortGroupKey(g)];
 
   let lastGroup = null;
+  let _lastJobSubgroup = null; // tracks job-level sub-header within a sector
   tbody.innerHTML = sorted.map(([key, weeks]) => {
     const [last, first, role] = key.split(',');
     const photo = CONTACT_INFO[last]?.photo;
@@ -5547,55 +5886,96 @@ function buildSchedTbody() {
     const avatarHtml = photo
       ? `<img src="${esc(photo)}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0">`
       : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
-    // #14 Expired cert flag
     const expired = (typeof expiredCertsFor === 'function') ? expiredCertsFor(last) : [];
     const expiredBadge = expired.length
-      ? `<span data-tip="Expired cert${expired.length>1?'s':''}: ${expired.map(k=>k.toUpperCase()).join(', ')} — renewal required before this employee can be scheduled" style="display:inline-block;background:var(--bad);color:#fff;font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;cursor:help">⚠ EXP</span>`
+      ? `<span data-tip="Expired cert${expired.length>1?'s':''}: ${expired.map(k=>k.toUpperCase()).join(', ')} — renewal required" style="display:inline-block;background:var(--bad);color:#fff;font-size:8.5px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;cursor:help">⚠ EXP</span>`
       : '';
     const rowStyle = expired.length ? 'box-shadow:inset 3px 0 0 var(--bad)' : '';
 
-    // Group separator row — emitted when group changes between consecutive employees
     const group = groupKeyOf(key, weeks);
     let separator = '';
+
+    // ── Sector header row ─────────────────────────────────────
     if (group !== null && group !== lastGroup) {
-      const labelPrefix = sortKey === 'sector' ? '🏷' :
-                          sortKey === 'job'    ? '🏗' :
-                                                  '👥';
       const cnt = groupCounts.get(group) || 0;
       const collapsedCls = isCollapsed(group) ? ' collapsed' : '';
       const groupSafe = esc(group);
+      const labelPrefix = sortKey === 'sector' ? '' : sortKey === 'job' ? '🏗' : '👥';
 
-      // When grouping by sector, dynamically tint the entire header row
-      // with that sector's color — chevron, label text, count chip, top
-      // border, and gradient background. When grouping by job/role, fall
-      // through to the default gold accent styling from CSS.
       let cellStyle = '', chevStyle = '', countStyle = '';
       if (sortKey === 'sector') {
         const sc = (group === 'No sector') ? null : getSectorColor(group);
         if (sc) {
-          // The cell gets a sector-tinted gradient + sector-colored top border
-          // and label text. Inline styles win over the CSS class defaults.
-          cellStyle = ` style="background:linear-gradient(90deg, ${sc}26 0%, var(--surface-2) 18%, var(--surface-2) 100%);border-top:2px solid ${sc};color:${sc}"`;
-          chevStyle = ` style="color:${sc}"`;
+          cellStyle = ` style="background:linear-gradient(90deg,${sc}44 0%,${sc}18 35%,var(--surface-2) 100%);border-top:3px solid ${sc};color:${sc}"`;
+          chevStyle = ` style="color:${sc};font-size:11px"`;
           countStyle = ` style="background:${sc}26;color:${sc}"`;
         }
       } else if (sortKey === 'job') {
-        // Sector of THIS job — tint the job-header with its sector color
         const sc = getSectorColorByJobName(group);
         if (sc) {
-          cellStyle = ` style="background:linear-gradient(90deg, ${sc}26 0%, var(--surface-2) 18%, var(--surface-2) 100%);border-top:2px solid ${sc};color:${sc}"`;
+          cellStyle = ` style="background:linear-gradient(90deg,${sc}26 0%,var(--surface-2) 18%,var(--surface-2) 100%);border-top:2px solid ${sc};color:${sc}"`;
           chevStyle = ` style="color:${sc}"`;
           countStyle = ` style="background:${sc}26;color:${sc}"`;
         }
       }
 
-      separator = `<tr class="sched-group-row${collapsedCls}" data-group-key="${groupSafe}"><td colspan="${TOTAL_COLS}" class="sched-group-cell"${cellStyle} onclick="toggleSchedGroup('${groupSafe.replace(/'/g, '&#39;')}', '${esc(sortKey)}')" data-tip="Click to ${isCollapsed(group) ? 'expand' : 'collapse'} this group. State is saved per sort.">
-        <span class="sched-group-chevron"${chevStyle}>▼</span>
-        <span class="sched-group-icon">${labelPrefix}</span>
-        <span class="sched-group-label">${groupSafe}</span>
-        <span class="sched-group-count"${countStyle}>${cnt}</span>
-      </td></tr>`;
+      separator = `<tr class="sched-group-row${collapsedCls}" data-group-key="${groupSafe}">
+        <td colspan="${TOTAL_COLS}" class="sched-group-cell"${cellStyle}
+          onclick="toggleSchedGroup('${groupSafe.replace(/'/g,'&#39;')}','${esc(sortKey)}')"
+          data-tip="Click to ${isCollapsed(group)?'expand':'collapse'} this group">
+          <span class="sched-group-chevron"${chevStyle}>▼</span>
+          ${labelPrefix ? `<span class="sched-group-icon">${labelPrefix}</span>` : ''}
+          <span class="sched-group-label">${groupSafe}</span>
+          <span class="sched-group-count"${countStyle}>${cnt}</span>
+        </td></tr>`;
       lastGroup = group;
+      _lastJobSubgroup = null; // reset job sub-grouping when sector changes
+    }
+
+    // ── Job sub-header row (sector sort only) ─────────────────
+    // Hierarchy: Sector → Job → People
+    // Derives the employee's current-week job, emits a sub-header row
+    // when the job changes within the same sector.
+    let jobSeparator = '';
+    if (sortKey === 'sector') {
+      const empWk = weeks[SCHED_CURRENT_WEEK.index] || [];
+      const empJob = empWk.find(d => d && !['HOLIDAY','School','VACATION','OFF','PERSONAL','JURY','BEREAVE','SICK','???',''].includes(d)) || null;
+      const subKey = (group || '') + '|' + (empJob || '_none_');
+
+      if (subKey !== _lastJobSubgroup && !isCollapsed(group || '')) {
+        _lastJobSubgroup = subKey;
+        const jobObj = empJob ? JOBS.find(j => j.name === empJob) : null;
+        const jSc = empJob ? getSectorColorByJobName(empJob) : null;
+        const displayName = empJob || 'Unassigned this week';
+        const jobMeta = [jobObj?.number, jobObj?.location].filter(Boolean).join(' · ');
+
+        // Job metrics: pull current-week crew for this job
+        const subCrew = typeof getJobCrew === 'function' && jobObj ? getJobCrew(jobObj) : [];
+        const subJN  = subCrew.filter(c => ['JN','JW','WLD','FM','GF','SUPER','superintendent'].includes(c.role)).length;
+        const subApp = subCrew.filter(c => c.role && /^\d/.test(c.role)).length;
+        const ratioOk = subApp === 0 || subJN >= subApp;
+        const metricsStr = subCrew.length
+          ? `<span style="font-size:9px;font-weight:500;margin-left:12px;color:var(--muted)">${subCrew.length} on crew</span>` +
+            `<span style="font-size:9px;margin-left:6px;font-weight:700;color:${ratioOk?'#15803D':'#991B1B'}">${subJN}JN:${subApp}AP${ratioOk?'✓':'⚠'}</span>`
+          : '';
+
+        const subGroupId = `jsg::${subKey}`;
+        const subSafe = esc(subGroupId);
+        const subCollapsed = isCollapsed(subGroupId);
+        const subCls = subCollapsed ? ' collapsed' : '';
+
+        jobSeparator = `<tr class="sched-group-row${subCls}" data-group-key="${subSafe}"
+          style="background:${jSc?jSc+'0d':'rgba(0,0,0,.015)'}">
+          <td colspan="${TOTAL_COLS}"
+            style="padding:4px 10px 4px 24px;border-bottom:1px solid var(--line-soft);cursor:pointer"
+            onclick="toggleSchedGroup('${subSafe.replace(/'/g,'&#39;')}','${esc(sortKey)}')"
+            data-tip="Click to collapse/expand employees on ${esc(displayName)}">
+            <span style="font-size:9.5px;margin-right:4px;opacity:.5">${subCollapsed?'▸':'▾'}</span>
+            <span style="font-size:11px;font-weight:700;color:${jSc||'var(--ink-soft)'}">🏗 ${esc(displayName)}</span>
+            ${jobMeta ? `<span style="font-size:9.5px;color:var(--muted);margin-left:6px">${esc(jobMeta)}</span>` : ''}
+            ${metricsStr}
+          </td></tr>`;
+      }
     }
 
     const empRowGroup = group !== null ? ` data-group-key="${esc(group)}"` : '';
@@ -5604,8 +5984,22 @@ function buildSchedTbody() {
     const roleColor = getRoleColor(role);
     const nameStyle = roleColor ? ` style="color:${roleColor}"` : '';
 
-    return separator + `<tr class="sched-emp-row${empRowHidden}" data-emp-key="${esc(key)}"${empRowGroup} style="${rowStyle}">
-      <td class="stick" data-emp-hover="${esc(last)},${esc(first)}">
+    // Sector color on the person — look up what job the employee is on
+    // in the CURRENT real-world week and tint their sticky name cell with
+    // that sector's color. This gives an instant visual overview of which
+    // sector each crew member is working in right now.
+    const currentWeekJobs = (weeks[SCHED_CURRENT_WEEK.index] || []).filter(Boolean);
+    const currentJobName  = currentWeekJobs.find(d => d && d !== 'HOLIDAY' && d !== 'School' && d !== 'LW') || null;
+    const currentJobSectorColor = currentJobName ? getSectorColorByJobName(currentJobName) : null;
+    const sectorBorderStyle = currentJobSectorColor
+      ? `border-left:3px solid ${currentJobSectorColor};`
+      : 'border-left:3px solid transparent;';
+    const sectorTip = currentJobSectorColor
+      ? ` data-tip="Sector: ${esc(JOBS.find(j=>j.name===currentJobName)?.sector||'')} · ${esc(currentJobName)}"`
+      : '';
+
+    return separator + jobSeparator + `<tr class="sched-emp-row${empRowHidden}" data-emp-key="${esc(key)}"${empRowGroup} style="${rowStyle}">
+      <td class="stick" data-emp-hover="${esc(last)},${esc(first)}" style="${sectorBorderStyle}"${sectorTip}>
         <div style="display:flex;align-items:center;gap:7px">
           ${avatarHtml}
           <div>
@@ -5615,29 +6009,63 @@ function buildSchedTbody() {
         </div>
       </td>
       ${viewWeeks.map((wi, wPos) => {
-        // Ensure the week has SCHED_DAYS_PER_WEEK slots — older 5-day data is padded with empty cells
+        const displayDays = SCHED_DISPLAY_DAYS || 4;
+        const isNextWeek = wi === SCHED_CURRENT_WEEK.index + 1;
+        // Ensure the week has SCHED_DAYS_PER_WEEK slots
         const wkArr = (weeks[wi] && Array.isArray(weeks[wi])) ? weeks[wi] : _newWeekArray();
         while (wkArr.length < SCHED_DAYS_PER_WEEK) wkArr.push('');
         if (wkArr.length > SCHED_DAYS_PER_WEEK) wkArr.length = SCHED_DAYS_PER_WEEK;
-        // Persist the patched array back to SCHED so future operations see all 7 slots
         if (weeks[wi] !== wkArr) weeks[wi] = wkArr;
-        return wkArr.map((d, di) => {
-          const sep  = (di === SCHED_DAYS_PER_WEEK - 1 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
+        // Only render the first displayDays columns
+        return wkArr.slice(0, displayDays).map((d, di) => {
+          const sep  = (di === displayDays - 1 && wPos < SCHED_WINDOW_SIZE - 1) ? ' class="wsep"' : '';
           const crid = reg({ empKey: key, weekIdx: wi, dayIdx: di, value: d });
           const sector    = d ? (jobByName(d)?.sector || '') : '';
           const sectorCol = (d && sector) ? getSectorColor(sector) : null;
-          // Tint the tag using the sector color when present. Background uses
-          // ~15% alpha so day text stays readable; border + foreground use the
-          // full sector color. Falls back to the default tag class styling.
-          // The sector text below the tag is removed — the color itself
-          // signifies the sector. Tooltip on hover still tells you which.
           const tagStyle = sectorCol
-            ? ` style="background:${sectorCol}26;border:1px solid ${sectorCol}66;color:${sectorCol}"`
+            ? ` style="background:${sectorCol}22;border:1px solid ${sectorCol}55;color:${sectorCol}"`
             : '';
           const tagTip = sector ? ` data-tip="${esc(sector)} sector · ${esc(d || '')}"` : '';
-          return `<td${sep} style="cursor:pointer;position:relative" data-cell-rid="${crid}">
+          const isJob = d && !['School','HOLIDAY','VACATION','OFF','PERSONAL','JURY','BEREAVE','SICK','???',''].includes(d);
+          const sectorAbbrev = isJob && sector ? sector.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,4) : '';
+          const cellInner = isJob
+            ? `<span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}${tagTip} style="display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 4px;line-height:1.2;${sectorCol?`background:${sectorCol}22;border:1px solid ${sectorCol}55;color:${sectorCol}`:''}">
+                <span style="font-size:9.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:74px">${esc(tagVal(d))}</span>
+                ${sectorAbbrev ? `<span style="font-size:7.5px;font-weight:700;letter-spacing:.05em;opacity:.75;text-transform:uppercase">${esc(sectorAbbrev)}</span>` : ''}
+              </span>`
+            : `<span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}${tagTip}>${esc(tagVal(d))}</span>`;
+
+          // ── Next-week empty cells: show a quick "+Set" hint ──────────
+          // When viewing the next week and the cell is empty (no job, not
+          // a special value), suggest the current week's job for that day
+          // so the user can fill it with one click.
+          const isWeekend = di >= 5;
+          let nextHint = '';
+          if (isNextWeek && !d && !isWeekend && di <= 3) {
+            const curVal = (weeks[SCHED_CURRENT_WEEK.index] || [])[di] || '';
+            const suggestVal = (curVal && !['HOLIDAY','School','VACATION','OFF','???',''].includes(curVal)) ? curVal : '';
+            if (suggestVal) {
+              const sugId = reg({ empKey: key, weekIdx: wi, dayIdx: di, value: suggestVal });
+              nextHint = `<div onclick="event.stopPropagation();quickSetNextWeek('${esc(key)}',${wi},${di},'${esc(suggestVal).replace(/'/g,'&#39;')}')"
+                style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+                background:rgba(21,128,61,.07);border:1px dashed rgba(21,128,61,.35);border-radius:4px;
+                font-size:8px;color:#15803D;font-weight:700;letter-spacing:.04em;cursor:pointer;
+                opacity:0;transition:opacity .15s"
+                class="next-week-hint"
+                data-tip="Click to set ${esc(last)}, ${esc(first)} to ${esc(suggestVal)} next week">
+                +Set
+              </div>`;
+            } else {
+              nextHint = `<div style="position:absolute;inset:0;pointer-events:none;background:rgba(21,128,61,.04);border:1px dashed rgba(21,128,61,.2);border-radius:3px"></div>`;
+            }
+          }
+          const tdBg = isNextWeek && !d && !isWeekend ? 'background:rgba(21,128,61,.03);' : '';
+          return `<td${sep} style="cursor:pointer;position:relative;${tdBg}" data-cell-rid="${crid}"
+            onmouseover="this.querySelector('.next-week-hint')&&(this.querySelector('.next-week-hint').style.opacity='1')"
+            onmouseout="this.querySelector('.next-week-hint')&&(this.querySelector('.next-week-hint').style.opacity='0')">
             <div class="sched-cell-wrap">
-              <span class="tag ${tagCls(d)}" id="sched-cell-${crid}"${tagStyle}${tagTip}>${esc(tagVal(d))}</span>
+              ${cellInner}
+              ${nextHint}
               <div class="sched-edit-hint"></div>
             </div>
           </td>`;
@@ -5648,6 +6076,35 @@ function buildSchedTbody() {
 
   // Attach long-press / right-click for transfer requests
   if (typeof attachScheduleRowEvents === 'function') attachScheduleRowEvents();
+
+  // ── Excel-style cell highlight: when search is active, tint cells whose
+  // job name or sector matches the query so users can spot them instantly.
+  const matchCountEl = document.getElementById('sched-match-count');
+  if (searchQ) {
+    let cellMatches = 0;
+    document.querySelectorAll('#sched-tbody td[data-cell-rid]').forEach(td => {
+      const rid = parseInt(td.dataset.cellRid, 10);
+      const cellData = get(rid);
+      const val = (cellData?.value || '').toLowerCase();
+      const sec = (jobByName(cellData?.value)?.sector || '').toLowerCase();
+      if (val.includes(searchQ) || sec.includes(searchQ)) {
+        td.style.outline = '2px solid #FACC15';
+        td.style.outlineOffset = '-2px';
+        td.style.background = 'rgba(250,204,21,.18)';
+        cellMatches++;
+      } else {
+        td.style.outline = '';
+        td.style.outlineOffset = '';
+        td.style.background = '';
+      }
+    });
+    if (matchCountEl) matchCountEl.textContent = `${cellMatches} cell match${cellMatches !== 1 ? 'es' : ''}`;
+  } else {
+    document.querySelectorAll('#sched-tbody td[data-cell-rid]').forEach(td => {
+      td.style.outline = ''; td.style.outlineOffset = ''; td.style.background = '';
+    });
+    if (matchCountEl) matchCountEl.textContent = '';
+  }
 }
 
 // Toggle a single group's collapsed state. Persists to localStorage so the
@@ -6323,7 +6780,11 @@ function buildRosterRows(filter, roleFilter) {
       : `<div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:600;color:var(--white);flex-shrink:0">${esc(initials)}</div>`;
     const roleColor = (typeof getRoleColor === 'function') ? getRoleColor(e.role) : null;
     const nameStyle = roleColor ? ` style="color:${roleColor};font-weight:500"` : '';
-    return `<tr class="roster-row" style="cursor:pointer" data-rid="${rid}" data-last="${esc(e.last)}" data-emp-hover="${esc(e.last)},${esc(e.first)}">
+    // Sector color on the roster row — left border matches the sector of their current job
+    const rosterJobName = thisWeekJob(e.last);
+    const rosterSectorColor = rosterJobName ? getSectorColorByJobName(rosterJobName) : null;
+    const rosterRowStyle = `cursor:pointer;${rosterSectorColor ? `border-left:3px solid ${rosterSectorColor}` : 'border-left:3px solid transparent'}`;
+    return `<tr class="roster-row" style="${rosterRowStyle}" data-rid="${rid}" data-last="${esc(e.last)}" data-emp-hover="${esc(e.last)},${esc(e.first)}">
       <td style="font-weight:500">
         <div style="display:flex;align-items:center;gap:8px">
           ${avatarHtml}
@@ -7165,8 +7626,11 @@ function saveHRDigestSent(state) {
 }
 
 function runHRDigest() {
-  const hrEmail = localStorage.getItem('fieldflow-hr-email') || '';
-  const hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
+  let hrEmail = 'hr@crem-inc.com', hrName = 'HR';
+  try {
+    hrEmail = localStorage.getItem('fieldflow-hr-email') || 'hr@crem-inc.com';
+    hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
+  } catch {} // localStorage may be blocked in sandboxed iframe contexts
   const sent = loadHRDigestSent();
   const todayKey = new Date().toISOString().slice(0, 10);
 
@@ -8623,9 +9087,9 @@ function renderSchoolWeekGrid() {
   const startWk = SCHED_CURRENT_WEEK.index;
   const endWk = Math.min(SCHED_WEEKS_TOTAL - 1, startWk + span - 1);
 
-  // Apprentices = anyone whose role starts with a digit
+  // Only show apprentices (role starts with digit)
   const apprentices = Object.keys(SCHED).filter(key => {
-    const [, , role] = key.split(',');
+    const [,, role] = key.split(',');
     return role && /^\d/.test(role);
   }).sort();
 
@@ -8634,154 +9098,116 @@ function renderSchoolWeekGrid() {
     return;
   }
 
-  // Show ALL apprentices who have school ANYWHERE in the schedule (not just
-  // visible span). User wants to see "everyone scheduled who will have school".
-  // The visible span controls how many week-columns render; the filter doesn't
-  // hide people whose school happens to fall outside the current window.
-  const withSchool = apprentices.filter(key => {
-    const weeks = SCHED[key] || [];
-    for (let wi = 0; wi < weeks.length; wi++) {
-      const days = weeks[wi] || [];
-      if (days.some(d => d === 'School')) return true;
-    }
-    return false;
-  });
+  // Only show apprentices who have school anywhere in the schedule
+  const withSchool = apprentices.filter(key =>
+    (SCHED[key] || []).some(wk => (wk || []).some(d => d === 'School'))
+  );
 
   if (withSchool.length === 0) {
     host.innerHTML = `<div style="font-size:11.5px;color:var(--muted);padding:14px 0;text-align:center">
-      No apprentice has school scheduled anywhere in the schedule.<br>
-      <span style="font-size:10.5px">Add school via the schedule day-popover (click a cell → School), or use the session manager below.</span>
+      No apprentice has school scheduled.<br>
+      <span style="font-size:10.5px">Use the session manager below to add sessions.</span>
     </div>`;
     return;
   }
 
-  // Day-of-week short labels (M/T/W/Th/F/Sa/Su) — fall back if global isn't there
-  const dayShort = (typeof SCHED_DAY_NAMES_SHORT !== 'undefined' && SCHED_DAY_NAMES_SHORT.length === SCHED_DAYS_PER_WEEK)
-    ? SCHED_DAY_NAMES_SHORT
-    : ['M','T','W','Th','F','Sa','Su'];
-
-  // Header row 1: week labels (each spans the days-per-week)
+  // Build header: one column per week
   const wkHeaders = [];
   for (let wi = startWk; wi <= endWk; wi++) {
-    const lbl = (typeof schedWeekLabel === 'function') ? schedWeekLabel(wi, true) : `wk ${wi}`;
-    const isCurrent = wi === SCHED_CURRENT_WEEK.index;
-    wkHeaders.push(`<th colspan="${SCHED_DAYS_PER_WEEK}" style="text-align:center;padding:5px 4px;font-size:10px;font-weight:600;color:${isCurrent ? 'var(--accent-dark)' : 'var(--muted)'};border-bottom:1px solid var(--line);background:${isCurrent ? 'var(--accent-ghost)' : 'var(--surface-2)'};white-space:nowrap;border-right:2px solid var(--accent-faint)">${esc(lbl)}</th>`);
+    const lbl = typeof schedWeekLabel === 'function' ? schedWeekLabel(wi, true) : `wk ${wi}`;
+    const isCur = wi === SCHED_CURRENT_WEEK.index;
+    wkHeaders.push(`<th style="text-align:center;padding:5px 8px;font-size:9.5px;font-weight:600;
+      color:${isCur ? 'var(--accent-dark)' : 'var(--muted)'};
+      background:${isCur ? 'var(--accent-ghost)' : 'var(--surface-2)'};
+      border-right:1px solid var(--line);white-space:nowrap;min-width:60px">${esc(lbl)}</th>`);
   }
 
-  // Header row 2: day-of-week labels
-  const dayHeaders = [];
-  for (let wi = startWk; wi <= endWk; wi++) {
-    dayShort.forEach((dn, di) => {
-      const isWeekend = di >= 5;
-      const isWeekEnd = (di === SCHED_DAYS_PER_WEEK - 1);
-      dayHeaders.push(`<th style="font-size:8.5px;font-weight:600;padding:3px 2px;text-align:center;color:${isWeekend ? 'var(--muted)' : 'var(--ink-soft)'};${isWeekEnd ? 'border-right:2px solid var(--accent-faint);' : ''}background:var(--surface-2)">${esc(dn)}</th>`);
-    });
-  }
-
-  // Data rows. Track in-window vs out-of-window school days so we can show
-  // a hint when someone has school outside the visible span.
+  // Data rows — one cell per week, gold if school scheduled that week
   const rows = withSchool.map(key => {
     const [last, first, role] = key.split(',');
+    const roleColor = typeof getRoleColor === 'function' ? getRoleColor(role) : null;
     const cells = [];
-    let inWindowSchool = 0;
-    let outOfWindowSchool = 0;
+    let hasOutOfWindow = false;
 
-    // Out-of-window school count (for the row's hint)
+    for (let wi = startWk; wi <= endWk; wi++) {
+      const days = SCHED[key]?.[wi] || [];
+      const hasSchool = days.some(d => d === 'School');
+      const isCur = wi === SCHED_CURRENT_WEEK.index;
+      if (hasSchool) {
+        // Count school days this week
+        const schoolDays = days.filter(d => d === 'School').length;
+        const dayNames = typeof SCHED_DAY_NAMES_SHORT !== 'undefined'
+          ? SCHED_DAY_NAMES_SHORT.filter((_, i) => i < 5)
+          : ['M','T','W','Th','F'];
+        const schoolDayList = days.slice(0, 5)
+          .map((d, i) => d === 'School' ? dayNames[i] : null)
+          .filter(Boolean).join(', ');
+        cells.push(`<td style="text-align:center;padding:6px 4px;border-right:1px solid var(--line);
+          background:rgba(234,179,8,.18);${isCur ? 'outline:2px solid var(--accent);outline-offset:-2px;' : ''}">
+          <span style="font-size:9px;font-weight:700;color:#92400E;letter-spacing:.02em" title="${esc(schoolDayList)}">
+            📚 ${schoolDays}d
+          </span>
+        </td>`);
+      } else {
+        cells.push(`<td style="text-align:center;padding:6px 4px;border-right:1px solid var(--line);
+          background:${isCur ? 'var(--accent-ghost)' : ''}">
+          <span style="font-size:9px;color:var(--muted)">—</span>
+        </td>`);
+      }
+    }
+
+    // Check for school outside the visible window
     const allWeeks = SCHED[key] || [];
     for (let wi = 0; wi < allWeeks.length; wi++) {
       if (wi >= startWk && wi <= endWk) continue;
-      const days = allWeeks[wi] || [];
-      outOfWindowSchool += days.filter(d => d === 'School').length;
+      if ((allWeeks[wi] || []).some(d => d === 'School')) { hasOutOfWindow = true; break; }
     }
 
-    for (let wi = startWk; wi <= endWk; wi++) {
-      const days = SCHED[key]?.[wi] || [];
-      for (let di = 0; di < SCHED_DAYS_PER_WEEK; di++) {
-        const v = days[di];
-        const isWeekEnd = (di === SCHED_DAYS_PER_WEEK - 1);
-        let bg, color, label;
-        if (v === 'School') {
-          bg = '#FBBF24'; color = '#000'; label = '📚';
-          inWindowSchool++;
-        } else if (v === 'VACATION' || v === 'Vacation') {
-          bg = '#DBEAFE'; color = '#1E40AF'; label = 'V';
-        } else if (v === 'OFF' || v === 'HOLIDAY') {
-          bg = 'var(--line)'; color = 'var(--muted)'; label = '';
-        } else if (v) {
-          bg = 'var(--surface-2)'; color = 'var(--muted)'; label = '·';
-        } else {
-          bg = 'transparent'; color = 'var(--muted)'; label = '';
-        }
-        const tipText = `${last}, ${first} · ${schedWeekLabel(wi, true)} ${SCHED_DAY_NAMES_LONG[di] || dayShort[di]} · ${v || 'empty'}`;
-        const borderRight = isWeekEnd ? 'border-right:2px solid var(--accent-faint);' : 'border-right:1px solid var(--line-soft);';
-        cells.push(`<td title="${esc(tipText)}" style="text-align:center;font-size:10px;font-weight:600;color:${color};padding:5px 0;background:${bg};${borderRight}min-width:18px">${label}</td>`);
-      }
-    }
-    // Total column shows in-window count, with out-of-window count as a small chip if any
-    const totalCell = outOfWindowSchool > 0
-      ? `<div style="font-weight:600;color:var(--accent-dark)">${inWindowSchool}d</div><div style="font-size:8.5px;font-weight:500;color:var(--muted);margin-top:1px" data-tip="School days outside the current span — try a larger span to see them">+${outOfWindowSchool} elsewhere</div>`
-      : `<div style="font-weight:600;color:var(--accent-dark)">${inWindowSchool}d</div>`;
-
-    // Highlight rows where the apprentice has NO school in the visible window
-    // so the user knows to expand the span
-    const rowTint = inWindowSchool === 0 ? 'background:rgba(251,191,36,0.04)' : '';
-
-    return `<tr style="${rowTint}">
-      <td style="position:sticky;left:0;background:var(--white);padding:6px 9px;border-right:1px solid var(--line);min-width:140px;z-index:1">
-        <div style="font-size:11.5px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(last)}, ${esc(first)}</div>
-        <div style="font-size:9.5px;color:var(--muted);margin-top:1px">${typeof roleLabel === 'function' ? esc(roleLabel(role) || role) : esc(role)}</div>
+    return `<tr>
+      <td style="padding:6px 10px;background:var(--surface);border-right:1px solid var(--line);
+        position:sticky;left:0;z-index:1;white-space:nowrap;min-width:130px">
+        <div style="font-weight:500;font-size:12px;color:${roleColor || 'var(--ink)'}">
+          ${esc(last)}, ${esc(first)}
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">
+          ${esc(role)}${hasOutOfWindow ? ' <span title="Has school sessions outside the current view span" style="color:var(--accent-dark)">•••</span>' : ''}
+        </div>
       </td>
       ${cells.join('')}
-      <td style="padding:6px 9px;font-size:10px;text-align:center;min-width:78px;background:var(--surface-2)">${totalCell}</td>
     </tr>`;
-  }).join('');
+  });
 
-  // Aggregate counts for the summary line
-  const totalApps = withSchool.length;
-  const inViewApps = withSchool.filter(key => {
-    for (let wi = startWk; wi <= endWk; wi++) {
-      const days = SCHED[key]?.[wi] || [];
-      if (days.some(d => d === 'School')) return true;
-    }
-    return false;
-  }).length;
-  const outsideOnlyApps = totalApps - inViewApps;
-  const summaryHint = outsideOnlyApps > 0
-    ? ` · <strong style="color:var(--muted)">${outsideOnlyApps}</strong> ${outsideOnlyApps === 1 ? 'has' : 'have'} school outside this window — try a larger span`
-    : '';
-
-  // Build a visible date range string so span changes are obviously different
-  const startLbl = (typeof schedWeekLabel === 'function') ? schedWeekLabel(startWk, true) : `wk ${startWk}`;
-  const endLbl   = (typeof schedWeekLabel === 'function') ? schedWeekLabel(endWk, true)   : `wk ${endWk}`;
-  const weekCount = endWk - startWk + 1;
-
-  host.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
-      <div>
-        <strong style="color:var(--ink)">${totalApps}</strong> apprentice${totalApps === 1 ? '' : 's'} with school on file${summaryHint}
-      </div>
-      <div style="font-size:10.5px;color:var(--accent-dark);font-weight:600">
-        Showing ${weekCount} week${weekCount === 1 ? '' : 's'}: <span style="font-family:var(--mono);font-weight:500">${esc(startLbl)} → ${esc(endLbl)}</span>
-      </div>
-    </div>
-    <table style="border-collapse:collapse;width:100%;background:var(--white);border:1px solid var(--line);border-radius:8px;overflow:hidden">
+  host.innerHTML = `
+    <table style="border-collapse:collapse;width:100%;font-size:11px">
       <thead>
         <tr>
-          <th rowspan="2" style="position:sticky;left:0;background:var(--surface-2);padding:6px 9px;text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);border-right:1px solid var(--line);border-bottom:1px solid var(--line);z-index:2">Apprentice</th>
+          <th style="text-align:left;padding:6px 10px;background:var(--surface-2);
+            border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+            position:sticky;left:0;z-index:2;font-size:10.5px;color:var(--muted);
+            font-weight:600;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;min-width:130px">
+            Apprentice
+          </th>
           ${wkHeaders.join('')}
-          <th rowspan="2" style="padding:6px 9px;text-align:center;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);background:var(--surface-2);border-bottom:1px solid var(--line)">Total</th>
         </tr>
-        <tr>${dayHeaders.join('')}</tr>
       </thead>
-      <tbody>${rows}</tbody>
+      <tbody style="border-top:1px solid var(--line)">
+        ${rows.join('')}
+      </tbody>
     </table>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:2px;background:#FBBF24"></span>📚 School day</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:2px;background:#DBEAFE"></span>Vacation</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:2px;background:var(--surface-2);border:1px solid var(--line)"></span>· On a job</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:2px;background:var(--line)"></span>Off / holiday</span>
-      <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:2px;background:rgba(251,191,36,0.04);border:1px solid var(--line)"></span>Tinted row = school is outside the current span</span>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:10.5px;color:var(--muted);align-items:center;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:5px">
+        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:rgba(234,179,8,.18);border:1px solid rgba(234,179,8,.3)"></span>
+        School week
+      </span>
+      <span style="display:inline-flex;align-items:center;gap:5px">
+        <span style="font-size:11px;font-weight:700">📚 2d</span>
+        = 2 school days that week (hover for which days)
+      </span>
+      <span style="color:var(--accent-dark)">•••</span>
+      <span>= has sessions outside this view — widen the span to see them</span>
     </div>`;
 }
+
 
 function editSchoolSession(idx) {
   openSchoolSessionModal(idx, { ...SCHOOL_SESSIONS[idx] });
@@ -9242,19 +9668,14 @@ async function restoreRequest(id) {
 
 // Bulk: archive every closed request (approved/denied/union) older than 30 days
 async function archiveClosedRequests() {
-  const cutoff = Date.now() - (30 * 86400 * 1000);
-  const candidates = REQUESTS_DATA.filter(r => {
-    if (r.archived) return false;
-    if (!['approved','denied','union'].includes(r.status)) return false;
-    // Use requestedAt as the date proxy; if it's < cutoff, archive
-    const ts = r.requestedAt || 0;
-    return ts < cutoff;
-  });
+  const candidates = REQUESTS_DATA.filter(r =>
+    !r.archived && ['approved','denied','union'].includes(r.status)
+  );
   if (candidates.length === 0) {
-    showToast('No closed requests older than 30 days to archive', 'warn');
+    showToast('No closed requests to archive — all are already archived or still pending', 'warn');
     return;
   }
-  if (!confirm(`Archive ${candidates.length} closed request${candidates.length === 1 ? '' : 's'} (approved/denied/union) older than 30 days?\n\nArchived requests stay in the database — they just disappear from the active view. Use the "Archived" filter to see them.`)) return;
+  if (!confirm(`Archive ${candidates.length} closed request${candidates.length === 1 ? '' : 's'} (approved / denied / union)?\n\nArchived requests stay in the database — they just disappear from the active view. Use the "Archived" filter to see them again.`)) return;
   for (const r of candidates) {
     r.archived = true;
     r.archived_at = new Date().toISOString();
@@ -9444,7 +9865,9 @@ const SCREEN_META = {
   'dashboard':      { title: 'Dashboard',           sub: 'Week of Apr 13, 2026' },
   'schedule':       { title: 'Schedule',            sub: 'Showing 3 weeks · Apr 13 – May 1, 2026' },
   'job-view':       { title: 'Job view',            sub: '23 jobs · week of Apr 13, 2026' },
+  'pipeline':       { title: 'Pipeline',            sub: 'Upcoming & pre-mobilization work' },
   'requests':       { title: 'Requests',            sub: '3 pending approvals' },
+  'activity-log':   { title: 'Activity log',        sub: 'Every schedule change · who moved who · who was notified' },
   'roster':         { title: 'Crew roster',         sub: '44 employees · click any row to manage certs' },
   'school':         { title: 'School schedule',     sub: 'JATC sessions — auto-fills Schedule' },
   'admin':          { title: 'Admin',                    sub: 'Jobs · reassign · transfers · absents · certs · sectors · notifications · system' },
@@ -9460,7 +9883,9 @@ function goScreen(id) {
   const meta = SCREEN_META[id] || { title: id, sub: '' };
   document.getElementById('screen-title').textContent = meta.title;
   document.getElementById('screen-sub').textContent   = meta.sub;
-  if (id === 'admin')     renderAdmin();
+  if (id === 'admin')        renderAdmin();
+  if (id === 'activity-log') { if (typeof renderActivityLog === 'function') renderActivityLog(); }
+  if (id === 'pipeline')     { if (typeof renderPipeline === 'function') renderPipeline(); }
   if (id === 'dashboard') {
     try { populateDashSectorFilter(); } catch {}
     try { restoreDashPanelStates(); } catch {}
@@ -9635,6 +10060,45 @@ function attachScheduleRowEvents() {
   });
 }
 
+// Copy this employee's Mon-Thu assignments from the current week to the next.
+// Skips special values (School, HOLIDAY, etc.) — only carries real job names.
+// Shows a toast confirming what was carried. Right-click any row to trigger.
+function carryForwardWeek(empKey) {
+  const curWk = SCHED_CURRENT_WEEK.index;
+  const nxtWk = curWk + 1;
+  if (nxtWk >= SCHED_WEEKS_TOTAL) { showToast('Already at last week in the schedule window', 'warn'); return; }
+  const cur = SCHED[empKey]?.[curWk];
+  const nxt = SCHED[empKey]?.[nxtWk];
+  if (!cur || !nxt) { showToast('Employee schedule not found', 'error'); return; }
+
+  const SKIP = new Set(['School','HOLIDAY','VACATION','OFF','PERSONAL','JURY','BEREAVE','SICK','???','']);
+  const carried = [];
+  const skipped = [];
+
+  for (let di = 0; di <= 3; di++) { // Mon-Thu
+    const val = cur[di] || '';
+    if (SKIP.has(val)) { skipped.push(di); continue; }
+    const nextVal = nxt[di] || '';
+    if (nextVal && !SKIP.has(nextVal) && nextVal !== val) {
+      skipped.push(di); // next week already has a different job — don't overwrite
+      continue;
+    }
+    nxt[di] = val;
+    persistScheduleOverride(empKey, nxtWk, di, val);
+    carried.push(SCHED_DAY_NAMES_LONG[di]);
+  }
+
+  if (carried.length === 0) {
+    showToast('Nothing to carry — next week already has assignments for those days, or no jobs in current week', 'warn');
+    return;
+  }
+
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  const [last, first] = empKey.split(',');
+  const wkLabel = typeof schedWeekLabel === 'function' ? schedWeekLabel(nxtWk, true) : 'next week';
+  showToast(`${last}, ${first}: carried to ${wkLabel} (${carried.join(', ')})`, 'success');
+}
+
 function openTransferFromSched(empKey, x, y) {
   document.querySelectorAll('.sched-ctx-menu').forEach(m => m.remove());
   const [last, first, role] = empKey.split(',');
@@ -9675,6 +10139,16 @@ function openTransferFromSched(empKey, x, y) {
     <div style="padding:4px 16px 6px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Transfer to</div>
     ${jobOpts}
     <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px">
+      <div class="ctx-item" onclick="carryForwardWeek('${esc(empKey)}');this.closest('.sched-ctx-menu').remove()"
+        style="padding:8px 16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:8px"
+        onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''">
+        📋 Copy assignments to next week
+      </div>
+      <div class="ctx-item" onclick="openTimeOffModal('${esc(empKey)}', ${typeof SCHED_CURRENT_WEEK !== 'undefined' ? 'SCHED_CURRENT_WEEK.index' : 'undefined'});this.closest('.sched-ctx-menu').remove()"
+        style="padding:8px 16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:8px"
+        onmouseover="this.style.background='var(--accent-ghost)'" onmouseout="this.style.background=''">
+        🏖 Request time off / vacation
+      </div>
       <div class="ctx-item" onclick="openCertPanel('${esc(last)}','${esc(first)}','${esc(role)}');this.closest('.sched-ctx-menu').remove()"
         style="padding:8px 16px;cursor:pointer;color:var(--muted)"
         onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background=''">
@@ -9972,9 +10446,6 @@ function renderOrgChart(containerId) {
     const inAssignMode = !!_orgAssignMode;
     const isAssignTarget = inAssignMode && _orgAssignMode.dbId === emp.db_id;
     const cardClass = isAssignTarget ? 'org-card assign-target' : (inAssignMode ? 'org-card assign-candidate' : 'org-card');
-    const clickAction = inAssignMode
-      ? (isAssignTarget ? `exitAssignMode()` : `assignToSelectedManager('${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')`)
-      : `openManagePanel('${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')`;
 
     // Drag enabled for admins in normal (non-assign) mode
     const dragAttrs = (isAdmin && !inAssignMode) ? 'draggable="true"' : '';
@@ -9989,9 +10460,20 @@ function renderOrgChart(containerId) {
         orgSector = jobByName(primaryJob)?.sector || '';
       }
     }
+    const sectorColor = orgSector ? getSectorColor(orgSector) : null;
     const sectorChip = orgSector
-      ? `<div class="org-sector" style="font-size:8px;font-weight:600;color:var(--accent-dark);text-transform:uppercase;letter-spacing:.04em;margin-top:1px;line-height:1">${esc(orgSector)}</div>`
+      ? `<div class="org-sector" style="font-size:8px;font-weight:600;color:${sectorColor||'var(--accent-dark)'};text-transform:uppercase;letter-spacing:.04em;margin-top:1px;line-height:1">${esc(orgSector)}</div>`
       : '';
+
+    // Sector border — left edge colored by sector (matches schedule grid + roster)
+    const sectorBorder = sectorColor ? `border-left:3px solid ${sectorColor}` : 'border-left:3px solid transparent';
+
+    // In assign mode: org-tree actions. In normal mode: open roster cert panel
+    // so the org chart is directly connected to the roster profile.
+    const normalClick = `openCertPanel('${esc(emp.last)}','${esc(emp.first)}','${esc(emp.role)}')`;
+    const clickAction = inAssignMode
+      ? (isAssignTarget ? `exitAssignMode()` : `assignToSelectedManager('${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')`)
+      : normalClick;
 
     const card = `
       <div class="${cardClass}" ${dragAttrs}
@@ -10001,7 +10483,8 @@ function renderOrgChart(containerId) {
         data-emp-key="${esc(emp.last)},${esc(emp.first)}"
         onclick="${clickAction}"
         oncontextmenu="showOrgContextMenu(event,'${esc(emp.db_id||'')}','${esc(emp.last)}','${esc(emp.first)}')"
-        data-tip="${inAssignMode ? (isAssignTarget ? 'Click to exit selection mode' : 'Click to make this person report to ' + esc(_orgAssignMode.last) + ', ' + esc(_orgAssignMode.first)) : esc(emp.last) + ', ' + esc(emp.first) + ' — ' + esc(emp.role) + (orgSector ? ' · on ' + esc(orgSector) : '') + '. Left-click to open manage panel · right-click for actions · drag onto another card to reassign'}">
+        style="${sectorBorder}"
+        data-tip="${inAssignMode ? (isAssignTarget ? 'Click to exit selection mode' : 'Click to make this person report to ' + esc(_orgAssignMode.last) + ', ' + esc(_orgAssignMode.first)) : esc(emp.last) + ', ' + esc(emp.first) + ' — ' + esc(emp.role) + (orgSector ? ' · ' + esc(orgSector) + ' sector' : '') + '. Click to open roster profile · right-click for org actions · drag to reassign'}">
         ${avatar}
         <div class="org-name"${(typeof getRoleColor === 'function' && getRoleColor(emp.role)) ? ` style="color:${getRoleColor(emp.role)}"` : ''}>${esc(compactName)}</div>
         <div class="org-meta"${(typeof getRoleColor === 'function' && getRoleColor(emp.role)) ? ` style="color:${getRoleColor(emp.role)};opacity:.85"` : ''}>${esc(emp.role)}</div>
@@ -10844,8 +11327,11 @@ function attachOrgDragHandlers(root) {
 
 function sendCertExpiryAlert(last, first, certLabel, expiresOn, tier) {
   // tier: 'expired' | 'expiring' | 'soon'
-  const hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
-  const hrEmail = localStorage.getItem('fieldflow-hr-email') || 'hr@crem-inc.com';
+  let hrName = 'HR', hrEmail = 'hr@crem-inc.com';
+  try {
+    hrName  = localStorage.getItem('fieldflow-hr-name')  || 'HR';
+    hrEmail = localStorage.getItem('fieldflow-hr-email') || 'hr@crem-inc.com';
+  } catch {} // localStorage may be blocked in sandboxed iframe contexts
   const daysLeft = Math.ceil((new Date(expiresOn) - new Date()) / 86400000);
   const subject = tier === 'expired'
     ? `[FieldFlow] EXPIRED: ${last}, ${first} — ${certLabel}`
@@ -10858,9 +11344,13 @@ function sendCertExpiryAlert(last, first, certLabel, expiresOn, tier) {
     `[Resend → ${hrEmail}]\nSubject: ${subject}\nBody: ${body}\n` +
     `[Also notify: ${last}, ${first} · ${first.toLowerCase()}.${last.toLowerCase()}@crem-inc.com]`
   );
-  // TODO: replace console.log with Resend API call when email is live:
-  // TODO: replace console.log with Resend API call when email is live:
-  // await fetch('/api/send-email', { method:'POST', body: JSON.stringify({ to: hrEmail, subject, body }) })
+  // TODO: wire to Supabase send-notification Edge Function (same shape as EstimatingFlow/VDCFlow):
+  // const session = (await _sb.auth.getSession())?.data?.session;
+  // await fetch(`${_SBURL}/functions/v1/send-notification`, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+  //   body: JSON.stringify({ to: hrEmail, from: 'noreply@crem-inc.com', subject, text: body }),
+  // });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -11056,6 +11546,160 @@ function jvDrop(e, toJob) {
 // ══════════════════════════════════════════════════════════════
 // Generates a printable one-page view scoped to a single FM's crew.
 // Uses a hidden print-only container populated on demand.
+
+// ── Callout Request Document ──────────────────────────────────
+// Opens a modal with a pre-filled callout request form for this job.
+// The form captures: job info, requested crew, overtime/emergency reason,
+// authorization. Print/PDF it from the modal.
+function openCalloutRequest(jobId) {
+  const j = JOBS.find(x => x.id === jobId);
+  if (!j) return;
+
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const currentCrew = typeof getJobCrew === 'function' ? getJobCrew(j) : [];
+  const crewList = currentCrew.length
+    ? currentCrew.map(c => `${c.last}, ${c.first} (${c.role})`).join('\n')
+    : '(no crew currently assigned)';
+
+  document.getElementById('callout-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'callout-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+      <div style="padding:16px 22px 12px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:16px;font-weight:600;color:#111">Callout Request</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="printCalloutDoc()" style="padding:5px 14px;border-radius:7px;border:1px solid #1D4ED8;background:#1D4ED8;color:#fff;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600">🖨 Print / Save PDF</button>
+          <button onclick="document.getElementById('callout-modal').remove()" style="padding:5px 12px;border-radius:7px;border:1px solid #e5e7eb;background:#f9fafb;color:#6b7280;cursor:pointer;font-size:12px;font-family:inherit">Close</button>
+        </div>
+      </div>
+      <div id="callout-doc" style="padding:28px 32px;font-family:'Georgia',serif;color:#111;font-size:13px;line-height:1.6">
+        <div style="text-align:center;margin-bottom:24px;border-bottom:2px solid #111;padding-bottom:16px">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.02em">CREM Inc.</div>
+          <div style="font-size:15px;font-weight:600;margin-top:4px;letter-spacing:.04em;text-transform:uppercase">Callout / Overtime Request</div>
+          <div style="font-size:11px;color:#6b7280;margin-top:6px">IBEW Local 112 · Collective Bargaining Agreement</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Date of Request</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px">${today}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Request #</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px">CR-${Date.now().toString().slice(-6)}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Project / Job</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px"><strong>${esc(j.name)}</strong></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Project Number</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px">${esc(j.number||'—')}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Location / Site</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px">${esc(j.location||j.address||'—')}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:3px">Foreman / GF</div>
+            <div style="border-bottom:1px solid #d1d5db;padding-bottom:3px">${esc(j.lead||'—')}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:6px">Type of Callout</div>
+          <div style="display:flex;gap:24px;font-size:13px">
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" style="width:14px;height:14px"> Emergency / Safety</label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" style="width:14px;height:14px"> Scheduled Overtime</label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" style="width:14px;height:14px"> Weekend / Holiday</label>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer"><input type="checkbox" style="width:14px;height:14px"> Additional Crew</label>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Reason / Justification</div>
+          <textarea style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-family:inherit;font-size:13px;resize:vertical;min-height:72px" placeholder="Describe the reason for callout — milestone requirement, emergency, material delivery, schedule acceleration..."></textarea>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Requested Date &amp; Time</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div>
+              <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Start date</div>
+              <input type="date" style="width:100%;border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-family:inherit;font-size:12px">
+            </div>
+            <div>
+              <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Start time</div>
+              <input type="time" style="width:100%;border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-family:inherit;font-size:12px">
+            </div>
+            <div>
+              <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Est. hours</div>
+              <input type="number" min="1" max="16" placeholder="8" style="width:100%;border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-family:inherit;font-size:12px">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:18px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Crew Requested</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+            <div>
+              <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Classification</div>
+              <select style="width:100%;border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-family:inherit;font-size:12px">
+                <option>Journeyman Wireman (JW)</option>
+                <option>Journeyman Lineman (JN)</option>
+                <option>Foreman (FM)</option>
+                <option>General Foreman (GF)</option>
+                <option>Apprentice</option>
+                <option>Material Handler (MH)</option>
+                <option>Mixed crew</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Number of employees</div>
+              <input type="number" min="1" placeholder="1" style="width:100%;border:1px solid #d1d5db;border-radius:5px;padding:5px 8px;font-family:inherit;font-size:12px">
+            </div>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;margin-bottom:2px">Specific employees requested (optional)</div>
+          <textarea style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-family:inherit;font-size:12px;resize:vertical;min-height:56px" placeholder="Leave blank for hall dispatch">${crewList}</textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:32px;padding-top:20px;border-top:1px solid #e5e7eb">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:20px">Requested by (Foreman / GF)</div>
+            <div style="border-bottom:1px solid #111;margin-bottom:4px;height:28px"></div>
+            <div style="font-size:10px;color:#9ca3af">Signature &amp; date</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:20px">Approved by (Superintendent)</div>
+            <div style="border-bottom:1px solid #111;margin-bottom:4px;height:28px"></div>
+            <div style="font-size:10px;color:#9ca3af">Signature &amp; date</div>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;padding:10px 12px;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd;font-size:11px;color:#0369a1">
+          <strong>IBEW Local 112 Callout Rules:</strong> Overtime must be offered by seniority within classification. Minimum 2-hour call-in pay applies. Weekend/holiday work subject to premium pay per CBA §8. Supervisor must obtain prior authorization before committing overtime.
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function printCalloutDoc() {
+  const doc = document.getElementById('callout-doc');
+  if (!doc) return;
+  const w = window.open('', '_blank', 'width=800,height=900');
+  w.document.write(`<!DOCTYPE html><html><head><title>Callout Request — CREM Inc.</title>
+    <style>body{margin:24px;font-family:Georgia,serif;color:#111;font-size:13px;line-height:1.6}
+    input,select,textarea{border:1px solid #d1d5db;border-radius:4px;padding:4px 7px;font-size:12px;font-family:inherit}
+    @media print{@page{margin:0.75in}}</style></head><body>
+    ${doc.innerHTML}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
 
 function generateCrewPacket(fmName) {
   // fmName expected format: "Porter, Billy" or a first-name match
@@ -11505,7 +12149,7 @@ const TIME_OFF_TYPES = [
   { key: 'OFF',       label: 'Unpaid time off', color: '#9CA3AF', desc: 'General OFF — unpaid' },
 ];
 
-function openTimeOffModal(prefillEmpKey) {
+function openTimeOffModal(prefillEmpKey, prefillWeekIdx) {
   // Build employee picker options (sorted)
   const empOpts = Object.keys(SCHED).sort().map(k => {
     const [last, first, role] = k.split(',');
@@ -11513,9 +12157,16 @@ function openTimeOffModal(prefillEmpKey) {
     return `<option value="${esc(k)}" ${sel}>${esc(last)}, ${esc(first)} (${esc(role)})</option>`;
   }).join('');
 
-  // Default dates: today + 1 week
-  const today = new Date();
-  const oneWeek = new Date(today.getTime() + 7 * 86400000);
+  // Default dates: if a week index is passed, pre-fill Mon-Fri of that week
+  // Otherwise fall back to today → +5 days
+  const today = new Date(); today.setHours(0,0,0,0);
+  let defaultStart = today;
+  let defaultEnd = new Date(today.getTime() + 4 * 86400000);
+  if (typeof prefillWeekIdx === 'number' && typeof schedWeekDate === 'function') {
+    const wkMon = schedWeekDate(prefillWeekIdx);
+    defaultStart = wkMon;
+    defaultEnd = new Date(wkMon.getTime() + 4 * 86400000); // Mon → Fri
+  }
   const fmt = d => d.toISOString().slice(0, 10);
 
   const typeBtns = TIME_OFF_TYPES.map((t, i) => `
@@ -11531,11 +12182,11 @@ function openTimeOffModal(prefillEmpKey) {
   modal.id = 'time-off-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px';
   modal.innerHTML = `
-    <div style="background:var(--white);border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="background:var(--white);border-radius:14px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
       <div style="padding:18px 22px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div style="font-size:16px;font-weight:600;color:var(--ink)">Request time off</div>
-          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Auto-fills the schedule with the chosen status across the date range.</div>
+          <div style="font-size:16px;font-weight:600;color:var(--ink)">Time off / Vacation</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:2px">Auto-fills the schedule across the date range. Choose "Submit request" to send for approval instead.</div>
         </div>
         <button onclick="closeTimeOffModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;padding:0 4px">×</button>
       </div>
@@ -11551,11 +12202,11 @@ function openTimeOffModal(prefillEmpKey) {
         <div style="display:flex;gap:10px">
           <div style="flex:1">
             <label style="display:block;font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:5px">Start date</label>
-            <input type="date" id="to-start" class="form-input" value="${fmt(today)}" style="font-size:13px">
+            <input type="date" id="to-start" class="form-input" value="${fmt(defaultStart)}" style="font-size:13px">
           </div>
           <div style="flex:1">
             <label style="display:block;font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:5px">End date</label>
-            <input type="date" id="to-end" class="form-input" value="${fmt(oneWeek)}" style="font-size:13px">
+            <input type="date" id="to-end" class="form-input" value="${fmt(defaultEnd)}" style="font-size:13px">
           </div>
         </div>
         <div>
@@ -11565,22 +12216,36 @@ function openTimeOffModal(prefillEmpKey) {
           </div>
         </div>
         <div>
-          <label style="display:block;font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:5px">Reason / notes <span style="font-weight:400;color:var(--muted);font-size:10.5px">— optional, included in audit log</span></label>
+          <label style="display:block;font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:5px">Reason / notes <span style="font-weight:400;color:var(--muted);font-size:10.5px">— appears in audit log</span></label>
           <textarea id="to-reason" class="form-input" placeholder="e.g. Family vacation, doctor appointment" rows="2" style="font-size:12px;resize:vertical"></textarea>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end">
+        <div style="background:var(--surface-2);border-radius:8px;padding:11px 14px;border:1px solid var(--line)">
+          <div style="font-size:11.5px;font-weight:600;color:var(--ink);margin-bottom:6px">How to apply</div>
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin-bottom:6px">
+            <input type="radio" name="to-mode" value="direct" checked style="margin-top:2px">
+            <div>
+              <div style="font-size:12.5px;font-weight:500;color:var(--ink)">Apply directly to schedule</div>
+              <div style="font-size:10.5px;color:var(--muted)">Immediately fills VACATION/OFF into the schedule. No approval needed — use when already pre-approved.</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer">
+            <input type="radio" name="to-mode" value="request" style="margin-top:2px">
+            <div>
+              <div style="font-size:12.5px;font-weight:500;color:var(--ink)">Submit as a request (pending approval)</div>
+              <div style="font-size:10.5px;color:var(--muted)">Creates a vacation request in the Requests tab. The schedule stays unchanged until a superintendent approves it.</div>
+            </div>
+          </label>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:2px;justify-content:flex-end">
           <button class="btn btn-sm" onclick="closeTimeOffModal()">Cancel</button>
-          <button class="btn btn-sm btn-primary" onclick="submitTimeOff()" data-tip="Auto-fills VACATION/OFF/etc. across every workday in the date range. Each cell is logged in the notification audit trail.">✓ Apply to schedule</button>
+          <button class="btn btn-sm btn-primary" onclick="submitTimeOff()" data-tip="Apply to schedule immediately OR submit as a pending request, depending on selection above">✓ Confirm</button>
         </div>
       </div>
     </div>`;
   document.body.appendChild(modal);
-
-  // Click outside to close
-  modal.addEventListener('click', e => {
-    if (e.target === modal) closeTimeOffModal();
-  });
+  modal.addEventListener('click', e => { if (e.target === modal) closeTimeOffModal(); });
 }
 
 function closeTimeOffModal() {
@@ -11588,18 +12253,47 @@ function closeTimeOffModal() {
 }
 
 async function submitTimeOff() {
-  const empKey = document.getElementById('to-emp')?.value;
+  const empKey  = document.getElementById('to-emp')?.value;
   const startStr = document.getElementById('to-start')?.value;
-  const endStr = document.getElementById('to-end')?.value;
-  const type = document.querySelector('input[name="to-type"]:checked')?.value || 'VACATION';
+  const endStr   = document.getElementById('to-end')?.value;
+  const type   = document.querySelector('input[name="to-type"]:checked')?.value || 'VACATION';
   const reason = document.getElementById('to-reason')?.value?.trim() || '';
+  const mode   = document.querySelector('input[name="to-mode"]:checked')?.value || 'direct';
 
   if (!empKey) { showToast('Pick an employee first', 'error'); return; }
   if (!startStr || !endStr) { showToast('Pick a start and end date', 'error'); return; }
 
   const start = new Date(startStr + 'T00:00:00');
-  const end = new Date(endStr + 'T00:00:00');
+  const end   = new Date(endStr   + 'T00:00:00');
   if (end < start) { showToast('End date must be on or after start date', 'error'); return; }
+
+  const [last, first] = empKey.split(',');
+  const typeLabel = TIME_OFF_TYPES.find(t => t.key === type)?.label || type;
+
+  // ── Request mode: create a pending request, don't touch the schedule ──
+  if (mode === 'request') {
+    const req = {
+      id: REQUESTS_DATA.length + 1,
+      type: 'time-off',
+      title: `${typeLabel} — ${last}, ${first}`,
+      employee: `${last}, ${first}`,
+      empKey,
+      timeOffType: type,
+      dateStart: startStr,
+      dateEnd: endStr,
+      reason: reason || '(no reason given)',
+      status: 'pending',
+      requestedBy: (typeof _currentUser !== 'undefined' && _currentUser.name) || 'Unknown',
+      requestedAt: Date.now(),
+      archived: false,
+    };
+    REQUESTS_DATA.unshift(req);
+    if (typeof persistRequest === 'function') await persistRequest(req);
+    if (typeof renderRequestsList === 'function') renderRequestsList();
+    closeTimeOffModal();
+    showToast(`Vacation request submitted for ${last}, ${first} (${startStr} → ${endStr}). Check Requests tab for approval.`, 'success');
+    return;
+  }
 
   // Find each (week_idx, day_idx) pair within the range, walking weekdays only
   // (Mon-Fri). Use SCHED_CURRENT_WEEK as the anchor: week index 0 = current
@@ -11655,8 +12349,6 @@ async function submitTimeOff() {
 
   closeTimeOffModal();
 
-  const [last, first] = empKey.split(',');
-  const typeLabel = TIME_OFF_TYPES.find(t => t.key === type)?.label || type;
   if (applied === 0) {
     showToast(`No schedule cells fell inside the date range — check the dates`, 'warn');
   } else {
@@ -11911,30 +12603,34 @@ function renderKickoffChecklist(j) {
   const done = items.filter(i => i.done).length;
   const total = items.length;
   const pct = Math.round((done / total) * 100);
-  const statusColor = pct === 100 ? 'var(--good)' : pct >= 50 ? 'var(--warn)' : 'var(--bad)';
-  const statusLabel = pct === 100 ? '✓ Ready' : pct >= 50 ? 'In progress' : 'Incomplete';
+  const statusColor = pct === 100 ? 'var(--good)' : pct >= 50 ? 'var(--warn)' : 'var(--muted)';
 
   const rows = items.map(i => `
-    <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:12px">
-      <span style="width:18px;flex-shrink:0;color:${i.done?'var(--good)':'var(--muted)'};font-size:14px;line-height:1">${i.done?'✓':'○'}</span>
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;font-size:12px">
+      <span style="width:16px;flex-shrink:0;color:${i.done?'var(--good)':'var(--muted)'};font-size:13px;line-height:1.3">${i.done?'✓':'○'}</span>
       <div style="flex:1;min-width:0">
-        <div style="color:${i.done?'var(--muted)':'var(--ink)'};text-decoration:${i.done?'line-through':'none'}">${esc(i.label)}</div>
+        <span style="color:${i.done?'var(--muted)':'var(--ink)'};text-decoration:${i.done?'line-through':'none'}">${esc(i.label)}</span>
+        ${!i.done ? `<span style="margin-left:6px;font-size:10px;color:var(--muted);font-style:italic">optional</span>` : ''}
         ${!i.done && i.hint ? `<div style="font-size:10.5px;color:var(--muted);margin-top:1px">${esc(i.hint)}</div>` : ''}
       </div>
     </div>`).join('');
 
   return `
-    <div style="margin:10px 0 14px;padding:11px 14px;background:var(--surface-2);border-radius:9px;border-left:3px solid ${statusColor}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:600;color:var(--ink)">Kickoff checklist</div>
-        <div style="font-size:11px;color:${statusColor};font-weight:600">${done}/${total} · ${statusLabel}</div>
+    <details style="margin:8px 0 12px;background:var(--surface-2);border-radius:9px;border-left:3px solid ${statusColor};overflow:hidden">
+      <summary style="display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;list-style:none;user-select:none">
+        <span style="font-size:11.5px;font-weight:600;color:var(--ink);flex:1">Kickoff checklist</span>
+        <span style="font-size:11px;color:${statusColor};font-weight:500">${done}/${total}</span>
+        <div style="height:6px;width:52px;background:var(--line);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${statusColor}"></div>
+        </div>
+      </summary>
+      <div style="padding:2px 12px 10px">
+        <div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;font-style:italic">All items are optional reminders — they don't block saving.</div>
+        ${rows}
       </div>
-      <div style="height:4px;background:var(--line);border-radius:2px;margin-bottom:10px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${statusColor};transition:width .3s ease"></div>
-      </div>
-      ${rows}
-    </div>`;
+    </details>`;
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // #25 SCHEDULE HEALTH SCORE
@@ -12468,8 +13164,12 @@ function buildUnionHolidays(year)   { return _resolveHolidayBuckets(year).mandat
 function buildFlaggedHolidays(year) { return _resolveHolidayBuckets(year).flagged;   }
 function buildFlagOnlyHolidays(year){ return _resolveHolidayBuckets(year).notice;    }
 
-// Mandatory union holidays for the current and next year (schedule can span boundary)
+// Mandatory union holidays — cover previous year, current year, and next year
+// so the full 105-week schedule window (which extends ~1 year into the past)
+// gets holidays properly filled. Previously only current+next year was built,
+// leaving all 2025 holidays (Labor Day, Thanksgiving, Christmas, etc.) blank.
 const UNION_HOLIDAYS = [
+  ...buildUnionHolidays(new Date().getFullYear() - 1),
   ...buildUnionHolidays(new Date().getFullYear()),
   ...buildUnionHolidays(new Date().getFullYear() + 1),
 ];
@@ -12477,6 +13177,7 @@ const UNION_HOLIDAYS = [
 // Flagged holidays — shown as warning in dashboard, but crews stay scheduled.
 // Crews CAN still work; superintendents may choose to take the day off.
 const FLAGGED_HOLIDAYS = [
+  ...buildFlaggedHolidays(new Date().getFullYear() - 1),
   ...buildFlaggedHolidays(new Date().getFullYear()),
   ...buildFlaggedHolidays(new Date().getFullYear() + 1),
 ];
@@ -12484,6 +13185,7 @@ const FLAGGED_HOLIDAYS = [
 // Notice-only holidays — federal holidays not in the above buckets.
 // Just a heads-up alert. Crews stay scheduled.
 const FLAG_ONLY_HOLIDAYS = [
+  ...buildFlagOnlyHolidays(new Date().getFullYear() - 1),
   ...buildFlagOnlyHolidays(new Date().getFullYear()),
   ...buildFlagOnlyHolidays(new Date().getFullYear() + 1),
 ];
@@ -12700,7 +13402,7 @@ function _refreshAfterHolidayChange() {
 }
 
 function setHolidayTier(key, newTier) {
-  if (!key || !['mandatory','flagged','notice','off'].includes(newTier)) return;
+  if (!_requireSuperintendent('setHolidayTier')) return;
   // First check if it's a custom holiday — if so, mutate the entry directly
   const customIdx = HOLIDAY_CUSTOM.findIndex(c => c.key === key);
   if (customIdx >= 0) {
@@ -12718,7 +13420,7 @@ function setHolidayTier(key, newTier) {
 }
 
 function addCustomHoliday() {
-  const nameInput = document.getElementById('new-holiday-name');
+  if (!_requireSuperintendent('addCustomHoliday')) return;
   const dateInput = document.getElementById('new-holiday-date');
   if (!nameInput || !dateInput) return;
   const name = (nameInput.value || '').trim();
@@ -12741,7 +13443,7 @@ function addCustomHoliday() {
 }
 
 function removeCustomHoliday(key) {
-  const idx = HOLIDAY_CUSTOM.findIndex(c => c.key === key);
+  if (!_requireSuperintendent('removeCustomHoliday')) return;
   if (idx < 0) return;
   const removed = HOLIDAY_CUSTOM[idx];
   if (!confirm(`Remove "${removed.name}" (${removed.date})?\n\nIf this was set to Mandatory, its HOLIDAY cells will clear from the schedule on save.`)) return;
@@ -12752,7 +13454,7 @@ function removeCustomHoliday(key) {
 }
 
 function resetHolidayTier(key) {
-  // Drops the override so the catalog default kicks back in
+  if (!_requireSuperintendent('resetHolidayTier')) return;
   if (HOLIDAY_TIER_OVERRIDES[key]) {
     delete HOLIDAY_TIER_OVERRIDES[key];
     _persistHolidayState();
@@ -12927,16 +13629,42 @@ const JOBS = [
     doc_path:null, doc_name:null, requirements: defaultJobRequirements() },
 ];
 
-// Sector list — initially seeded with defaults, mutable via admin tab.
+// ── Local job persistence (testing mode / offline) ─────────────
+// When no Supabase auth session exists, persistJob() saves JOBS to
+// localStorage so edits survive page reload. On boot, any locally-saved
+// jobs are merged over the seed data (same id = update, new id = push).
+const _JOBS_LOCAL_KEY = 'fieldflow-jobs-local-v1';
+
+function _saveJobsLocal() {
+  try { localStorage.setItem(_JOBS_LOCAL_KEY, JSON.stringify(JOBS)); } catch {}
+}
+
+function _loadJobsLocal() {
+  try {
+    const raw = localStorage.getItem(_JOBS_LOCAL_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!Array.isArray(saved)) return;
+    saved.forEach(savedJob => {
+      const idx = JOBS.findIndex(j => j.id === savedJob.id);
+      if (idx >= 0) Object.assign(JOBS[idx], savedJob);
+      else JOBS.push(savedJob);
+    });
+    console.log(`[jobs] loaded ${saved.length} locally-saved jobs from localStorage`);
+  } catch {}
+}
+
+// Merge locally-saved jobs into the seed at boot
+_loadJobsLocal();
 // Persisted to public.sectors table in Supabase. Re-rendered everywhere
 // when changed by calling refreshSectorDropdowns().
 // Each sector has a `color` used to tint job cells in schedules and grids.
 let SECTORS = [
-  { name:'Live Work',        color:'#3B82F6' }, // blue
-  { name:'Greenfield',       color:'#10B981' }, // green
-  { name:'Service',          color:'#F59E0B' }, // amber
-  { name:'Special Projects', color:'#8B5CF6' }, // purple
-  { name:'Other',            color:'#6B7280' }, // gray
+  { name:'Live Work',        color:'#1D4ED8' }, // deep blue
+  { name:'Greenfield',       color:'#15803D' }, // deep green
+  { name:'Service',          color:'#B45309' }, // deep amber
+  { name:'Special Projects', color:'#6D28D9' }, // deep purple
+  { name:'Other',            color:'#374151' }, // dark gray
 ];
 
 // Helpers — every render path uses these instead of touching SECTORS directly.
@@ -12956,9 +13684,10 @@ function getSectorColor(sectorName) {
 }
 function getSectorColorByJobName(jobName) {
   if (!jobName) return null;
-  // Defensive: JOBS may not be initialized yet during early script-level renders.
-  if (typeof JOBS === 'undefined') return null;
-  const j = JOBS.find(x => x.name === jobName);
+  // Defensive: JOBS is a const declared further down — _safeJobs() handles TDZ
+  const list = _safeJobs();
+  if (!list) return null;
+  const j = list.find(x => x.name === jobName);
   if (!j || !j.sector) return null;
   return getSectorColor(j.sector);
 }
@@ -12975,24 +13704,24 @@ function getSectorColorByJobName(jobName) {
 // (office/exec/director) keep their existing role-* CSS classes — they're
 // not field roles and don't need this treatment.
 const CREW_ROLE_COLORS = {
-  // Journeymen + Welders — green
-  JN:  '#16A34A',
-  JW:  '#16A34A',
-  WLD: '#16A34A',
-  // Apprentices — every tier (0, 1A–5E, plus generic AP) — red
-  AP:  '#DC2626', '0': '#DC2626',
-  '1A':'#DC2626','1B':'#DC2626','1C':'#DC2626','1D':'#DC2626','1E':'#DC2626',
-  '2A':'#DC2626','2B':'#DC2626','2C':'#DC2626','2D':'#DC2626','2E':'#DC2626',
-  '3A':'#DC2626','3B':'#DC2626','3C':'#DC2626','3D':'#DC2626','3E':'#DC2626',
-  '4A':'#DC2626','4B':'#DC2626','4C':'#DC2626','4D':'#DC2626','4E':'#DC2626',
-  '5A':'#DC2626','5B':'#DC2626','5C':'#DC2626','5D':'#DC2626','5E':'#DC2626',
-  // Material Handler — yellow (deeper amber so it reads on cream + dark)
-  MH:  '#CA8A04',
-  // Foreman + above — purple
-  FM:             '#7C3AED',
-  GF:             '#7C3AED',
-  SUPER:          '#7C3AED',
-  superintendent: '#7C3AED',
+  // Journeymen + Welders — deep green
+  JN:  '#166534',
+  JW:  '#166534',
+  WLD: '#166534',
+  // Apprentices — deep red
+  AP:  '#991B1B', '0': '#991B1B',
+  '1A':'#991B1B','1B':'#991B1B','1C':'#991B1B','1D':'#991B1B','1E':'#991B1B',
+  '2A':'#991B1B','2B':'#991B1B','2C':'#991B1B','2D':'#991B1B','2E':'#991B1B',
+  '3A':'#991B1B','3B':'#991B1B','3C':'#991B1B','3D':'#991B1B','3E':'#991B1B',
+  '4A':'#991B1B','4B':'#991B1B','4C':'#991B1B','4D':'#991B1B','4E':'#991B1B',
+  '5A':'#991B1B','5B':'#991B1B','5C':'#991B1B','5D':'#991B1B','5E':'#991B1B',
+  // Material Handler — deep amber
+  MH:  '#92400E',
+  // Foreman + above — deep purple
+  FM:             '#5B21B6',
+  GF:             '#5B21B6',
+  SUPER:          '#5B21B6',
+  superintendent: '#5B21B6',
 };
 function getRoleColor(role) {
   if (!role) return null;
@@ -13535,10 +14264,11 @@ function renderJobDetail(id) {
   const pane = document.getElementById('jm-detail-pane');
   if (!pane) return;
 
-  // Crew count for this job
-  const crewCount = Object.entries(DS_SCHEDULE).filter(([key, weeks]) => {
-    return (weeks[0] || []).some(d => d === j.name);
-  }).length;
+  // Crew count for this job — uses getJobCrew() which reads from SCHED at the
+  // current real-world week. Previously used DS_SCHEDULE[key][weeks[0]] which
+  // was the drag-board copy and always returned 0 unless the drag board had
+  // been opened and synced.
+  const crewCount = (typeof getJobCrew === 'function') ? getJobCrew(j).length : 0;
 
   pane.innerHTML = `
     <div class="panel">
@@ -13546,6 +14276,7 @@ function renderJobDetail(id) {
         <div class="panel-title" style="font-size:15px">${esc(j.name)}</div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm" onclick="generateCrewPacket('${esc(j.lead)}')" data-tip="Print a one-page PDF showing this job's crew with their Mon-Fri schedule, phone numbers, and site info — ready to hand to the foreman">🖨 Crew packet</button>
+          <button class="btn btn-sm" onclick="openCalloutRequest('${esc(j.id)}')" data-tip="Generate a callout request form — fills in job details, requesting additional crew or overtime. Print or save as PDF.">📋 Callout request</button>
           <button class="btn btn-sm" onclick="closeJobEdit()">Close</button>
           <button class="btn btn-sm btn-primary" onclick="saveJobEdit('${esc(j.id)}')">Save changes</button>
         </div>
@@ -13678,7 +14409,7 @@ function renderJobDetail(id) {
 // Renders the inner content of the crew panel for a given job.
 // Called on first render and every CRUD change so we always show fresh state.
 function renderJobCrewPanel(j) {
-  const wkIdx = (typeof _schedWindowStart === 'number') ? _schedWindowStart : 0;
+  const wkIdx = (typeof SCHED_CURRENT_WEEK !== 'undefined') ? SCHED_CURRENT_WEEK.index : (typeof _schedWindowStart === 'number' ? _schedWindowStart : 52);
   const wkLabel = (typeof schedWeekLabel === 'function') ? schedWeekLabel(wkIdx, true) : '';
 
   // Find everyone scheduled on this job in the current week (any of Mon-Sun)
@@ -13752,7 +14483,7 @@ function filterCrewPicker(jobId) {
   const out = document.getElementById(`crew-picker-results-${jobId}`);
   if (!inp || !out) return;
   const q = (inp.value || '').toLowerCase().trim();
-  const wkIdx = (typeof _schedWindowStart === 'number') ? _schedWindowStart : 0;
+  const wkIdx = (typeof SCHED_CURRENT_WEEK !== 'undefined') ? SCHED_CURRENT_WEEK.index : (typeof _schedWindowStart === 'number' ? _schedWindowStart : 52);
 
   // Already-on-job set
   const already = new Set();
@@ -13820,12 +14551,18 @@ async function addCrewToJob(jobId, empKey) {
         DS_SCHEDULE[decoded][wkIdx][di] = j.name;
       }
       persistScheduleOverride(decoded, wkIdx, di, j.name);
-      // Notify (single record per change, audit trail)
-      if (typeof notifyDayChange === 'function') {
-        notifyDayChange(decoded, wkIdx, di, oldVal, j.name);
-      }
       assignedDays.push(di);
     }
+  }
+
+  // One notification for the whole assignment (not one per day).
+  // Previously notifyDayChange was called inside the loop → 4 bell entries
+  // for a single Mon-Thu assignment. Now we fire once with a summary.
+  if (assignedDays.length > 0 && typeof notifyDayChange === 'function') {
+    const firstDay = assignedDays[0];
+    const lastDay  = assignedDays[assignedDays.length - 1];
+    const oldVal   = ''; // was unassigned for the week
+    notifyDayChange(decoded, wkIdx, firstDay, oldVal, j.name);
   }
 
   // Refresh schedule grid + crew panel + close the picker
@@ -14250,7 +14987,7 @@ async function saveJobEdit(id) {
   if (btn) btn.textContent = 'Saving…';
   const persisted = await persistJob(j);
   if (btn) {
-    btn.textContent = persisted ? '✓ Saved to DB' : '⚠ Saved locally only';
+    btn.textContent = persisted === true ? '✓ Saved to DB' : persisted === 'local' ? '✓ Saved locally' : '⚠ Saved locally only';
     setTimeout(() => { btn.textContent = 'Save changes'; }, 2000);
   }
 
@@ -14260,9 +14997,11 @@ async function saveJobEdit(id) {
   try { if (typeof renderJobView === 'function')       renderJobView(); } catch {}
   try { if (typeof renderDragSchedule === 'function') renderDragSchedule(); } catch {}
   if (typeof showToast === 'function') {
-    const msg = persisted
+    const msg = persisted === true
       ? `Job "${j.name}" saved · changes persisted to database`
-      : `Job "${j.name}" saved locally — DB sync failed (check console)`;
+      : persisted === 'local'
+        ? `Job "${j.name}" saved locally — will restore on next load`
+        : `Job "${j.name}" saved locally — DB sync failed (check console)`;
     showToast(msg, persisted ? 'success' : 'warn');
   }
 }
@@ -14274,8 +15013,122 @@ async function saveJobEdit(id) {
 // before their migrations have been run), it falls back to a minimal payload
 // containing only the columns guaranteed to exist. This way the user's
 // sector/name/lead/notes changes still persist even on partially-migrated DBs.
+// ── DB row → in-memory job object ─────────────────────────────
+// Single mapping used by both loadPersistedData() and syncJobsNow()
+// so CremCommand-pushed rows always land with the same field names.
+// DB uses snake_case; in-memory JOBS array uses camelCase.
+function _dbRowToJob(r) {
+  return {
+    id:             r.id,
+    name:           r.name || '',
+    number:         r.number || '',
+    location:       r.location || '',
+    sector:         r.sector || '',
+    status:         r.status || 'active',
+    days:           r.days || 5,
+    lead:           r.lead || '',
+    leadEmail:      r.lead_email || '',           // DB: lead_email → JS: leadEmail
+    notes:          r.notes || '',
+    color:          r.color || '#6B7280',
+    address:        r.address || '',
+    lat:            null, lng: null,
+    startDate:      r.start_date || null,          // DB: start_date → JS: startDate
+    endDate:        r.end_date || null,            // DB: end_date   → JS: endDate
+    percentComplete: r.percent_complete ?? null,  // DB: percent_complete → JS
+    doc_path:       r.doc_path || null,
+    doc_name:       r.doc_name || null,
+    requirements: (() => {
+      if (!r.requirements) return defaultJobRequirements();
+      try { return typeof r.requirements === 'string'
+              ? JSON.parse(r.requirements) : r.requirements; }
+      catch { return defaultJobRequirements(); }
+    })(),
+  };
+}
+
+// Pull the latest jobs from Supabase and merge into the in-memory JOBS
+// array. Called manually (Admin → Jobs → ⟳ Sync), or automatically
+// every 5 minutes to pick up CremCommand pushes.
+// Matching logic: id first, then number (CremCommand natural key).
+async function syncJobsNow(showToastMsg = true) {
+  if (typeof _sb === 'undefined') return;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) {
+      if (showToastMsg) showToast('Sign in to sync jobs from the database', 'warn');
+      return;
+    }
+  } catch { return; }
+
+  try {
+    const { data: rows, error } = await _sb.from('jobs')
+      .select('*')
+      .order('updated_at', { ascending: false });
+    if (error) {
+      console.error('[jobs] sync failed:', _errMsg(error));
+      if (showToastMsg) showToast('Job sync failed — check console (F12)', 'error');
+      return;
+    }
+    let added = 0, updated = 0;
+    (rows || []).forEach(r => {
+      const entry = _dbRowToJob(r);
+      const byId  = JOBS.findIndex(j => j.id === r.id);
+      const byNum = byId < 0 ? JOBS.findIndex(j => j.number === r.number) : -1;
+      const idx   = byId >= 0 ? byId : byNum;
+      if (idx >= 0) { Object.assign(JOBS[idx], entry); updated++; }
+      else          { JOBS.push(entry); added++; }
+    });
+    if (typeof renderJobManager === 'function') renderJobManager();
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
+    if (showToastMsg) {
+      const msg = added > 0
+        ? `Synced — ${added} new job${added > 1 ? 's' : ''} from CremCommand · ${updated} updated`
+        : `${updated} job${updated !== 1 ? 's' : ''} up to date`;
+      showToast(msg, 'success');
+    }
+    console.log(`[jobs] sync complete — +${added} new, ${updated} updated`);
+  } catch(e) {
+    console.error('[jobs] syncJobsNow threw:', e);
+  }
+}
+
+// Copy current Supabase session JWT to clipboard for CremCommand setup.
+// Used in Admin → System → CremCommand integration → Copy my JWT.
+async function copyFieldFlowJWT() {
+  const btn    = document.getElementById('jwt-copy-btn');
+  const status = document.getElementById('jwt-copy-status');
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) {
+      if (status) status.textContent = '⚠ Not signed in — sign in first';
+      return;
+    }
+    await navigator.clipboard.writeText(session.access_token);
+    if (btn) btn.textContent = '✓ Copied!';
+    if (status) status.textContent = 'Paste into CremCommand → Connections → FieldFlow → User Token';
+    setTimeout(() => {
+      if (btn) btn.textContent = '📋 Copy my JWT';
+      if (status) status.textContent = '';
+    }, 3500);
+  } catch(e) {
+    if (status) status.textContent = '⚠ ' + (e.message || 'Copy failed');
+  }
+}
+
 async function persistJob(j) {
   if (typeof _sb === 'undefined' || !_sb) return false;
+
+  // In testing mode (login bypassed), there's no real Supabase auth session.
+  // FIX: persist to localStorage so edits survive page reload.
+  // Production login restores full DB persistence automatically.
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) {
+      _saveJobsLocal();
+      console.log(`[jobs] no auth session — saved to localStorage for "${j.name}"`);
+      return 'local'; // signals: saved locally, not to DB
+    }
+  } catch { _saveJobsLocal(); return 'local'; }
   const fullPayload = {
     id:           j.id,
     name:         j.name,
@@ -14331,6 +15184,20 @@ async function persistJob(j) {
     if (_isCosmeticError(error)) {
       console.log(`[jobs] ${j.name} (response clone blocked, likely saved)`);
       return true;
+    }
+    // If id-based upsert fails due to a number uniqueness conflict
+    // (another system — e.g. CremCommand — already wrote this number
+    // with a different UUID), fall back to number-based upsert so
+    // both write paths converge on the same row.
+    const isNumberConflict = (_errMsg(error) || '').includes('jobs_number_unique') ||
+                              (_errMsg(error) || '').includes('unique constraint');
+    if (isNumberConflict) {
+      console.warn(`[jobs] id conflict on ${j.name} — retrying with number-based upsert`);
+      const { error: e2 } = await _sb.from('jobs').upsert(fullPayload, { onConflict: 'number' });
+      if (!e2 || _isCosmeticError(e2)) {
+        console.log(`[jobs] ✓ saved ${j.name} via number upsert`);
+        return true;
+      }
     }
     if (isSchemaError(error)) {
       console.warn(`[jobs] full payload rejected (schema mismatch): ${_errMsg(error)} — retrying with minimal payload`);
@@ -14416,13 +15283,18 @@ async function openNewJobForm() {
   JOBS.push(newJob);
   selectedJobId = newId;
 
-  // Persist immediately so the job exists in DB even before the user
-  // edits the auto-generated "New Job" name. Otherwise it'd be a
-  // memory-only ghost until first explicit save.
+  // Render the list IMMEDIATELY so the new job appears without waiting
+  // for the DB round-trip. Previously renderJobManager() was called only
+  // after await persistJob() — on a slow connection that could be several
+  // seconds of blank list, making the user think nothing happened.
+  renderJobManager();
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+
+  // Persist in background — non-blocking from the user's perspective
   const persisted = await persistJob(newJob);
 
+  // Re-render once more after persist so status dot reflects saved state
   renderJobManager();
-  if (typeof buildSchedTbody === 'function') buildSchedTbody(); // refresh schedule grid in case it's open
 
   if (persisted) {
     showToast(`New job created — edit the name and details, all changes save automatically`, 'success');
@@ -14496,7 +15368,7 @@ function openDayPopover(td, crid) {
 
   pop.innerHTML = `
     <div class="day-popover-title">
-      ${esc(last)}, ${esc(first)} · ${esc(dayLabel)} ${esc(wkLabel)}
+      ${esc(last)}, ${esc(first)} · ${esc(dayLabel)}
       <button onclick="closeDayPopover()" style="float:right;border:none;background:none;cursor:pointer;font-size:13px;color:var(--ff-tx4);line-height:1;padding:0">×</button>
     </div>
     ${getDayOptions().map(opt => {
@@ -14508,7 +15380,23 @@ function openDayPopover(td, crid) {
         ${esc(displayLabel)}
         ${isCurrent ? '<span style="margin-left:auto;font-size:9px;opacity:.6">current</span>' : ''}
       </div>`;
-    }).join('')}`;
+    }).join('')}
+    <div style="border-top:1px solid var(--ff-bdr);margin-top:4px;padding:4px 8px 6px;display:flex;gap:5px;flex-wrap:wrap">
+      <button onclick="fillWeekQuick(${JSON.stringify(crid)})" class="day-popover-action-btn"
+        style="flex:1;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid var(--ff-bdr);background:var(--ff-bg);cursor:pointer;font-family:inherit;color:var(--ff-tx);transition:all .12s"
+        data-tip="Fill Mon–Thu this week with the current day's job assignment"
+        onmouseover="this.style.background='var(--ff-blue-dim)';this.style.borderColor='var(--ff-blue)';this.style.color='var(--ff-blue)'"
+        onmouseout="this.style.background='var(--ff-bg)';this.style.borderColor='var(--ff-bdr)';this.style.color='var(--ff-tx)'">
+        ⬛ Fill week
+      </button>
+      <button onclick="clearWeekQuick(${JSON.stringify(crid)})" class="day-popover-action-btn"
+        style="flex:1;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid var(--ff-bdr);background:var(--ff-bg);cursor:pointer;font-family:inherit;color:var(--ff-tx);transition:all .12s"
+        data-tip="Clear Mon–Thu this week for this employee (same job only)"
+        onmouseover="this.style.background='rgba(220,38,38,.08)';this.style.borderColor='var(--bad)';this.style.color='var(--bad)'"
+        onmouseout="this.style.background='var(--ff-bg)';this.style.borderColor='var(--ff-bdr)';this.style.color='var(--ff-tx)'">
+        ✕ Clear week
+      </button>
+    </div>`;
 
   // Attach to the cell's parent (the td), positioned relative to tbl-wrap
   const tblWrap = td.closest('.tbl-wrap');
@@ -15053,8 +15941,7 @@ function notifyDayChange(empKey, weekIdx, dayIdx, oldValue, newValue) {
   const chainAbove = orgChainAbove(last, first, 3);
   const changer = (typeof _currentUser !== 'undefined' && _currentUser.name) || 'A dispatcher';
   const dayNames = SCHED_DAY_NAMES_LONG;
-  const wkLabels = ['Apr 13','Apr 20','Apr 27'];
-  const when = `${dayNames[dayIdx] || ''} of the week of ${wkLabels[weekIdx] || ''}`;
+  const when = `${dayNames[dayIdx] || ''} of the week of ${typeof schedWeekLabel === 'function' ? schedWeekLabel(weekIdx, true) : 'week ' + weekIdx}`;
 
   // Recipients: the employee themselves + every manager up the chain
   const recipients = [];
@@ -15287,6 +16174,67 @@ function showToast(msg, kind) {
   }, 3200);
 }
 
+// One-click set for next-week empty cells — applies the suggested job name.
+function quickSetNextWeek(empKey, weekIdx, dayIdx, jobName) {
+  const wk = SCHED[empKey]?.[weekIdx];
+  if (!wk || wk[dayIdx]) return; // already filled
+  wk[dayIdx] = jobName;
+  persistScheduleOverride(empKey, weekIdx, dayIdx, jobName);
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  const [last] = empKey.split(',');
+  const dayLabel = (typeof SCHED_DAY_NAMES_LONG !== 'undefined') ? (SCHED_DAY_NAMES_LONG[dayIdx] || '') : '';
+  showToast(`${last}: ${dayLabel} next week → ${jobName}`, 'success');
+}
+
+function fillWeekQuick(crid) {
+  const d = get(crid);
+  if (!d?.empKey || !d.value || ['School','HOLIDAY','VACATION','OFF','???',''].includes(d.value)) {
+    showToast('Pick a job first — nothing to fill', 'warn');
+    return;
+  }
+  const wk = SCHED[d.empKey]?.[d.weekIdx];
+  if (!wk) return;
+  const SKIP = new Set(['School','HOLIDAY','VACATION','OFF','PERSONAL','JURY','BEREAVE','SICK','???']);
+  const maxDay = Math.min((SCHED_DISPLAY_DAYS || 4), 7) - 1; // respect current display mode
+  const filled = [];
+  for (let di = 0; di <= maxDay; di++) {
+    if (!wk[di] || wk[di] === '') {
+      wk[di] = d.value;
+      persistScheduleOverride(d.empKey, d.weekIdx, di, d.value);
+      filled.push(SCHED_DAY_NAMES_LONG[di]);
+    }
+  }
+  closeDayPopover();
+  if (filled.length === 0) { showToast('All days already filled', 'warn'); return; }
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  const [last] = d.empKey.split(',');
+  showToast(`${last}: filled ${filled.join(', ')} with ${d.value}`, 'success');
+}
+
+// Clear all Mon-Thu cells this week that share the current cell's job.
+// One-click version of the clear-week toast.
+function clearWeekQuick(crid) {
+  const d = get(crid);
+  if (!d?.empKey) return;
+  const wk = SCHED[d.empKey]?.[d.weekIdx];
+  if (!wk) return;
+  const job = d.value || '';
+  const cleared = [];
+  for (let di = 0; di <= 3; di++) {
+    if (wk[di] === job || (!job && !wk[di])) {
+      const old = wk[di];
+      wk[di] = '';
+      persistScheduleOverride(d.empKey, d.weekIdx, di, '');
+      if (old) cleared.push(SCHED_DAY_NAMES_LONG[di]);
+    }
+  }
+  closeDayPopover();
+  if (cleared.length === 0) { showToast('Nothing to clear', 'warn'); return; }
+  if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  const [last] = d.empKey.split(',');
+  showToast(`${last}: cleared ${cleared.join(', ')}${job ? ' (' + job + ')' : ''}`, 'success');
+}
+
 function closeDayPopover() {
   const pop = document.getElementById('day-popover');
   if (pop) pop.remove();
@@ -15354,13 +16302,14 @@ const NOTIF_DEFS = [
 ];
 
 function renderAdmin() {
-  // Render all panes once when admin screen is opened.
-  // Users pane was removed — auth is managed directly in Supabase.
-  // We keep renderAdminUserList() defined for any legacy callers but
-  // skip it here since there's no DOM target.
+  // Always land on the Jobs tab when admin is opened — call adminTab first
+  // so admin-pane-jobs becomes visible before renderJobManager writes to it.
+  // Previously renderJobManager() was called here without showing the pane,
+  // so the list rendered into a display:none element and appeared blank.
+  if (typeof adminTab === 'function') adminTab('jobs');
+
   renderAdminNotifs();
   loadHRContact();
-  if (typeof renderJobManager === 'function') renderJobManager();
   if (typeof renderTransfers === 'function')  renderTransfers();
   if (typeof updateAbsentBadge === 'function') updateAbsentBadge();
   if (typeof updateCertsBadge === 'function') updateCertsBadge();
@@ -15452,16 +16401,89 @@ function _relTime(iso) {
   return new Date(iso).toLocaleDateString();
 }
 
+// ── Full Activity Log screen render ───────────────────────────
+// Shows all NOTIFICATIONS entries with filter + search. Updates
+// the nav badge count. More complete than the topbar bell dropdown.
+function renderActivityLog() {
+  const host = document.getElementById('actlog-list');
+  if (!host) return;
+
+  const filter = document.getElementById('actlog-filter')?.value || 'all';
+  const q = (document.getElementById('actlog-search')?.value || '').toLowerCase().trim();
+  const all = Array.isArray(NOTIFICATIONS) ? NOTIFICATIONS : [];
+  const now = Date.now();
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const weekStart  = new Date(todayStart.getTime() - 7 * 86400000);
+
+  const filtered = all.filter(n => {
+    const t = new Date(n.at).getTime();
+    if (filter === 'assignments' && !n.new_value) return false;
+    if (filter === 'clears'     && n.new_value) return false;
+    if (filter === 'today'      && t < todayStart.getTime()) return false;
+    if (filter === 'week'       && t < weekStart.getTime()) return false;
+    if (q) {
+      const hay = `${n.employee} ${n.old_value} ${n.new_value} ${n.changer} ${n.summary}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Update activity badge
+  const badge = document.getElementById('activity-badge');
+  const unread = (typeof _unreadNotifCount === 'function') ? _unreadNotifCount() : 0;
+  if (badge) {
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? '' : 'none';
+  }
+
+  if (filtered.length === 0) {
+    host.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7">
+      <div style="font-size:28px;opacity:.3;margin-bottom:8px">🔔</div>
+      No activity yet${q ? ` matching "${q}"` : ''}.${filter !== 'all' ? '<br><span style="font-size:11px">Try changing the filter.</span>' : ''}
+    </div>`;
+    return;
+  }
+
+  host.innerHTML = filtered.map(n => {
+    const t = new Date(n.at).getTime();
+    const isUnread = (typeof _lastNotifReadAt !== 'undefined') ? t > _lastNotifReadAt : false;
+    const direction = n.old_value && n.new_value
+      ? `<span style="color:var(--muted)">${esc(n.old_value)}</span> → <strong style="color:var(--accent-dark)">${esc(n.new_value)}</strong>`
+      : n.new_value
+        ? `assigned to <strong style="color:var(--accent-dark)">${esc(n.new_value)}</strong>`
+        : `cleared from <strong style="color:var(--ink)">${esc(n.old_value || 'job')}</strong>`;
+    const wkLabel = typeof schedWeekLabel === 'function' && n.week_idx != null
+      ? ` · week of ${schedWeekLabel(n.week_idx, true)}` : '';
+    const dayName = (typeof SCHED_DAY_NAMES_LONG !== 'undefined' && n.day_idx != null)
+      ? SCHED_DAY_NAMES_LONG[n.day_idx] || '' : '';
+    const recipients = (n.recipients || []).join(' · ');
+    const when = `${dayName}${wkLabel}`;
+
+    return `<div style="background:${isUnread?'var(--accent-faint)':'var(--white)'};border:1px solid var(--line);border-left:3px solid ${isUnread?'var(--accent)':'var(--line)'};border-radius:8px;padding:11px 14px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px">
+        <div style="font-size:12.5px;color:var(--ink);font-weight:500">${esc(n.employee)}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap">${_relTime?.(n.at)||new Date(n.at).toLocaleString()}</div>
+      </div>
+      <div style="font-size:12px;color:var(--ink)">${direction}</div>
+      ${when ? `<div style="font-size:10.5px;color:var(--muted);margin-top:3px">📅 ${esc(when)}</div>` : ''}
+      <div style="font-size:10.5px;color:var(--muted);margin-top:3px">by ${esc(n.changer||'unknown')}</div>
+      ${recipients ? `<div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5">Notified: ${esc(recipients)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function renderNotifBell() {
+  const unread = _unreadNotifCount();
   const badge = document.getElementById('ff-bell-badge');
   if (badge) {
-    const unread = _unreadNotifCount();
-    if (unread > 0) {
-      badge.textContent = unread > 99 ? '99+' : String(unread);
-      badge.style.display = '';
-    } else {
-      badge.style.display = 'none';
-    }
+    badge.textContent = unread > 99 ? '99+' : String(unread);
+    badge.style.display = unread > 0 ? '' : 'none';
+  }
+  // Also update the Activity log nav badge
+  const navBadge = document.getElementById('activity-badge');
+  if (navBadge) {
+    navBadge.textContent = unread;
+    navBadge.style.display = unread > 0 ? '' : 'none';
   }
   // Only re-render the dropdown body when it's open (saves work)
   if (_notifBellOpen) renderNotifBellDropdown();
@@ -16254,6 +17276,7 @@ async function adminSaveUser() {
 }
 
 function adminSaveHR() {
+  if (!_requireSuperintendent('adminSaveHR')) return;
   const name  = document.getElementById('admin-hr-name')?.value.trim() || '';
   const email = document.getElementById('admin-hr-email')?.value.trim() || '';
   try {
@@ -16768,10 +17791,8 @@ function ffShowSignin() { ffShowForm('signin'); }
 
 function ffShowLogin() {
   const l = document.getElementById('ff-login');
-  const t = document.getElementById('ff-topbar');
   const a = document.getElementById('ff-app');
   if (l) { l.style.display = 'flex'; }
-  if (t) { t.style.display = 'none'; }
   if (a) { a.style.display = 'none'; }
   ffShowSignin();
 }
@@ -16785,12 +17806,11 @@ function ffShowApp(email, name, role) {
   // Track current user for notifications and audit trails
   _currentUser = { email: email || '', name: name || '', role: role || '' };
   const l = document.getElementById('ff-login');
-  const t = document.getElementById('ff-topbar');
   const a = document.getElementById('ff-app');
   if (l) l.style.display = 'none';
-  if (t) { t.style.display = 'flex'; }
   if (a) a.style.display = 'block';
 
+  // Update ghost topbar elements (referenced by legacy code) 
   const te = document.getElementById('ff-topbar-email');
   const tr = document.getElementById('ff-topbar-role');
   if (te) te.textContent = email || '';
@@ -16887,39 +17907,17 @@ _sb.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-// ── Production boot ─────────────────────────────────────────────
-// Auth gate is active: the login screen shows by default, the user
-// authenticates against Supabase, and the app only swaps in once
-// allowed_users confirms their access.
-//
-// Robust against iframe / embed contexts where _sb.auth.getSession()
-// may hang indefinitely (corporate proxies, storage-isolation policies
-// in sandboxed iframes). Strategy:
-//   1. Show the login screen immediately so the user always sees something.
-//   2. Race the session check against a 2.5-second timeout.
-//   3. If a session resolves and is authorized, swap to the app.
-//   4. If anything errors or times out, stay on the login screen.
-//
-// To re-enable testing-mode bypass for development, replace the call
-// below with the testing-mode IIFE preserved at the bottom of this file.
+// ── Production auth — ACTIVE ────────────────────────────────
 (async () => {
   try { ffShowLogin(); } catch (e) { console.error('[boot] ffShowLogin threw', e); }
-
   const sessionPromise = _sb.auth.getSession()
     .then(r => r?.data?.session || null)
     .catch(err => { console.warn('[boot] getSession failed:', err); return null; });
   const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 2500));
-
   let session;
-  try {
-    session = await Promise.race([sessionPromise, timeoutPromise]);
-  } catch (err) {
-    console.warn('[boot] session race threw:', err);
-    session = null;
-  }
-
-  if (!session) return; // login screen already showing
-
+  try { session = await Promise.race([sessionPromise, timeoutPromise]); }
+  catch (err) { console.warn('[boot] session race threw:', err); session = null; }
+  if (!session) return;
   try {
     const allowed = await ffAllowed(session.user.email);
     if (allowed) {
@@ -16930,14 +17928,25 @@ _sb.auth.onAuthStateChange(async (event, session) => {
       refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
       loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
     } else {
-      // Email is logged in to Supabase Auth but isn't in allowed_users —
-      // sign them out and leave the login screen showing
       _sb.auth.signOut().catch(() => {});
     }
+  } catch (err) { console.error('[boot] Post-session verification failed:', err); }
+})();
+
+/*  ── TESTING MODE — uncomment to bypass login ─────────────────
+(async () => {
+  try {
+    ffShowApp('cameron.laws@crem-inc.com', 'Cameron Laws', 'superintendent');
+    loadPersistedData().catch(err => console.warn('[load] failed', err));
+    loadSectors().catch(err => console.warn('[sectors] load failed', err));
+    loadNotifications().catch(err => console.warn('[notifications] load failed', err));
+    refreshDirectorsCache().catch(err => console.warn('[directors] failed', err));
+    loadJobDocuments().catch(err => console.warn('[job-docs] failed', err));
   } catch (err) {
-    console.error('[boot] Post-session verification failed:', err);
+    console.error('[boot] testing-mode launch failed', err);
   }
 })();
+*/
 
 // ── Testing-mode bypass — DEV ONLY ──────────────────────────────
 // Preserved here for fast iteration during development. To activate:
@@ -17136,31 +18145,33 @@ async function loadPersistedData() {
   }
 
   // 7. Jobs — load from DB and merge with seed
+  // _dbRowToJob maps DB snake_case → JS camelCase and is also used by
+  // the on-demand sync so CremCommand-pushed jobs land correctly.
   const jobRows = await _safeLoad('jobs', () =>
     _sb.from('jobs').select('*').order('name')
   );
   if (jobRows && jobRows.length) {
     jobRows.forEach(r => {
-      const idx = JOBS.findIndex(j => j.id === r.id);
-      const entry = {
-        id: r.id, name: r.name, number: r.number, location: r.location || '',
-        sector: r.sector || '', status: r.status || 'active', days: r.days || 5,
-        lead: r.lead || '', leadEmail: r.lead_email || '',
-        notes: r.notes || '', color: r.color || '#6B7280',
-        address: r.address || '', lat: null, lng: null,
-        startDate: r.start_date || null, endDate: r.end_date || null,
-        percentComplete: r.percent_complete ?? null,
-        doc_path: r.doc_path || null, doc_name: r.doc_name || null,
-        requirements: (() => {
-          if (!r.requirements) return defaultJobRequirements();
-          try { return typeof r.requirements === 'string' ? JSON.parse(r.requirements) : r.requirements; }
-          catch { return defaultJobRequirements(); }
-        })(),
-      };
+      const entry = _dbRowToJob(r);
+      // Match by id first, then fall back to number (CremCommand uses number
+      // as its natural key and generates a new UUID on every push).
+      const byId  = JOBS.findIndex(j => j.id === r.id);
+      const byNum = byId < 0 ? JOBS.findIndex(j => j.number === r.number) : -1;
+      const idx   = byId >= 0 ? byId : byNum;
       if (idx >= 0) Object.assign(JOBS[idx], entry);
       else JOBS.push(entry);
     });
     if (typeof renderJobManager === 'function') renderJobManager();
+    if (typeof buildSchedTbody === 'function') buildSchedTbody();
+  }
+
+  // Re-run school session sync AFTER all DB overrides are applied.
+  // loadPersistedData() writes schedule_day_overrides back into SCHED,
+  // which can include old School cells at the wrong week (e.g. Kolten at
+  // May 4 instead of May 18). Running the sync here ensures the
+  // SCHOOL_SESSIONS dates always win over stale DB overrides.
+  if (typeof applySchoolSessionsToSchedule === 'function') {
+    applySchoolSessionsToSchedule();
     if (typeof buildSchedTbody === 'function') buildSchedTbody();
   }
 }
@@ -17303,6 +18314,8 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // kick the first render here at the bottom of the script to avoid TDZ errors.
 try { if (typeof renderJobView === 'function') renderJobView(); } catch (e) { console.error('renderJobView init failed', e); }
 try { if (typeof buildSchedJumpOptions === 'function') buildSchedJumpOptions(); } catch (e) { console.error('buildSchedJumpOptions init failed', e); }
+// Sync the day-toggle button visuals to whatever mode was stored in localStorage
+try { if (typeof setSchedDisplayDays === 'function') setSchedDisplayDays(SCHED_DISPLAY_DAYS); } catch {}
 try { if (typeof buildSchedThead === 'function') buildSchedThead(); } catch (e) { console.error('buildSchedThead init failed', e); }
 try { if (typeof buildSchedTbody === 'function') buildSchedTbody(); } catch (e) { console.error('buildSchedTbody init failed', e); }
 try { if (typeof populateDsWeekSel === 'function') populateDsWeekSel(); } catch (e) { console.error('populateDsWeekSel init failed', e); }
