@@ -4556,7 +4556,7 @@ input:focus, select:focus, textarea:focus, .form-input:focus {
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
               <button class="btn btn-sm btn-primary" onclick="runConnectionDiagnostic()" id="diag-run-btn">🔍 Run diagnostic</button>
-              <button class="btn btn-sm" onclick="copyDiagnosticOutput()" id="diag-copy-btn" style="display:none">📋 Copy output</button>
+              <button class="btn btn-sm" onclick="copyDiagnosticOutput()" id="diag-copy-btn">📋 Copy output</button>
               <button class="btn btn-sm" onclick="clearSessionAndReload()" style="margin-left:auto;color:#B91C1C">🚪 Clear session + reload</button>
             </div>
             <textarea id="diag-output" readonly placeholder="Click 'Run diagnostic' to see connection status, JWT details, and test query results..."
@@ -15321,16 +15321,27 @@ async function runConnectionDiagnostic() {
 
 function copyDiagnosticOutput() {
   const out = document.getElementById('diag-output-modal') || document.getElementById('diag-output');
-  if (!out || !out.value) return;
+  const btn = document.getElementById('diag-copy-btn');
+  if (!out || !out.value.trim()) {
+    if (btn) { btn.textContent = '⚠ Run diagnostic first'; setTimeout(() => { btn.textContent = '📋 Copy output'; }, 2000); }
+    return;
+  }
   out.select();
   out.setSelectionRange(0, 99999);
   let copied = false;
   try { navigator.clipboard.writeText(out.value).then(() => {}); copied = true; } catch {}
   if (!copied) { try { document.execCommand('copy'); copied = true; } catch {} }
-  const btn = document.getElementById('diag-copy-btn');
   if (btn) {
-    btn.textContent = copied ? '✓ Copied!' : '⚠ Select manually & Ctrl+C';
-    setTimeout(() => { btn.textContent = '📋 Copy output'; }, 2500);
+    btn.textContent = copied ? '✓ Copied!' : '✓ Selected — press Ctrl+C';
+    btn.style.background = 'var(--good, #15803D)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--good, #15803D)';
+    setTimeout(() => {
+      btn.textContent = '📋 Copy output';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2500);
   }
 }
 
